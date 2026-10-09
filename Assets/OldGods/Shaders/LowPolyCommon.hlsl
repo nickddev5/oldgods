@@ -3,8 +3,9 @@
 
 // Shared passes for the Old Gods low-poly look: vertex colour times base colour,
 // flat normals from the mesh, main light with shadows, ambient from light probes, fog.
-// Characters get a dark outline (an inverted hull, _OutlineWidth in pixels); everything else
-// gets chunky surface noise (_SurfaceNoise) so wide ground and stone faces are not flat colour.
+// Characters get a dark outline (an inverted hull, _OutlineWidth in pixels). Every surface is
+// shaded with a pixel-art detail texture (_PixelAmount, _TexelsPerMeter; see PixelTexture.cs)
+// projected in object space, so the coarse texels stick to moving models.
 // Define OG_HORDE before including to draw from the horde instance buffer.
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -20,8 +21,12 @@ CBUFFER_START(UnityPerMaterial)
     half _AirPose;
     half _SlidePose;
     half _OutlineWidth;
-    half _SurfaceNoise;
+    half _PixelAmount;
+    half _TexelsPerMeter;
 CBUFFER_END
+
+TEXTURE2D(_OG_PixelTex);
+SAMPLER(sampler_OG_PixelTex);
 
 struct Attributes
 {
@@ -45,7 +50,8 @@ struct Varyings
     half4  color      : COLOR;
     half   fogFactor  : TEXCOORD2;
     half   flash      : TEXCOORD3;
-    float3 restOS     : TEXCOORD4; // rest-pose object position, scaled to metres: surface noise sticks to the surface
+    float3 restOS     : TEXCOORD4; // rest-pose object position in metres: the pixel texture sticks to the surface
+    float3 restNormal : TEXCOORD5; // rest-pose object normal, to pick the projection plane
 };
 
 #ifdef OG_HORDE
@@ -191,16 +197,24 @@ float OGValueNoise(float2 p)
     return lerp(lerp(a, b, f.x), lerp(c, d, f.x), f.y);
 }
 
-// Noise in about -0.5..0.5 on the plane the face mostly lies in: small hard-edged cells like
-// coarse texels over soft patches like worn ground. The cells fade out with distance so they
-// do not shimmer.
-half SurfaceNoise(float3 p, float3 n, float dist)
+// Pixel-art shading: the detail texture on the plane the face mostly lies in (flat faces
+// pick one axis, so texels stay square and crisp, as in a hand-UV'd pixel texture). Ground
+// faces use the grass channel, characters the fine grain, other walls grain and streaks.
+// Darker texels are also a little more saturated, like a pixel artist's colour ramp.
+// Static scenery gets soft broad patches as well, so a wide field is not one tone.
+half3 PixelShade(half3 albedo, float3 p, float3 n, bool character)
 {
     float3 an = abs(n);
-    float2 uv = an.y >= max(an.x, an.z) ? p.xz : (an.x >= an.z ? p.zy : p.xy);
-    half fine = OGHash(floor(uv / 0.5)) - 0.5;
-    half coarse = OGValueNoise(uv / 4.0 + 17.0) - 0.5;
-    return fine * saturate(1.0 - dist / 60.0) + coarse * 0.9;
+    bool up = an.y >= max(an.x, an.z);
+    float2 uv = up ? p.xz : (an.x >= an.z ? p.zy : p.xy);
+    half4 t = SAMPLE_TEXTURE2D(_OG_PixelTex, sampler_OG_PixelTex, uv * (_TexelsPerMeter / 128.0));
+    half tone = character ? t.r : (up && n.y > 0 ? t.g : lerp(t.r, t.b, 0.6));
+    half k = (tone - 0.5) * 2.0 * _PixelAmount;
+    half3 c = albedo * (1.0 + k);
+    half lum = dot(c, half3(0.2126, 0.7152, 0.0722));
+    c = max(0, lerp(lum.xxx, c, 1.0 - k * 0.8));
+    if (!character) c *= 1.0 + (OGValueNoise(uv / 4.0 + 17.0) - 0.5) * 0.14;
+    return c;
 }
 
 Varyings LitVert(Attributes IN)
@@ -209,6 +223,7 @@ Varyings LitVert(Attributes IN)
     half flash, tint;
     OGTransform(IN, OUT.positionWS, OUT.normalWS, flash, tint);
     OUT.restOS = RestPosition(IN);
+    OUT.restNormal = IN.normalOS;
     OUT.positionCS = TransformWorldToHClip(OUT.positionWS);
     OUT.color = half4(IN.color.rgb * tint, IN.color.a);
     OUT.fogFactor = ComputeFogFactor(OUT.positionCS.z);
@@ -220,14 +235,8 @@ half4 LitFrag(Varyings IN) : SV_Target
 {
     float3 n = normalize(IN.normalWS);
     half3 albedo = IN.color.rgb * _BaseColor.rgb;
-#ifndef OG_HORDE
-    // Outlined models are characters: they keep clean colour blocks.
-    if (_SurfaceNoise > 0 && _OutlineWidth <= 0)
-    {
-        float dist = distance(IN.positionWS, GetCameraPositionWS());
-        albedo *= 1.0 + _SurfaceNoise * SurfaceNoise(IN.restOS, n, dist) * lerp(0.6, 1.0, saturate(n.y));
-    }
-#endif
+    // Outlined models are characters: fine grain only, no ground patches.
+    if (_PixelAmount > 0) albedo = PixelShade(albedo, IN.restOS, IN.restNormal, _OutlineWidth > 0);
     float4 shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
     Light mainLight = GetMainLight(shadowCoord);
     half ndl = saturate(dot(n, mainLight.direction));

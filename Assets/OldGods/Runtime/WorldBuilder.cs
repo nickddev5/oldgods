@@ -53,11 +53,14 @@ namespace OldGods.Runtime
 
         /// <summary>
         /// The same material with a dark outline, for characters: the player, gods, bosses.
-        /// Outlined surfaces also skip the ground's surface noise, so they stay clean colour blocks.
+        /// Outlined surfaces take the pixel texture's fine grain at a smaller texel, as a
+        /// character texture would, and skip the ground's broad patches.
         /// </summary>
         public static Material Outlined(Material m, float pixels = CharacterOutline)
         {
             m.SetFloat("_OutlineWidth", pixels);
+            m.SetFloat("_PixelAmount", 0.2f);
+            m.SetFloat("_TexelsPerMeter", 14f);
             return m;
         }
 

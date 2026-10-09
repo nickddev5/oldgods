@@ -29,8 +29,9 @@ Material:
     - _AmbientBoost: 0.2
     - _AnimPhase: 0
     - _OutlineWidth: 2.5
+    - _PixelAmount: 0.22
     - _SlidePose: 0
-    - _SurfaceNoise: 0
+    - _TexelsPerMeter: 14
     - _WalkSwing: 0.22
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}

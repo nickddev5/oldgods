@@ -105,8 +105,11 @@ namespace OldGods.Editor
             var horde = Mat("Horde", "OldGods/HordeInstanced", Color.white);
             horde.SetFloat("_WalkSwing", 0.22f);
             horde.SetFloat("_OutlineWidth", 2.5f);
-            // Coarse-texel noise on ground, stone and props; characters turn it off with their outline.
-            lowPoly.SetFloat("_SurfaceNoise", 0.16f);
+            // Pixel-art texture: big texels on ground, stone and props; finer on the horde.
+            lowPoly.SetFloat("_PixelAmount", 0.26f);
+            lowPoly.SetFloat("_TexelsPerMeter", 10f);
+            horde.SetFloat("_PixelAmount", 0.22f);
+            horde.SetFloat("_TexelsPerMeter", 14f);
             var glow = Mat("Glow", "OldGods/LowPoly", Color.white, new Color(1.2f, 1.1f, 0.8f));
             var unlit = Mat("UnlitGlow", "OldGods/UnlitGlow", Color.white);
             var fade = Mat("UnlitFade", "OldGods/UnlitGlow", Color.white);

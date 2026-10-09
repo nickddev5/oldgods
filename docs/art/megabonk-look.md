@@ -27,12 +27,12 @@ Researched 2026-10-09 for the graphics pass. Megabonk (Vedinad, Unity, 2025) is 
 1. **Sky dome** (`Runtime/Art/SkyDome.cs`, `Shaders/Sky.shader`): gradient, two rings of far hills fading into haze, flat clouds. Horizon = fog colour.
 2. **Biome mood colours**: fog, ambient and sun retuned so each stage has one dominant hue (blue-green steppe, violet-dusk Ash Wood, teal coast). Values are PLACEHOLDER.
 3. **Outlines** on enemies, the player, gods and bosses (inverted hull, pixel width, thinner far away).
-4. **Surface noise** on ground, stone and props instead of pixel textures, to keep the bible's colour-block rule.
+4. **Pixel-art textures** (`Runtime/Art/PixelTexture.cs`), added at Nick's request: one code-generated, point-filtered detail map with a few tones per channel, projected onto every model without UVs and multiplied into its vertex colours. The colour blocks stay; each gains coarse texels, about 10 cm on the ground and 7 cm on characters.
 5. **Bloom, neutral tonemapping, colour grade and vignette**, built in code (`Runtime/Art/SceneLook.cs`).
 
 ## What we did not take, and why
 
-- **Pixelated textures and pixel font:** the art rule asks for clear colour blocks and smooth-shaded rounded parts. Surface noise gets the texture without the retro look.
+- **Pixel font:** the HUD keeps its clean type for now.
 - **Meme props, sunglasses, skateboards:** tone.
 - **Motion blur:** hurts readability in a crowd.
 - **Lower default camera:** the biggest remaining gap. Megabonk shows the horizon; our 24-degree default mostly shows ground, so the new sky is seen only when the player tilts up. That is a camera decision for Nick (`ChaseCamera.DefaultPitch`); `-cameraPitch N` lets screenshots try values.

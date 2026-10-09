@@ -13,7 +13,8 @@ Shader "OldGods/HordeInstanced"
         _AirPose ("Air Pose (set per renderer)", Range(0, 1)) = 0
         _SlidePose ("Slide Pose (set per renderer)", Range(0, 1)) = 0
         _OutlineWidth ("Outline Width (pixels, 0 = none)", Range(0, 4)) = 2.5
-        _SurfaceNoise ("Surface Noise", Range(0, 0.5)) = 0
+        _PixelAmount ("Pixel Texture Amount", Range(0, 0.6)) = 0.22
+        _TexelsPerMeter ("Pixel Texels Per Metre", Range(2, 64)) = 14
     }
 
     SubShader
