@@ -194,6 +194,27 @@ namespace OldGods.Tests.EditMode
         }
 
         [Test]
+        public void AirKeepsSlideMomentumAndSteers()
+        {
+            var t = new MotorTuning();
+            var fast = new Vec2(t.RunSpeed * 2f, 0f);
+            var coast = PlayerRules.StepRun(fast, default, false, 1f, t, 0.1f);
+            Assert.Greater(coast.X, t.RunSpeed * 1.9f, "no input keeps nearly all the speed");
+            var steer = PlayerRules.StepRun(fast, new Vec2(0f, 1f), false, 1f, t, 0.1f);
+            Assert.Greater(steer.Z, 0f, "input turns the motion");
+            Assert.Greater(steer.Magnitude, t.RunSpeed * 1.9f, "turning does not brake");
+            var ground = PlayerRules.StepRun(fast, new Vec2(1f, 0f), true, 1f, t, 0.1f);
+            Assert.Less(ground.Magnitude, coast.Magnitude, "on the ground it settles back to a run");
+        }
+
+        [Test]
+        public void FallingIsFasterThanRising()
+        {
+            var t = new MotorTuning();
+            Assert.Greater(PlayerRules.GravityFor(-1f, t), PlayerRules.GravityFor(1f, t));
+        }
+
+        [Test]
         public void SlideGainsDownhillAndStopsOnFlat()
         {
             var t = new MotorTuning();

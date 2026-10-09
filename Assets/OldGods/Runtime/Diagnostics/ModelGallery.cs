@@ -65,6 +65,22 @@ namespace OldGods.Runtime
             }
             Destroy(gods.gameObject);
 
+            // Poses, side on: standing, two moments of the run, the jump and the slide.
+            var poses = new GameObject("Poses").transform;
+            var posed = new (float phase, float swing, float air, float slide)[] { (0f, 0.02f, 0f, 0f), (1.57f, 0.2f, 0f, 0f), (4.71f, 0.2f, 0f, 0f), (0f, 0.03f, 1f, 0f), (0f, 0.03f, 0f, 1f) };
+            for (int i = 0; i < posed.Length; i++)
+            {
+                var go = WorldBuilder.CreateProp($"Pose {i}", GodModels.Get(GodLook.Storm), white, new Vector3((i - 2) * 1.3f, posed[i].slide > 0f ? -0.32f : 0f, 0f), Quaternion.Euler(posed[i].slide > 0f ? -16f : 0f, 90f, 0f), Vector3.one, poses, false);
+                var block = new MaterialPropertyBlock();
+                block.SetFloat("_AnimPhase", posed[i].phase);
+                block.SetFloat("_WalkSwing", posed[i].swing);
+                block.SetFloat("_AirPose", posed[i].air);
+                block.SetFloat("_SlidePose", posed[i].slide);
+                go.GetComponent<MeshRenderer>().SetPropertyBlock(block);
+            }
+            yield return Shoot(cam, new Vector3(0f, 1.1f, -9f), new Vector3(0f, 0.9f, 0f), "poses");
+            Destroy(poses.gameObject);
+
             var enemies = new GameObject("Enemies").transform;
             int n = System.Enum.GetValues(typeof(EnemyModel)).Length;
             for (int i = 0; i < n; i++)

@@ -417,6 +417,14 @@ namespace OldGods.Editor
                 assets.ContentVersion = 3;
                 EditorUtility.SetDirty(assets);
             }
+            if (assets.ContentVersion < 4)
+            {
+                // Movement pass 2026-10-09: steadier air control; momentum, fall gravity and
+                // short hops come from new fields with their defaults.
+                if (assets.Motor.AirControl < 0.6f) assets.Motor.AirControl = 0.6f;
+                assets.ContentVersion = 4;
+                EditorUtility.SetDirty(assets);
+            }
         }
 
         static void Items(ContentLibrary l)

@@ -26,6 +26,10 @@ namespace OldGods.Runtime
         public Vector3 Velocity => new Vector3(horizontal.X, verticalSpeed, horizontal.Z);
         public float HorizontalSpeed => horizontal.Magnitude;
         public Vector3 Facing { get; private set; } = Vector3.forward;
+        /// <summary>0 on the ground, rising to 1 shortly after leaving it; drives the jump pose.</summary>
+        public float AirBlend { get; private set; }
+        /// <summary>0 to 1 while sliding; drives the slide pose.</summary>
+        public float SlideBlend { get; private set; }
 
         CharacterController cc;
         PlayerHealth health;
@@ -38,6 +42,10 @@ namespace OldGods.Runtime
         bool wasGrounded = true;
         float standHeight;
         Vector3 standCenter;
+        bool jumpHeld;
+        float squash;       // landing squash (+) or take-off stretch (-), springs back to 0
+        float squashVel;
+        float lean, roll, yaw;
 
         void Awake()
         {
@@ -57,6 +65,16 @@ namespace OldGods.Runtime
             horizontal = default;
             verticalSpeed = 0f;
             EndSlide();
+        }
+
+        /// <summary>Turns the player to face a direction at once, e.g. in a cutscene.</summary>
+        public void FaceTowards(Vector3 direction)
+        {
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 1e-4f) return;
+            Facing = direction.normalized;
+            yaw = Mathf.Atan2(Facing.x, Facing.z) * Mathf.Rad2Deg;
+            if (Visual != null) Visual.rotation = Quaternion.Euler(0f, yaw, 0f);
         }
 
         void Update()
@@ -124,13 +142,22 @@ namespace OldGods.Runtime
                     jumpBuffer = 0f;
                     if (IsSliding) EndSlide();
                     Grounded = false;
+                    jumpHeld = true;
+                    squash = -0.12f;
                 }
             }
+            // Releasing jump while still rising cuts the jump short.
+            if (jumpHeld && !(InputEnabled && GameInput.Held(GameInput.Jump)))
+            {
+                jumpHeld = false;
+                if (verticalSpeed > 0f) verticalSpeed *= t.JumpCutMultiplier;
+            }
+            if (verticalSpeed <= 0f) jumpHeld = false;
 
             if (Grounded && verticalSpeed < 0f) verticalSpeed = -2f;
             // Hug the ground while sliding so downhill slides do not hop off the slope.
             if (IsSliding && verticalSpeed <= 0f) verticalSpeed = Mathf.Min(verticalSpeed, -slideSpeed * 0.6f);
-            verticalSpeed -= t.Gravity * dt;
+            verticalSpeed -= PlayerRules.GravityFor(verticalSpeed, t) * dt;
             float fallSpeedBefore = -verticalSpeed;
 
             var flags = cc.Move(new Vector3(horizontal.X, verticalSpeed, horizontal.Z) * dt);
@@ -140,6 +167,7 @@ namespace OldGods.Runtime
             {
                 float dmg = PlayerRules.FallDamage(fallSpeedBefore, t);
                 if (dmg > 0f && health != null) health.TakeTrueDamage(dmg);
+                if (fallSpeedBefore > 4f) squash = Mathf.Max(squash, Mathf.Clamp(fallSpeedBefore * 0.012f, 0.06f, 0.22f));
             }
             if ((flags & CollisionFlags.Above) != 0 && verticalSpeed > 0f) verticalSpeed = 0f;
             wasGrounded = nowGrounded;
@@ -162,13 +190,38 @@ namespace OldGods.Runtime
 
             if (horizontal.SqrMagnitude > 0.25f)
                 Facing = new Vector3(horizontal.X, 0f, horizontal.Z).normalized;
-            if (Visual != null)
-            {
-                var targetRot = Quaternion.LookRotation(Facing, Vector3.up);
-                Visual.rotation = Quaternion.RotateTowards(Visual.rotation, targetRot, t.TurnSpeedDegrees * dt);
-                var targetScale = IsSliding ? new Vector3(1.1f, 0.55f, 1.1f) : Vector3.one;
-                Visual.localScale = Vector3.Lerp(Visual.localScale, targetScale, 1f - Mathf.Exp(-18f * dt));
-            }
+            UpdateVisual(dt, t);
+        }
+
+        /// <summary>
+        /// Turns the model toward the motion, leans it into runs and turns, springs it on take-off
+        /// and landing, and lowers it into the slide. The limbs are posed by the shader (WalkAnimator).
+        /// </summary>
+        void UpdateVisual(float dt, MotorTuning t)
+        {
+            bool airborne = !Grounded && !NearGround();
+            AirBlend = Mathf.MoveTowards(AirBlend, airborne ? 1f : 0f, dt * (airborne ? 5f : 10f));
+            SlideBlend = Mathf.MoveTowards(SlideBlend, IsSliding ? 1f : 0f, dt * 8f);
+            if (Visual == null) return;
+
+            // Yaw toward the motion; roll by how fast it turns.
+            float yawBefore = yaw;
+            float targetYaw = Mathf.Atan2(Facing.x, Facing.z) * Mathf.Rad2Deg;
+            yaw = Mathf.MoveTowardsAngle(yaw, targetYaw, t.TurnSpeedDegrees * dt);
+            float turnRate = Mathf.DeltaAngle(yawBefore, yaw) / dt;
+            float speed01 = Mathf.Clamp01(horizontal.Magnitude / Mathf.Max(0.1f, t.RunSpeed * SpeedMultiplier));
+            float k = 1f - Mathf.Exp(-10f * dt);
+            roll = Mathf.Lerp(roll, Mathf.Clamp(-turnRate * 0.025f * speed01, -14f, 14f), k);
+            lean = Mathf.Lerp(lean, speed01 * 7f * (1f - SlideBlend) - SlideBlend * 16f, k);
+
+            // Squash and stretch on a spring.
+            squashVel += (-squash * 260f - squashVel * 18f) * dt;
+            squash += squashVel * dt;
+            float sq = Mathf.Clamp(squash, -0.2f, 0.3f);
+
+            Visual.localRotation = Quaternion.Euler(lean, yaw - transform.eulerAngles.y, roll);
+            Visual.localScale = new Vector3(1f + sq * 0.5f, 1f - sq, 1f + sq * 0.5f);
+            Visual.localPosition = new Vector3(0f, -SlideBlend * 0.32f, 0f);
         }
 
         bool NearGround() => transform.position.y - Ground.Height(transform.position.x, transform.position.z) < 0.35f;

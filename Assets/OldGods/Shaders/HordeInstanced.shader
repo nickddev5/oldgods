@@ -10,6 +10,8 @@ Shader "OldGods/HordeInstanced"
         _AmbientBoost ("Ambient Boost", Range(0, 2)) = 0.2
         _WalkSwing ("Walk Swing", Float) = 0.22
         _AnimPhase ("Anim Phase (set per renderer)", Float) = 0
+        _AirPose ("Air Pose (set per renderer)", Range(0, 1)) = 0
+        _SlidePose ("Slide Pose (set per renderer)", Range(0, 1)) = 0
     }
 
     SubShader

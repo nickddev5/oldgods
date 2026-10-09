@@ -107,8 +107,12 @@ namespace OldGods.Runtime
             return this;
         }
 
-        void LegPart(bool left) => Kit.Part(left ? BodyPart.LeftLeg : BodyPart.RightLeg, left ? HipL : HipR);
-        void ArmPart(bool left) => Kit.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? ShoulderL : ShoulderR);
+        /// <summary>Starts a leg part: it swings at the hip and bends at the knee.</summary>
+        public void LegPart(bool left) => Kit.Part(left ? BodyPart.LeftLeg : BodyPart.RightLeg, left ? HipL : HipR, (left ? KneeL : KneeR).y);
+        /// <summary>Starts an arm part: it swings at the shoulder and bends at the elbow.</summary>
+        public void ArmPart(bool left) => Kit.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? ShoulderL : ShoulderR, (left ? ElbowL : ElbowR).y);
+        /// <summary>Starts something held in a hand: all of it turns with the forearm.</summary>
+        public void HeldPart(bool left) => Kit.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? ShoulderL : ShoulderR, -(left ? ElbowL : ElbowR).y);
         void HeadPart() => Kit.Part(BodyPart.Head, NeckBase);
 
         // ---- The body ----
@@ -535,7 +539,7 @@ namespace OldGods.Runtime
         /// <summary>A weapon in the right hand. Kinds: staff, sword, axe, trident, spear, hammer.</summary>
         public Figure Weapon(string kind, float length, Color head, Color shaft)
         {
-            ArmPart(false);
+            HeldPart(false);
             var h = HandR;
             var up = Vector3.up;
             var dir = kind == "staff" || kind == "spear" || kind == "trident" ? up : new Vector3(0f, 0.35f, 1f).normalized;
@@ -581,7 +585,7 @@ namespace OldGods.Runtime
         /// <summary>A book held in the left hand.</summary>
         public Figure Book(Color cover, Color pages)
         {
-            ArmPart(true);
+            HeldPart(true);
             var at = HandL + new Vector3(0f, -0.02f, 0.06f);
             Kit.Block(at, new Vector3(0.05f, 0.18f, 0.14f), cover, 0.15f);
             Kit.Box(at + new Vector3(0.012f, 0f, 0f), new Vector3(0.04f, 0.16f, 0.13f), pages);

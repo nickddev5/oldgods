@@ -26,14 +26,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a9d524dec9e6ffb478c62dbd9a701900, type: 2}
   GreyboxBiome: {fileID: 11400000, guid: 266d2d67e531faa488ed1175ca305560, type: 2}
   FinalArena: {fileID: 11400000, guid: 65795348b9c41ab44b169f8341a280a1, type: 2}
-  ContentVersion: 3
+  ContentVersion: 4
   Motor:
     RunSpeed: 8
     GroundAccel: 60
     GroundDecel: 50
-    AirControl: 0.35
+    AirControl: 0.6
+    AirDrag: 2.5
     Gravity: 28
+    FallGravityMultiplier: 1.45
     JumpHeight: 2.2
+    JumpCutMultiplier: 0.5
     CoyoteTime: 0.12
     JumpBuffer: 0.12
     SlideStartBoost: 4

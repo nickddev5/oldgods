@@ -108,7 +108,7 @@ namespace OldGods.Runtime
             for (int side = 0; side < 2; side++)
             {
                 bool left = side == 0;
-                k.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? f.ShoulderL : f.ShoulderR);
+                f.ArmPart(left);
                 var el = left ? f.ElbowL : f.ElbowR;
                 var wr = left ? f.WristL : f.WristR;
                 for (int i = 0; i < 3; i++)
@@ -163,12 +163,12 @@ namespace OldGods.Runtime
             f.Trousers(p.Cloth, 1.1f).Boots(p.Leather, 0.18f, p.Metal);
             f.Belt(p.Leather, p.Metal, 3).Strap(p.Leather);
             // Bracers and one heavy pauldron.
-            k.Part(BodyPart.RightArm, f.ShoulderR);
+            f.ArmPart(false);
             k.Ball(f.ShoulderR + new Vector3(0.06f, 0.08f, 0f), new Vector3(0.17f, 0.1f, 0.17f), p.Metal, 12, 5, Quaternion.Euler(0f, 0f, -25f));
             for (int side = 0; side < 2; side++)
             {
                 bool left = side == 0;
-                k.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? f.ShoulderL : f.ShoulderR);
+                f.ArmPart(left);
                 var el = left ? f.ElbowL : f.ElbowR;
                 var wr = left ? f.WristL : f.WristR;
                 k.Limb(Vector3.Lerp(el, wr, 0.35f), wr, s.ArmThickness * 1.2f, s.ArmThickness * 1.15f, p.Leather, 9);
@@ -210,7 +210,7 @@ namespace OldGods.Runtime
             for (int side = 0; side < 2; side++)
             {
                 bool left = side == 0;
-                k.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? f.ShoulderL : f.ShoulderR);
+                f.ArmPart(left);
                 f.Hand(left ? f.HandL : f.HandR, left, p.Skin);
             }
             k.Body();

@@ -14,7 +14,7 @@ The ground is a height field in `OldGods.Rules` turned into flat-shaded mesh chu
 
 ## Shaders
 
-Hand-written URP HLSL, not Shader Graph, so they are diffable and authored as text: `OldGods/LowPoly` (vertex colour times base colour, main light with shadows, ambient, fog) and `OldGods/HordeInstanced` (the same look, drawn from a structured buffer with `Graphics.RenderMeshPrimitives`, one call per enemy type). Enemy legs swing procedurally until baked vertex animation replaces it in milestone 9. Vertex colours are authored in sRGB and stored linear.
+Hand-written URP HLSL, not Shader Graph, so they are diffable and authored as text: `OldGods/LowPoly` (vertex colour times base colour, main light with shadows, ambient, fog) and `OldGods/HordeInstanced` (the same look, drawn from a structured buffer with `Graphics.RenderMeshPrimitives`, one call per enemy type). Characters are animated procedurally in the vertex shader from tags baked into each mesh: the body part, the joint it swings around, and the knee or elbow height where it bends. Legs stride and bend at the knee, arms counter-swing with bent elbows, the body leans and bobs. The player also blends in a jump pose and a slide pose, and the model leans into turns and squashes on landing. Vertex colours are authored in sRGB and stored linear.
 
 ## Horde runtime
 

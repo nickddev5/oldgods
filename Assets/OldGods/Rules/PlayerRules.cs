@@ -9,9 +9,15 @@ namespace OldGods.Rules
         public float RunSpeed = 8f;
         public float GroundAccel = 60f;
         public float GroundDecel = 50f;
-        public float AirControl = 0.35f;
+        public float AirControl = 0.6f;
+        /// <summary>Speed lost per second in the air while faster than a run (after a slide jump).</summary>
+        public float AirDrag = 2.5f;
         public float Gravity = 28f;
+        /// <summary>Gravity is multiplied by this while falling, so jumps rise slowly and land quickly.</summary>
+        public float FallGravityMultiplier = 1.45f;
         public float JumpHeight = 2.2f;
+        /// <summary>Upward speed is multiplied by this when jump is released early: a short hop.</summary>
+        public float JumpCutMultiplier = 0.5f;
         public float CoyoteTime = 0.12f;
         public float JumpBuffer = 0.12f;
         public float SlideStartBoost = 4f;
@@ -45,7 +51,19 @@ namespace OldGods.Rules
         public static Vec2 StepRun(Vec2 velocity, Vec2 input, bool grounded, float speedMultiplier, MotorTuning t, float dt)
         {
             float control = grounded ? 1f : t.AirControl;
-            Vec2 desired = input * (t.RunSpeed * speedMultiplier);
+            float run = t.RunSpeed * speedMultiplier;
+            float speed = velocity.Magnitude;
+            if (!grounded && speed > run)
+            {
+                // Momentum: in the air, speed above a run (from a slide) is kept and only bleeds
+                // off slowly; input steers it rather than braking it.
+                float keep = Math.Max(run, speed - t.AirDrag * dt);
+                if (input.SqrMagnitude < 0.0001f) return velocity * (keep / speed);
+                Vec2 steered = HordeSteering.Accelerate(velocity, input.Normalized * speed, t.GroundAccel * control, dt);
+                float m = steered.Magnitude;
+                return m > 1e-6f ? steered * (keep / m) : steered;
+            }
+            Vec2 desired = input * run;
             float rate = (input.SqrMagnitude > 0.0001f ? t.GroundAccel : t.GroundDecel) * control;
             return HordeSteering.Accelerate(velocity, desired, rate, dt);
         }
@@ -62,6 +80,9 @@ namespace OldGods.Rules
         }
 
         public static bool SlideEnded(float speed, MotorTuning t) => speed < t.SlideMinSpeed;
+
+        /// <summary>Gravity this frame: stronger while falling.</summary>
+        public static float GravityFor(float verticalSpeed, MotorTuning t) => verticalSpeed < 0f ? t.Gravity * t.FallGravityMultiplier : t.Gravity;
     }
 
     /// <summary>Health with invulnerability after each hit. Pure state, driven by the runtime.</summary>

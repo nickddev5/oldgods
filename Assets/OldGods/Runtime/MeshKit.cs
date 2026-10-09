@@ -10,7 +10,7 @@ namespace OldGods.Runtime
     /// <summary>
     /// Builds flat-shaded low-poly meshes from simple parts. Every face gets its own
     /// vertices so normals are per-face, and every vertex carries a colour. Vertices also
-    /// carry their body part (uv0.x) and the joint it swings around (uv1), so the shaders
+    /// carry their body part (uv0.x), the height of the knee or elbow (uv0.y) and the joint it swings around (uv1), so the shaders
     /// can animate legs and arms without a rig.
     /// </summary>
     public sealed class MeshKit
@@ -24,6 +24,7 @@ namespace OldGods.Runtime
 
         BodyPart part;
         Vector3 pivot;
+        float bend;
         // When set, rounded primitives give each vertex its own normal (smooth shading).
         System.Func<Vector3, Vector3, Vector3> normalAt;
 
@@ -33,11 +34,15 @@ namespace OldGods.Runtime
         public int VertexCount => verts.Count;
         public int TriangleCount => tris.Count / 3;
 
-        /// <summary>Everything added until the next call belongs to this part, swinging around the joint.</summary>
-        public void Part(BodyPart p, Vector3 joint)
+        /// <summary>
+        /// Everything added until the next call belongs to this part, swinging around the joint.
+        /// bendHeight is the height of the knee or elbow, where the limb bends; 0 for a stiff limb.
+        /// </summary>
+        public void Part(BodyPart p, Vector3 joint, float bendHeight = 0f)
         {
             part = p;
             pivot = joint;
+            bend = bendHeight;
         }
 
         public void Body() => Part(BodyPart.Body, Vector3.zero);
@@ -60,7 +65,7 @@ namespace OldGods.Runtime
             // Vertex colours are not converted by the pipeline; author in sRGB, store linear.
             Color lin = color.linear;
             colors.Add(lin); colors.Add(lin); colors.Add(lin);
-            var pp = new Vector2((float)part, 0f);
+            var pp = new Vector2((float)part, bend);
             parts.Add(pp); parts.Add(pp); parts.Add(pp);
             pivots.Add(pivot); pivots.Add(pivot); pivots.Add(pivot);
             tris.Add(i); tris.Add(i + 1); tris.Add(i + 2);

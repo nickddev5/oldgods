@@ -82,7 +82,7 @@ namespace OldGods.Runtime
             Vector3 foot = Ground.Snap(Throne.position + Throne.forward * 5f);
             yield return Walk(run.Player, start, foot, 2.5f);
             yield return Walk(run.Player, foot, seat, 1.5f);
-            run.Player.Visual.rotation = Quaternion.LookRotation(Throne.forward);
+            run.Player.FaceTowards(Throne.forward);
 
             int line = 0;
             if (lines.Count > line) run.Announce(lines[line++], null);
@@ -137,7 +137,7 @@ namespace OldGods.Runtime
             float t = 0f;
             Vector3 dir = to - from;
             dir.y = 0f;
-            if (dir.sqrMagnitude > 0.01f) player.Visual.rotation = Quaternion.LookRotation(dir);
+            player.FaceTowards(dir);
             while (t < seconds)
             {
                 t += Time.deltaTime;

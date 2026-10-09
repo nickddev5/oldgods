@@ -90,7 +90,7 @@ namespace OldGods.Runtime
             f.Mantle(p.Cloth, 0.1f, 1.35f, p.Cloth2);
             for (int side = -1; side <= 1; side += 2)
             {
-                k.Part(side < 0 ? BodyPart.LeftArm : BodyPart.RightArm, side < 0 ? f.ShoulderL : f.ShoulderR);
+                f.ArmPart(side < 0);
                 var sh = side < 0 ? f.ShoulderL : f.ShoulderR;
                 k.Ball(sh + new Vector3(side * 0.1f, 0.14f, 0f), new Vector3(0.17f, 0.06f, 0.16f), p.Hair, 9, 4, null, 0.3f, side + 7);
                 // Rope bound round the forearm.
@@ -122,7 +122,7 @@ namespace OldGods.Runtime
             }
 
             // A stone maul hanging from the right hand, its head near the ground.
-            k.Part(BodyPart.RightArm, f.ShoulderR);
+            f.HeldPart(false);
             var hand = f.HandR;
             // The hands hang low, so the head rests on the ground beside the fist.
             var bottom = hand + new Vector3(0f, 0.16f, -0.02f);
@@ -158,7 +158,7 @@ namespace OldGods.Runtime
             void Leg(BodyPart part, float x, float z, bool front)
             {
                 var top = new Vector3(x, 0.98f, z);
-                k.Part(part, top);
+                k.Part(part, top, 0.55f);
                 // Shoulder or haunch muscle, then a thin lower leg with a fetlock and a split hoof.
                 k.Ball(top + new Vector3(0f, -0.1f, front ? 0.02f : -0.04f), new Vector3(0.12f, 0.22f, front ? 0.15f : 0.2f), hide, 10, 6);
                 var knee = new Vector3(x, 0.55f, z + (front ? 0.05f : -0.1f));
@@ -397,11 +397,11 @@ namespace OldGods.Runtime
             for (int side = 0; side < 2; side++)
             {
                 bool left = side == 0;
-                k.Part(left ? BodyPart.LeftLeg : BodyPart.RightLeg, left ? f.HipL : f.HipR);
+                f.LegPart(left);
                 var knee = left ? f.KneeL : f.KneeR;
                 k.Ball(knee + new Vector3(0f, 0.02f, 0.05f), new Vector3(0.09f, 0.08f, 0.07f), p.Trim, 10, 5);
                 k.Limb(left ? f.HipL : f.HipR, knee + Vector3.up * 0.06f, s.LegThickness * 1.5f, s.LegThickness * 1.25f, p.Metal * 0.85f, 10);
-                k.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? f.ShoulderL : f.ShoulderR);
+                f.ArmPart(left);
                 var el = left ? f.ElbowL : f.ElbowR;
                 k.Ball(el, Vector3.one * s.ArmThickness * 1.25f, p.Trim, 9, 5);
             }
@@ -444,7 +444,7 @@ namespace OldGods.Runtime
                 k.Limb(p0, p1, 0.03f, 0.03f, p.Glow, 6);
             }
             // A greatsword held point down at the right side.
-            k.Part(BodyPart.RightArm, f.ShoulderR);
+            f.HeldPart(false);
             var grip = f.HandR;
             var blade = Grey(0.85f);
             k.Limb(grip + Vector3.down * 0.08f, grip + Vector3.up * 0.14f, 0.022f, 0.022f, p.Leather, 7);

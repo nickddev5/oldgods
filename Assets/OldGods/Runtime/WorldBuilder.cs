@@ -105,7 +105,9 @@ namespace OldGods.Runtime
             var mr = visual.AddComponent<MeshRenderer>();
             // Built-in god models carry their own colours; an untinted material shows them as authored.
             mr.sharedMaterial = Tinted(assets.LowPoly, body != null ? Color.white : robe);
-            visual.AddComponent<WalkAnimator>().Tracked = go.transform;
+            var walk = visual.AddComponent<WalkAnimator>();
+            walk.Tracked = go.transform;
+            walk.Motor = motor;
             if (mark != default)
             {
                 var gem = new GameObject("Mark");
