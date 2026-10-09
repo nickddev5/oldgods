@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.ContentLibrary
   Enemies:
   - {fileID: 11400000, guid: f9a18f4fbda0801428cc13f505fc7e9f, type: 2}
+  - {fileID: 11400000, guid: d6dad3c24139a8640b20ffbfa58481bf, type: 2}
+  - {fileID: 11400000, guid: aab1e52b8eeaf7c41bd4a7e1be596647, type: 2}
+  - {fileID: 11400000, guid: 2b9b044ada94c07498cb43f4b7fec6c7, type: 2}
+  - {fileID: 11400000, guid: 04fb7e9cd74de824396071b412272c51, type: 2}
   Weapons:
   - {fileID: 11400000, guid: b19f59e7f0067854ea152fd654621f53, type: 2}
   - {fileID: 11400000, guid: 6b01d6c6433d7784ea81d469b3a01506, type: 2}

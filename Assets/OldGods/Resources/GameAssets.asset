@@ -19,6 +19,8 @@ MonoBehaviour:
   UnlitFade: {fileID: 2100000, guid: e89ccecbab4773b479050690a6962f82, type: 2}
   Content: {fileID: 11400000, guid: 56e4d215655c9eb4a8ddcd2611cb14e7, type: 2}
   StartingWeapon: weapon.spear_volley
+  Stages: []
+  GreyboxBiome: {fileID: 11400000, guid: 266d2d67e531faa488ed1175ca305560, type: 2}
   Motor:
     RunSpeed: 8
     GroundAccel: 60

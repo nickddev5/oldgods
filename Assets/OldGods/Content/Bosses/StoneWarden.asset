@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a581bf6de37c8a47accf7d6f546ae11, type: 3}
+  m_Name: StoneWarden
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.BossDefinition
+  Id: boss.stone_warden
+  DisplayName: The Stone Warden
+  Epithet: It remembers the first wall
+  MaxHealth: 3000
+  MoveSpeed: 2.6
+  Scale: 3.2
+  Radius: 1.6
+  ContactDamage: 14
+  Rest: 1.3
+  MinionId: enemy.husk
+  EnrageAt: 0.35
+  Attacks:
+  - Attack: 0
+    Weight: 3
+    Cooldown: 4
+    Damage: 24
+    Telegraph: 1.1
+    Size: 4.5
+  - Attack: 1
+    Weight: 2
+    Cooldown: 6
+    Damage: 20
+    Telegraph: 0.9
+    Size: 16
+  - Attack: 2
+    Weight: 2
+    Cooldown: 8
+    Damage: 18
+    Telegraph: 0.8
+    Size: 22
+  - Attack: 3
+    Weight: 1
+    Cooldown: 14
+    Damage: 0
+    Telegraph: 0.8
+    Size: 8
+  Model: 0
+  Color: {r: 0.55, g: 0.53, b: 0.5, a: 1}
+  Accent: {r: 1.6, g: 0.7, b: 0.25, a: 1}

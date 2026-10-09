@@ -61,6 +61,60 @@ namespace OldGods.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator BossGateBossPortalAndNextStage()
+        {
+            LevelUpScreen.AutoPick = true;
+            try
+            {
+                SceneManager.LoadScene("Run");
+                yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Combat != null, 20f, "run start");
+                var run = RunController.Instance;
+                run.PlayerHealth.Invincible = true;
+                Assert.AreEqual(0, run.StageIndex);
+
+                var gate = Object.FindAnyObjectByType<BossGate>();
+                Assert.IsNotNull(gate, "the map has a boss gate");
+                Assert.Greater(new Vector2(gate.transform.position.x, gate.transform.position.z).magnitude, 60f, "the gate is away from the start");
+
+                gate.Use(run.Combat);
+                yield return WaitFor(() => BossController.Active != null, 5f, "boss spawn");
+                var boss = BossController.Active;
+                Assert.Greater(boss.MaxHealth, 0f);
+                yield return new WaitForSeconds(1.5f);
+
+                // Weapons can hit the boss through its horde slot.
+                run.Horde.Damage(boss.Slot, boss.MaxHealth * 2f);
+                yield return WaitFor(() => run.BossDefeated, 5f, "boss defeat");
+                var portal = Object.FindAnyObjectByType<NextPortal>();
+                Assert.IsNotNull(portal, "the portal opened");
+
+                portal.Use(run.Combat);
+                yield return null;
+                Assert.AreEqual(1, run.StageIndex, "moved to stage 2");
+                Assert.IsNotNull(Object.FindAnyObjectByType<BossGate>(), "stage 2 has its own gate");
+                yield return new WaitForSeconds(1f);
+                Assert.Greater(run.Horde.AliveCount, 0, "stage 2 spawns enemies");
+            }
+            finally
+            {
+                LevelUpScreen.AutoPick = false;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator FinalSwarmStartsWhenTheClockRunsOut()
+        {
+            SceneManager.LoadScene("Run");
+            yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Director != null && RunController.Instance.Director.Timeline != null, 20f, "run start");
+            var run = RunController.Instance;
+            run.PlayerHealth.Invincible = true;
+            run.Director.DebugSkip(run.Director.Timeline.Duration - 0.5f);
+            yield return WaitFor(() => run.Director.InFinalSwarm, 3f, "final swarm");
+            yield return new WaitForSeconds(1f);
+            Assert.Greater(run.Horde.AliveCount, 30, "ghosts pour in");
+        }
+
+        [UnityTest]
         public IEnumerator WeaponsKillDropXpAndTheDraftLevelsUp()
         {
             LevelUpScreen.AutoPick = true;

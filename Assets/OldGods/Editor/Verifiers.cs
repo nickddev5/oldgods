@@ -45,6 +45,21 @@ namespace OldGods.Editor
                 var set = assets.Content.Load();
                 problems.AddRange(set.Validate());
                 if (set.Enemies.Count == 0) problems.Add("No enemies in the content library");
+                var biomes = new List<BiomeDefinition>(assets.Stages);
+                if (assets.GreyboxBiome != null) biomes.Add(assets.GreyboxBiome);
+                foreach (var b in biomes)
+                {
+                    if (b == null) { problems.Add("A stage slot has no biome"); continue; }
+                    foreach (var p in OldGods.Rules.TimelineEvaluator.Validate(b.Timeline)) problems.Add($"{b.name} timeline: {p}");
+                    foreach (var phase in b.Timeline.Phases)
+                        foreach (var m in phase.Mix)
+                            if (!set.Enemies.ContainsKey(m.EnemyId)) problems.Add($"{b.name}: unknown enemy '{m.EnemyId}'");
+                    foreach (var e in b.Timeline.Events)
+                        if (!set.Enemies.ContainsKey(e.EnemyId)) problems.Add($"{b.name}: event enemy '{e.EnemyId}' unknown");
+                    if (!set.Enemies.ContainsKey(b.Timeline.SwarmEnemyId)) problems.Add($"{b.name}: swarm enemy '{b.Timeline.SwarmEnemyId}' unknown");
+                    if (b.Boss == null) problems.Add($"{b.name} has no boss");
+                    else if (b.Boss.Attacks.Count == 0) problems.Add($"{b.Boss.name} has no attacks");
+                }
             }
             catch (System.Exception e)
             {

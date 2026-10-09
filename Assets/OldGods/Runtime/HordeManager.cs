@@ -26,13 +26,19 @@ namespace OldGods.Runtime
         public Transform Target;
         public PlayerHealth TargetHealth;
 
-        /// <summary>Called when an enemy dies: index (already freed), world position, definition, whether a player weapon killed it.</summary>
+        /// <summary>Called when an enemy dies: world position, definition, whether a player weapon killed it.</summary>
         public event Action<Vector3, EnemyDef, bool> EnemyKilled;
+        /// <summary>Called with the slot index just before it is freed, for owners of controlled slots.</summary>
+        public event Action<int> SlotKilled;
 
         // State arrays, indexed by enemy slot.
         public float[] X, Z, Y, VX, VZ, Yaw, Hp, MaxHp, Phase, Flash, SlowFor, KnockX, KnockZ;
         public int[] TypeIndex;
         public bool[] Alive;
+        /// <summary>Moved by another script (a boss); the horde loop leaves position alone.</summary>
+        public bool[] Controlled;
+        /// <summary>Not drawn by the horde renderer (it has its own model).</summary>
+        public bool[] Hidden;
         public float[] SpeedMul, DamageMul;
 
         readonly List<EnemyDef> types = new List<EnemyDef>();
@@ -73,6 +79,8 @@ namespace OldGods.Runtime
             SpeedMul = new float[n]; DamageMul = new float[n];
             TypeIndex = new int[n];
             Alive = new bool[n];
+            Controlled = new bool[n];
+            Hidden = new bool[n];
             free.Clear();
             for (int i = n - 1; i >= 0; i--) free.Push(i);
             highWater = 0;
@@ -81,7 +89,7 @@ namespace OldGods.Runtime
         }
 
         /// <summary>Registers an enemy type with its look. Returns the type index.</summary>
-        public int RegisterType(EnemyDef def, Mesh mesh, Color color)
+        public int RegisterType(EnemyDef def, Mesh mesh, Color color, Color emission = default)
         {
             int existing = types.IndexOf(def);
             if (existing >= 0) return existing;
@@ -89,7 +97,7 @@ namespace OldGods.Runtime
             maxRadius = Mathf.Max(maxRadius, def.Radius * def.Scale);
             hash = new SpatialHash(Mathf.Max(1.2f, maxRadius * 2.5f), 13);
             if (Renderer == null) Renderer = GetComponent<HordeRenderer>();
-            if (Renderer != null) Renderer.AddType(mesh, color, def.Scale);
+            if (Renderer != null) Renderer.AddType(mesh, color, def.Scale, emission);
             return types.Count - 1;
         }
 
@@ -111,6 +119,8 @@ namespace OldGods.Runtime
             DamageMul[i] = damageMultiplier;
             TypeIndex[i] = type;
             Alive[i] = true;
+            Controlled[i] = false;
+            Hidden[i] = false;
             if (Target != null)
             {
                 Vector3 d = Target.position - position;
@@ -160,6 +170,7 @@ namespace OldGods.Runtime
         public void Kill(int i, bool byPlayer)
         {
             if (!Alive[i]) return;
+            SlotKilled?.Invoke(i);
             Alive[i] = false;
             AliveCount--;
             free.Push(i);
@@ -170,7 +181,18 @@ namespace OldGods.Runtime
         public void KillAll(bool byPlayer)
         {
             for (int i = 0; i < highWater; i++)
-                if (Alive[i]) Kill(i, byPlayer);
+                if (Alive[i] && !Controlled[i]) Kill(i, byPlayer);
+        }
+
+        /// <summary>Alive count excluding controlled slots such as bosses.</summary>
+        public int CommonAlive
+        {
+            get
+            {
+                int n = AliveCount;
+                for (int i = 0; i < highWater; i++) if (Alive[i] && Controlled[i]) n--;
+                return n;
+            }
         }
 
         /// <summary>Removes every enemy without death events, for restarts.</summary>
@@ -271,6 +293,11 @@ namespace OldGods.Runtime
             for (int i = 0; i < highWater; i++)
             {
                 if (!Alive[i]) continue;
+                if (Controlled[i])
+                {
+                    Flash[i] = Mathf.Max(0f, Flash[i] - dt * 6f);
+                    continue;
+                }
                 var def = types[TypeIndex[i]];
                 float speed = def.MoveSpeed * SpeedMul[i] * (SlowFor[i] > 0f ? 0.45f : 1f);
                 float radius = def.Radius * def.Scale;

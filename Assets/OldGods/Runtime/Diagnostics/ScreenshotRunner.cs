@@ -33,12 +33,23 @@ namespace OldGods.Runtime
             }
         }
 
+        /// <summary>-shotBoss: wakes the stage boss in front of an invincible player.</summary>
+        IEnumerator WakeBoss()
+        {
+            while (RunController.Instance == null || RunController.Instance.Player == null) yield return null;
+            yield return new WaitForSeconds(2f);
+            var run = RunController.Instance;
+            run.PlayerHealth.Invincible = true;
+            run.StartBoss(run.Player.transform.position + run.Player.Facing * 14f);
+        }
+
         IEnumerator Start()
         {
             Directory.CreateDirectory(dir);
             if (CommandLine.Has("-autopick")) LevelUpScreen.AutoPick = true;
             float start = Time.realtimeSinceStartup;
             bool hold = CommandLine.Has("-shotHold");
+            if (CommandLine.Has("-shotBoss")) StartCoroutine(WakeBoss());
             for (int i = 0; i < times.Length; i++)
             {
                 while (Time.realtimeSinceStartup - start < times[i])

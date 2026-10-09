@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &383510530
+--- !u!1 &839289223
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,8 +127,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 383510532}
-  - component: {fileID: 383510531}
+  - component: {fileID: 839289225}
+  - component: {fileID: 839289224}
   m_Layer: 0
   m_Name: Run
   m_TagString: Untagged
@@ -136,13 +136,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &383510531
+--- !u!114 &839289224
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 383510530}
+  m_GameObject: {fileID: 839289223}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b93bc95a4858d3946bb688a4725ff36f, type: 3}
@@ -150,14 +150,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.RunController
   Assets: {fileID: 11400000, guid: 421f299c30669d54c848c388b17dcc15, type: 2}
   FixedSeed: 
-  GreyboxEnemyTarget: 350
---- !u!4 &383510532
+  StageCount: 3
+--- !u!4 &839289225
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 383510530}
+  m_GameObject: {fileID: 839289223}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -170,4 +170,4 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 383510532}
+  - {fileID: 839289225}

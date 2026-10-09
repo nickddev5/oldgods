@@ -47,8 +47,7 @@ namespace OldGods.Runtime
             var run = RunController.Instance;
             var horde = run.Horde;
             run.PlayerHealth.Invincible = true;
-            var spawner = FindAnyObjectByType<GreyboxSpawner>();
-            if (spawner != null) spawner.enabled = false;
+            if (run.Director != null) run.Director.Paused = true;
 
             var results = new List<string>();
             float angle = 0f;

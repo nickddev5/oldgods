@@ -53,13 +53,14 @@ namespace OldGods.Runtime
             }
         }
 
-        public void AddType(Mesh mesh, Color color, float scale)
+        public void AddType(Mesh mesh, Color color, float scale, Color emission = default)
         {
             var d = new TypeDraw { Mesh = mesh, Scale = scale, Props = new MaterialPropertyBlock() };
             if (HordeMaterial != null)
             {
                 d.Material = new Material(HordeMaterial) { name = $"Horde_{mesh.name}" };
                 d.Material.SetColor(BaseColorId, color);
+                d.Material.SetColor("_EmissionColor", emission);
             }
             draws.Add(d);
         }
@@ -89,7 +90,7 @@ namespace OldGods.Runtime
 
             for (int i = 0; i < horde.HighWater; i++)
             {
-                if (!horde.Alive[i]) continue;
+                if (!horde.Alive[i] || horde.Hidden[i]) continue;
                 var d = draws[horde.TypeIndex[i]];
                 d.Cpu[d.Count++] = new HordeInstance
                 {

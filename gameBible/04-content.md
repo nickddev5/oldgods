@@ -56,5 +56,13 @@ Per Common level: Swiftness +8% move speed, Iron Skin +1 armour, Regeneration +0
 | Enemy | Health | Speed | Contact damage | XP |
 |---|---|---|---|---|
 | Husk | 12 | 3.3 | 4 | 1 |
+| Runner | 7 | 5.6 | 3 | 1 |
+| Brute | 55 | 2.6 | 9 | 4 |
+| Husk Champion (miniboss) | 600 | 3.2 | 14 | 30 |
+| Ghost (final swarm) | 20 | 5.0 | 8 | 2 |
+
+## Bosses
+
+**The Stone Warden** (greybox stage): 3000 health (x 1 + 1.4 x stage), slam (24, 4.5 m circle, 1.1 s warning), charge (20, 16 m line, 0.9 s warning), shockwave (18, ring to 22 m, jump it), summon (8 husks). Enrages under 35% health and rests half as long. The boss gate is a stone arch; the boss rises beside it.
 
 Content assets live in `Assets/OldGods/Content/` and are the source of truth once created; `Old Gods > Build > Everything` only adds missing ones.

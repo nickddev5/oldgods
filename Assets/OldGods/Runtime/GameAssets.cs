@@ -18,6 +18,9 @@ namespace OldGods.Runtime
         public ContentLibrary Content;
         [Tooltip("Weapon the greybox run starts with until gods pick their own.")]
         public string StartingWeapon = "weapon.spear_volley";
+        [Tooltip("The stages of a run, in order. Empty uses the greybox biome three times.")]
+        public System.Collections.Generic.List<BiomeDefinition> Stages = new System.Collections.Generic.List<BiomeDefinition>();
+        public BiomeDefinition GreyboxBiome;
         public MotorTuning Motor = new MotorTuning();
         public TerrainProfile GreyboxTerrain = new TerrainProfile();
         public GroundPalette GreyboxPalette = new GroundPalette();

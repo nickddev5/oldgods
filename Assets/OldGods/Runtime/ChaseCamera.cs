@@ -23,6 +23,9 @@ namespace OldGods.Runtime
         [Tooltip("Degrees per second at full run speed.")]
         public float AutoAlignSpeed = 110f;
         public float DefaultPitch = 26f;
+        public float NormalRadius = 9f;
+        public float BossRadius = 13f;
+        public float BossPitch = 44f;
 
         float idle;
 
@@ -31,6 +34,12 @@ namespace OldGods.Runtime
             if (Orbit == null) return;
             float dt = Time.unscaledDeltaTime;
             if (Time.timeScale <= 0f) return;
+
+            // Near a boss the camera climbs and pulls back so the boss never fills the screen.
+            var boss = BossController.Active;
+            bool bossNear = boss != null && Player != null && Vector3.Distance(boss.transform.position, Player.transform.position) < 22f;
+            Orbit.Radius = Mathf.MoveTowards(Orbit.Radius, bossNear ? BossRadius : NormalRadius, 6f * dt);
+            if (bossNear) Orbit.VerticalAxis.Value = Mathf.MoveTowards(Orbit.VerticalAxis.Value, BossPitch, 25f * dt);
 
             Vector2 look = GameInput.LookValue * Sensitivity;
             if (look.sqrMagnitude > 0.0001f)
@@ -56,7 +65,7 @@ namespace OldGods.Runtime
             if (Mathf.Abs(delta) > 150f) return;
             float rate = AutoAlignSpeed * Mathf.Clamp01(speed / 8f);
             Orbit.HorizontalAxis.Value = Mathf.Repeat(current + Mathf.Clamp(delta, -rate * dt, rate * dt) + 180f, 360f) - 180f;
-            Orbit.VerticalAxis.Value = Mathf.MoveTowards(Orbit.VerticalAxis.Value, DefaultPitch, 10f * dt);
+            Orbit.VerticalAxis.Value = Mathf.MoveTowards(Orbit.VerticalAxis.Value, bossNear ? BossPitch : DefaultPitch, 10f * dt);
         }
 
         /// <summary>Puts the camera straight behind the player, e.g. at stage start.</summary>

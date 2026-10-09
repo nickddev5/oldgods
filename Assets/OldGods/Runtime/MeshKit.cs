@@ -163,6 +163,92 @@ namespace OldGods.Runtime
             return k.Build("Shard");
         });
 
+        /// <summary>Placeholder boss bodies, about 1.7 units tall before the boss's scale, facing +z.</summary>
+        public static Mesh Boss(BossModel model) => Cached("boss" + model, () =>
+        {
+            var k = new MeshKit();
+            var main = new Color(0.9f, 0.9f, 0.9f);
+            var dark = new Color(0.6f, 0.6f, 0.6f);
+            switch (model)
+            {
+                case BossModel.Warden:
+                    k.Box(new Vector3(-0.25f, 0.3f, 0f), new Vector3(0.3f, 0.6f, 0.35f), dark);
+                    k.Box(new Vector3(0.25f, 0.3f, 0f), new Vector3(0.3f, 0.6f, 0.35f), dark);
+                    k.Box(new Vector3(0f, 0.95f, 0f), new Vector3(1f, 0.8f, 0.6f), main, 1.15f);
+                    k.Box(new Vector3(-0.7f, 0.85f, 0.1f), new Vector3(0.35f, 0.9f, 0.35f), dark, 1.2f);
+                    k.Box(new Vector3(0.7f, 0.85f, 0.1f), new Vector3(0.35f, 0.9f, 0.35f), dark, 1.2f);
+                    k.Box(new Vector3(0f, 1.52f, 0.1f), new Vector3(0.38f, 0.32f, 0.38f), main);
+                    k.Box(new Vector3(0f, 1.52f, 0.3f), new Vector3(0.24f, 0.06f, 0.02f), new Color(1f, 0.6f, 0.2f));
+                    break;
+                case BossModel.Stag:
+                    k.Box(new Vector3(0f, 0.85f, 0f), new Vector3(0.6f, 0.5f, 1.3f), main, 0.9f);
+                    foreach (var (x, z) in new[] { (-0.22f, 0.45f), (0.22f, 0.45f), (-0.22f, -0.45f), (0.22f, -0.45f) })
+                        k.Box(new Vector3(x, 0.3f, z), new Vector3(0.14f, 0.6f, 0.14f), dark);
+                    k.Box(new Vector3(0f, 1.25f, 0.65f), new Vector3(0.28f, 0.5f, 0.28f), main, 0.8f, Quaternion.Euler(-25f, 0f, 0f));
+                    k.Box(new Vector3(0f, 1.5f, 0.85f), new Vector3(0.24f, 0.22f, 0.4f), main);
+                    k.Box(new Vector3(-0.3f, 1.85f, 0.75f), new Vector3(0.06f, 0.6f, 0.06f), dark, 1f, Quaternion.Euler(0f, 0f, 30f));
+                    k.Box(new Vector3(0.3f, 1.85f, 0.75f), new Vector3(0.06f, 0.6f, 0.06f), dark, 1f, Quaternion.Euler(0f, 0f, -30f));
+                    break;
+                case BossModel.Mother:
+                    k.Prism(Vector3.zero, 0.6f, 1.2f, 8, dark, 0.45f);
+                    k.Box(new Vector3(0f, 1.35f, 0f), new Vector3(0.5f, 0.4f, 0.4f), main, 0.8f);
+                    k.Gem(new Vector3(0f, 1.75f, 0f), new Vector3(0.22f, 0.26f, 0.22f), main);
+                    for (int i = 0; i < 6; i++)
+                    {
+                        float a = i * Mathf.PI / 3f;
+                        k.Box(new Vector3(Mathf.Cos(a) * 0.55f, 0.15f, Mathf.Sin(a) * 0.55f), new Vector3(0.12f, 0.3f, 0.5f), dark, 0.5f, Quaternion.Euler(0f, -a * Mathf.Rad2Deg, 0f));
+                    }
+                    break;
+                default:
+                    k.Prism(Vector3.zero, 0.5f, 0.4f, 6, dark, 0.8f);
+                    k.Gem(new Vector3(0f, 1.05f, 0f), new Vector3(0.6f, 0.65f, 0.6f), main);
+                    k.Gem(new Vector3(0f, 1.05f, 0.45f), new Vector3(0.12f, 0.12f, 0.12f), new Color(1f, 0.9f, 0.5f));
+                    k.Box(new Vector3(-0.85f, 1.1f, 0f), new Vector3(0.25f, 0.25f, 0.25f), dark);
+                    k.Box(new Vector3(0.85f, 1.1f, 0f), new Vector3(0.25f, 0.25f, 0.25f), dark);
+                    break;
+            }
+            return k.Build("Boss" + model);
+        });
+
+        /// <summary>A standing portal ring about 4 units tall, facing +z.</summary>
+        public static Mesh Portal() => Cached("portal", () =>
+        {
+            var k = new MeshKit();
+            var c = Color.white;
+            int seg = 14;
+            for (int i = 0; i < seg; i++)
+            {
+                float a0 = i * Mathf.PI * 2f / seg, a1 = (i + 1) * Mathf.PI * 2f / seg;
+                var p0 = new Vector3(Mathf.Cos(a0) * 1.6f, 2f + Mathf.Sin(a0) * 2f, 0f);
+                var p1 = new Vector3(Mathf.Cos(a1) * 1.6f, 2f + Mathf.Sin(a1) * 2f, 0f);
+                var mid = (p0 + p1) * 0.5f;
+                k.Box(mid, new Vector3(Vector3.Distance(p0, p1) + 0.05f, 0.35f, 0.35f), c, 1f,
+                    Quaternion.Euler(0f, 0f, Mathf.Atan2(p1.y - p0.y, p1.x - p0.x) * Mathf.Rad2Deg));
+            }
+            return k.Build("Portal");
+        });
+
+        /// <summary>A standing stone slab, the boss gate's frame.</summary>
+        public static Mesh Monolith() => Cached("monolith", () =>
+        {
+            var k = new MeshKit();
+            k.Box(new Vector3(-1.4f, 1.6f, 0f), new Vector3(0.7f, 3.2f, 0.8f), Color.white, 0.85f);
+            k.Box(new Vector3(1.4f, 1.6f, 0f), new Vector3(0.7f, 3.2f, 0.8f), Color.white, 0.85f);
+            k.Box(new Vector3(0f, 3.45f, 0f), new Vector3(3.9f, 0.6f, 0.95f), Color.white);
+            k.Box(new Vector3(0f, 0.1f, 0f), new Vector3(4.2f, 0.2f, 1.6f), new Color(0.8f, 0.8f, 0.8f));
+            return k.Build("Monolith");
+        });
+
+        /// <summary>A low-poly conifer about 4 units tall.</summary>
+        public static Mesh Tree() => Cached("tree", () =>
+        {
+            var k = new MeshKit();
+            k.Prism(Vector3.zero, 0.18f, 1.2f, 5, new Color(0.55f, 0.42f, 0.32f));
+            k.Prism(new Vector3(0f, 0.9f, 0f), 1.2f, 1.7f, 6, Color.white, 0f);
+            k.Prism(new Vector3(0f, 2.1f, 0f), 0.85f, 1.6f, 6, new Color(0.92f, 0.92f, 0.92f), 0f);
+            return k.Build("Tree");
+        });
+
         public static Mesh Rock() => Cached("rock", () =>
         {
             var k = new MeshKit();

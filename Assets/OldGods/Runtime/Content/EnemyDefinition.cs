@@ -18,6 +18,7 @@ namespace OldGods.Runtime
         [Range(0f, 1f)] public float GoldChance = 0.02f;
         public bool IsElite;
         public Color Color = new Color(0.6f, 0.25f, 0.2f);
+        [ColorUsage(false, true)] public Color Emission = Color.black;
         [Tooltip("Leave empty to use the placeholder husk.")]
         public Mesh Mesh;
 

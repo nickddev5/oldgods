@@ -15,6 +15,8 @@ namespace OldGods.Editor
     {
         public const string WeaponsDir = ProjectBuilder.Root + "/Content/Weapons";
         public const string PassivesDir = ProjectBuilder.Root + "/Content/Passives";
+        public const string BossesDir = ProjectBuilder.Root + "/Content/Bosses";
+        public const string BiomesDir = ProjectBuilder.Root + "/Content/Biomes";
 
         public static void Populate(ContentLibrary library)
         {
@@ -33,6 +35,57 @@ namespace OldGods.Editor
                 e.Id = "enemy.husk"; e.DisplayName = "Husk";
                 e.MaxHealth = 12f; e.MoveSpeed = 3.3f; e.Radius = 0.4f; e.ContactDamage = 4f; e.XpValue = 1;
                 e.Color = new Color(0.55f, 0.32f, 0.26f);
+            });
+            Enemy(library, "Runner", e =>
+            {
+                e.Id = "enemy.runner"; e.DisplayName = "Runner";
+                e.MaxHealth = 7f; e.MoveSpeed = 5.6f; e.Radius = 0.35f; e.ContactDamage = 3f; e.XpValue = 1; e.Scale = 0.8f;
+                e.Color = new Color(0.62f, 0.5f, 0.3f);
+            });
+            Enemy(library, "Brute", e =>
+            {
+                e.Id = "enemy.brute"; e.DisplayName = "Brute";
+                e.MaxHealth = 55f; e.MoveSpeed = 2.6f; e.Radius = 0.5f; e.ContactDamage = 9f; e.XpValue = 4; e.Scale = 1.5f;
+                e.Color = new Color(0.32f, 0.3f, 0.36f); e.GoldChance = 0.1f;
+            });
+            Enemy(library, "Champion", e =>
+            {
+                e.Id = "enemy.champion"; e.DisplayName = "A Husk Champion";
+                e.MaxHealth = 600f; e.MoveSpeed = 3.2f; e.Radius = 0.55f; e.ContactDamage = 14f; e.XpValue = 30; e.Scale = 2.3f;
+                e.Color = new Color(0.5f, 0.2f, 0.18f); e.Emission = new Color(0.35f, 0.08f, 0.02f); e.IsElite = true; e.GoldChance = 1f;
+            });
+            Enemy(library, "Ghost", e =>
+            {
+                e.Id = "enemy.ghost"; e.DisplayName = "Ghost";
+                e.MaxHealth = 20f; e.MoveSpeed = 5f; e.Radius = 0.4f; e.ContactDamage = 8f; e.XpValue = 2;
+                e.Color = new Color(0.75f, 0.85f, 0.95f); e.Emission = new Color(0.25f, 0.4f, 0.6f); e.GoldChance = 0f;
+            });
+        }
+
+        public static BiomeDefinition GreyboxBiome()
+        {
+            var boss = LoadOrCreate<BossDefinition>(BossesDir + "/StoneWarden.asset", b =>
+            {
+                b.Id = "boss.stone_warden"; b.DisplayName = "The Stone Warden"; b.Epithet = "It remembers the first wall";
+                b.MaxHealth = 3000f; b.MoveSpeed = 2.6f; b.Scale = 3.2f; b.Radius = 1.6f; b.ContactDamage = 14f; b.Rest = 1.3f;
+                b.MinionId = "enemy.husk"; b.Model = BossModel.Warden;
+                b.Color = new Color(0.55f, 0.53f, 0.5f); b.Accent = new Color(1.6f, 0.7f, 0.25f);
+                b.Attacks = new List<BossAttackDef>
+                {
+                    new BossAttackDef { Attack = BossAttack.Slam, Weight = 3f, Cooldown = 4f, Damage = 24f, Telegraph = 1.1f, Size = 4.5f },
+                    new BossAttackDef { Attack = BossAttack.Charge, Weight = 2f, Cooldown = 6f, Damage = 20f, Telegraph = 0.9f, Size = 16f },
+                    new BossAttackDef { Attack = BossAttack.Shockwave, Weight = 2f, Cooldown = 8f, Damage = 18f, Telegraph = 0.8f, Size = 22f },
+                    new BossAttackDef { Attack = BossAttack.Summon, Weight = 1f, Cooldown = 14f, Damage = 0f, Telegraph = 0.8f, Size = 8f },
+                };
+            });
+            return LoadOrCreate<BiomeDefinition>(BiomesDir + "/Greybox.asset", b =>
+            {
+                b.Id = "biome.greybox"; b.DisplayName = "The Proving Ground";
+                b.Terrain = new TerrainProfile { HillHeight = 18f, HillScale = 55f, CliffStep = 3f, CliffAmount = 0.3f };
+                b.Palette = new GroundPalette();
+                b.Timeline = DefaultTimelines.Greybox();
+                b.Boss = boss;
+                b.TreeCount = 40;
             });
         }
 
