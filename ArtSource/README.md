@@ -8,9 +8,9 @@ All shipped art is built in code, so it is ours and licence-safe:
 
 | What | Where |
 |---|---|
-| Gods (7 head pieces, robe and mark colours) | `Runtime/MeshKit.cs` `PlaceholderMeshes.God(look)` |
+| Gods (7 dressed figures, plus stone statues) | `Runtime/Art/GodModels.cs` |
 | Enemies (10 types, 3 champions) | `Runtime/Art/EnemyModels.cs` |
-| Bosses and The Last Test | `PlaceholderMeshes.Boss(model)` |
+| Bosses and The Last Test | `Runtime/Art/BossModels.cs` |
 | Biome props (standing stones, boulders, sea stacks, pines, dead trees, driftwood) | `Runtime/Art/PropModels.cs` |
 | Ground | `Runtime/Ground.cs` (height field, flat-shaded, coloured by height and slope) |
 | Effects | `Runtime/Combat/Effects.cs`, `Runtime/Fx.cs` |
@@ -28,7 +28,7 @@ A hand-made art pass can still replace them one asset at a time without code cha
 2. Colour with **vertex colours** in sRGB (the shaders multiply vertex colour by the material colour; the import converts to linear). No textures are needed.
 3. Orientation: face +Z, feet at Y = 0, metres. Apply all transforms before export.
 4. Export FBX to `ArtSource/<kind>/<name>.fbx` and the .blend beside it. Import into `Assets/OldGods/Art/<kind>/`.
-5. Enemies: set the **Mesh** field on the enemy's asset in `Assets/OldGods/Content/Enemies/`. The horde shader swings anything below 0.7 m and off the centre line as legs, so keep legs there and keep cloaks or bodies above 0.7 m (or set **Walk Swing** near 0 for drifting enemies).
+5. Enemies: set the **Mesh** field on the enemy's asset in `Assets/OldGods/Content/Enemies/`. The horde shader walks built-in models by the body part stored in their UVs; an imported mesh has ordinary UVs, so set its **Walk Swing** to 0 until it has a baked animation.
 6. Bosses, gods and props: add a mesh field the same way when the first one lands (one small code change per kind), keeping the built-in model as the fallback.
 7. Check with `python Tools/smoke.py --shots TestResults/shots -- -shotTimes "6,20" -autopick` and the horde probe (`python Tools/smoke.py --probe`): 1000 enemies must stay above 60 fps.
 
