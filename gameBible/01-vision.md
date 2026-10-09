@@ -19,7 +19,7 @@ Megabonk for structure and feel (3D horde survival, random maps, auto weapons, b
 
 ## Camera
 
-Third-person chase camera behind and slightly above the player, shallow downward tilt, short lag when turning, pulls in against walls. The player sits low and centred in frame. Pitch stays where the player puts it (6 to 60 degrees); only yaw swings back behind the direction of travel after a second without looking. Height changes are smoothed so jumps and slopes do not bounce the view. The player cannot leave the map: a wall partway up the rim stops them.
+Third-person chase camera behind and slightly above the player, shallow downward tilt (15 degrees by default, so the horizon and sky stay in view; Nick, 2026-10-09), short lag when turning, pulls in against walls. The player sits low and centred in frame. Pitch stays where the player puts it (6 to 60 degrees); only yaw swings back behind the direction of travel after a second without looking. Height changes are smoothed so jumps and slopes do not bounce the view. The player cannot leave the map: a wall partway up the rim stops them.
 
 ## Art direction
 

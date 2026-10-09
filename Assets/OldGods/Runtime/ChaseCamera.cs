@@ -26,7 +26,7 @@ namespace OldGods.Runtime
         public float AutoAlignDelay = 1.2f;
         [Tooltip("Degrees per second at full run speed.")]
         public float AutoAlignSpeed = 90f;
-        public float DefaultPitch = 24f;
+        public float DefaultPitch = 15f;
         public float MinPitch = 6f, MaxPitch = 60f;
         public float NormalRadius = 9f;
         public float BossRadius = 13f;

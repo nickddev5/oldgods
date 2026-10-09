@@ -29,10 +29,10 @@ Researched 2026-10-09 for the graphics pass. Megabonk (Vedinad, Unity, 2025) is 
 3. **Outlines** on enemies, the player, gods and bosses (inverted hull, pixel width, thinner far away).
 4. **Pixel-art textures** (`Runtime/Art/PixelTexture.cs`), added at Nick's request: one code-generated, point-filtered detail map with a few tones per channel, projected onto every model without UVs and multiplied into its vertex colours. The colour blocks stay; each gains coarse texels, about 10 cm on the ground and 7 cm on characters.
 5. **Bloom, neutral tonemapping, colour grade and vignette**, built in code (`Runtime/Art/SceneLook.cs`).
+6. **Lower camera**: the default pitch went from 24 to 15 degrees (Nick, 2026-10-09), so the horizon, far hills and sky are in view as in Megabonk. `-cameraPitch N` lets screenshots try other values.
 
 ## What we did not take, and why
 
 - **Pixel font:** the HUD keeps its clean type for now.
 - **Meme props, sunglasses, skateboards:** tone.
 - **Motion blur:** hurts readability in a crowd.
-- **Lower default camera:** the biggest remaining gap. Megabonk shows the horizon; our 24-degree default mostly shows ground, so the new sky is seen only when the player tilts up. That is a camera decision for Nick (`ChaseCamera.DefaultPitch`); `-cameraPitch N` lets screenshots try values.
