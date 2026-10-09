@@ -1,10 +1,20 @@
 # 05 Tech
 
-**Status:** PLACEHOLDER until the milestone 1 probe is recorded.
+**Status:** milestone 1 probe recorded 2026-10-09. Numbers are PLACEHOLDER budgets until milestone 11.
 
 ## Architecture
 
 See [AGENTS.md](../AGENTS.md) for the four assemblies. Rules are pure C# and unit-tested; Runtime is thin MonoBehaviours; Editor generates scenes and content.
+
+## World building
+
+Scenes are thin: `Run.unity` holds one `RunController` that points at `Resources/GameAssets`. Everything else (ground, light, player, camera, horde, HUD) is built in code from the run seed when the run starts, so a fresh clone needs no hand-made scene content and the Editor builders (`Old Gods > Build > Everything`) regenerate assets and scenes. See [ADR 0002](../docs/adr/0002-world-is-built-in-code.md).
+
+The ground is a height field in `OldGods.Rules` turned into flat-shaded mesh chunks with colliders, not a Unity `Terrain`: it gives the low-poly faceted look, and enemies read the exact rendered height from the field without raycasts.
+
+## Shaders
+
+Hand-written URP HLSL, not Shader Graph, so they are diffable and authored as text: `OldGods/LowPoly` (vertex colour times base colour, main light with shadows, ambient, fog) and `OldGods/HordeInstanced` (the same look, drawn from a structured buffer with `Graphics.RenderMeshPrimitives`, one call per enemy type). Enemy legs swing procedurally until baked vertex animation replaces it in milestone 9. Vertex colours are authored in sRGB and stored linear.
 
 ## Horde runtime
 
@@ -12,13 +22,17 @@ One `HordeManager` owns struct arrays (position, velocity, hp, type, animation p
 
 ## Performance budget
 
-Target to measure: 500 animated enemies at 60 fps on Nick's PC. The milestone 1 probe spawns 250, 500 and 1000 and records average and 1% frame times in `TestResults/horde-probe.json`. Results go here.
+Target: 500 animated enemies at 60 fps on Nick's PC. The probe (`python Tools/smoke.py --probe`, or the PlayMode `HordeProbeTest`) spawns 250, 500 and 1000 enemies around a player running in a circle and records frame times and horde CPU time to `TestResults/horde-probe.json`.
 
-| Count | Avg ms | 1% low ms | Notes |
-|---|---|---|---|
-| 250 | TBD | TBD | |
-| 500 | TBD | TBD | |
-| 1000 | TBD | TBD | |
+Release player, 1600x900 windowed, Ryzen 7 9800X3D / Radeon RX 9070 XT, 2026-10-09:
+
+| Count | Avg ms | 1% low ms | Avg fps | Horde CPU ms |
+|---|---|---|---|---|
+| 250 | 0.74 | 1.46 | 1354 | 0.11 |
+| 500 | 0.82 | 1.25 | 1221 | 0.21 |
+| 1000 | 1.07 | 1.41 | 933 | 0.44 |
+
+**Decision (2026-10-09):** the single-threaded C# loop is far inside budget (0.44 ms for 1000 enemies), so the hot loop stays on the main thread; Jobs and Burst are not used. Re-run the probe after real enemy art and weapons land (milestones 2 and 9); revisit if horde CPU passes 4 ms at 1000.
 
 ## Seeds
 

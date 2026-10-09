@@ -1,0 +1,117 @@
+using System;
+
+namespace OldGods.Rules
+{
+    /// <summary>Movement tuning for the player. PLACEHOLDER numbers for play-testing.</summary>
+    [Serializable]
+    public sealed class MotorTuning
+    {
+        public float RunSpeed = 8f;
+        public float GroundAccel = 60f;
+        public float GroundDecel = 50f;
+        public float AirControl = 0.35f;
+        public float Gravity = 28f;
+        public float JumpHeight = 2.2f;
+        public float CoyoteTime = 0.12f;
+        public float JumpBuffer = 0.12f;
+        public float SlideStartBoost = 4f;
+        public float SlideFriction = 5f;
+        public float SlideSlopeGain = 18f;
+        public float SlideMinSpeed = 4f;
+        public float SlideMaxSpeed = 22f;
+        public float TurnSpeedDegrees = 720f;
+        /// <summary>Downward speed at landing below which there is no fall damage.</summary>
+        public float SafeFallSpeed = 20f;
+        /// <summary>Damage per unit of landing speed above SafeFallSpeed.</summary>
+        public float FallDamagePerSpeed = 4f;
+    }
+
+    public static class PlayerRules
+    {
+        /// <summary>Upward speed that reaches the given jump height under the given gravity.</summary>
+        public static float JumpVelocity(float height, float gravity) => (float)Math.Sqrt(2f * gravity * Math.Max(0f, height));
+
+        /// <summary>Damage taken on landing at downward speed impactSpeed (positive number).</summary>
+        public static float FallDamage(float impactSpeed, MotorTuning t)
+        {
+            float over = impactSpeed - t.SafeFallSpeed;
+            return over > 0f ? over * t.FallDamagePerSpeed : 0f;
+        }
+
+        /// <summary>
+        /// Horizontal velocity after one step of grounded or airborne control.
+        /// input is the desired direction (length 0..1) already in world space.
+        /// </summary>
+        public static Vec2 StepRun(Vec2 velocity, Vec2 input, bool grounded, float speedMultiplier, MotorTuning t, float dt)
+        {
+            float control = grounded ? 1f : t.AirControl;
+            Vec2 desired = input * (t.RunSpeed * speedMultiplier);
+            float rate = (input.SqrMagnitude > 0.0001f ? t.GroundAccel : t.GroundDecel) * control;
+            return HordeSteering.Accelerate(velocity, desired, rate, dt);
+        }
+
+        /// <summary>
+        /// Slide speed after one step. downhill is the slope's downhill component along the
+        /// slide direction: sin(angle), positive when sliding downhill.
+        /// </summary>
+        public static float StepSlide(float speed, float downhill, MotorTuning t, float dt)
+        {
+            speed += downhill * t.SlideSlopeGain * dt;
+            speed -= t.SlideFriction * dt;
+            return Math.Min(speed, t.SlideMaxSpeed);
+        }
+
+        public static bool SlideEnded(float speed, MotorTuning t) => speed < t.SlideMinSpeed;
+    }
+
+    /// <summary>Health with invulnerability after each hit. Pure state, driven by the runtime.</summary>
+    public sealed class Health
+    {
+        public float Max { get; private set; }
+        public float Current { get; private set; }
+        public float InvulnerableFor { get; private set; }
+        public float HitInvulnerability = 0.5f;
+        public bool IsDead => Current <= 0f;
+
+        public Health(float max)
+        {
+            Max = max;
+            Current = max;
+        }
+
+        public void Tick(float dt) => InvulnerableFor = Math.Max(0f, InvulnerableFor - dt);
+
+        /// <summary>Applies damage unless invulnerable or dead. Returns the damage actually dealt.</summary>
+        public float Damage(float amount, bool ignoreInvulnerability = false)
+        {
+            if (IsDead || amount <= 0f) return 0f;
+            if (!ignoreInvulnerability && InvulnerableFor > 0f) return 0f;
+            float dealt = Math.Min(Current, amount);
+            Current -= dealt;
+            InvulnerableFor = HitInvulnerability;
+            return dealt;
+        }
+
+        /// <summary>Starts the invulnerability window without taking damage (an evaded hit).</summary>
+        public void Guard() => InvulnerableFor = HitInvulnerability;
+
+        public void Heal(float amount)
+        {
+            if (IsDead || amount <= 0f) return;
+            Current = Math.Min(Max, Current + amount);
+        }
+
+        public void SetMax(float max, bool keepRatio)
+        {
+            float ratio = Max > 0f ? Current / Max : 1f;
+            Max = Math.Max(1f, max);
+            Current = keepRatio ? ratio * Max : Math.Min(Current, Max);
+        }
+
+        public void Reset()
+        {
+            Current = Max;
+            InvulnerableFor = 0f;
+        }
+    }
+}

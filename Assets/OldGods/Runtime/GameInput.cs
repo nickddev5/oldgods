@@ -1,0 +1,90 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+namespace OldGods.Runtime
+{
+    /// <summary>
+    /// One shared copy of the Old Gods input actions, loaded from Resources.
+    /// Gameplay reads actions through here so menus can pause input in one place.
+    /// </summary>
+    public static class GameInput
+    {
+        static InputActionAsset asset;
+        static InputActionMap player;
+
+        public static InputAction Move { get; private set; }
+        public static InputAction Look { get; private set; }
+        public static InputAction Jump { get; private set; }
+        public static InputAction Slide { get; private set; }
+        public static InputAction Interact { get; private set; }
+        public static InputAction Pause { get; private set; }
+        public static InputAction Refresh { get; private set; }
+        public static InputAction Skip { get; private set; }
+        public static InputAction Banish { get; private set; }
+
+        /// <summary>Scripted input for tests and the smoke runner; overrides the devices when set.</summary>
+        public static Vector2? MoveOverride;
+
+        public static bool Ready => asset != null;
+
+        public static void Ensure()
+        {
+            if (asset != null) return;
+            asset = Resources.Load<InputActionAsset>("OldGodsInput");
+            if (asset == null)
+            {
+                Debug.LogError("OldGods: Resources/OldGodsInput.inputactions is missing");
+                return;
+            }
+            player = asset.FindActionMap("Player", true);
+            Move = player.FindAction("Move", true);
+            Look = player.FindAction("Look", true);
+            Jump = player.FindAction("Jump", true);
+            Slide = player.FindAction("Slide", true);
+            Interact = player.FindAction("Interact", true);
+            Pause = player.FindAction("Pause", true);
+            Refresh = player.FindAction("Refresh", true);
+            Skip = player.FindAction("Skip", true);
+            Banish = player.FindAction("Banish", true);
+            player.Enable();
+        }
+
+        public static Vector2 MoveValue
+        {
+            get
+            {
+                if (MoveOverride.HasValue) return MoveOverride.Value;
+                Ensure();
+                return Move != null ? Vector2.ClampMagnitude(Move.ReadValue<Vector2>(), 1f) : Vector2.zero;
+            }
+        }
+
+        public static Vector2 LookValue
+        {
+            get
+            {
+                Ensure();
+                return Look != null ? Look.ReadValue<Vector2>() : Vector2.zero;
+            }
+        }
+
+        public static bool Pressed(InputAction action)
+        {
+            Ensure();
+            return action != null && action.WasPressedThisFrame();
+        }
+
+        public static bool Held(InputAction action)
+        {
+            Ensure();
+            return action != null && action.IsPressed();
+        }
+
+        public static void SetCursorLocked(bool locked)
+        {
+            if (Application.isBatchMode) return;
+            Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
+            Cursor.visible = !locked;
+        }
+    }
+}

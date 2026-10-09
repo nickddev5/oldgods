@@ -9,7 +9,9 @@ A 3D low-poly horde-survival roguelike and the prequel to *The Empty Throne*. Yo
 
 ## Running
 
-Open the repo root in Unity 6000.6.3f1 and open `Assets/OldGods/Scenes/Boot.unity` (from milestone 1).
+Open the repo root in Unity 6000.6.3f1, run **Old Gods > Build > Everything** once, then open `Assets/OldGods/Scenes/Run.unity` and press Play.
+
+Controls: WASD or left stick to move, mouse or right stick to look, Space or A to jump, Shift/Ctrl or B to slide (hold).
 
 Tests:
 
@@ -17,9 +19,11 @@ Tests:
 unity test "C:\The Old Gods" --mode EditMode --output TestResults/editmode.xml
 ```
 
-Windows build and smoke test (from milestone 1):
+Windows build, smoke test, horde probe and screenshots:
 
 ```
 python Tools/build_windows.py
 python Tools/smoke.py
+python Tools/smoke.py --probe
+python Tools/smoke.py --shots TestResults/shots
 ```

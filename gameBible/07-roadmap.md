@@ -5,7 +5,7 @@ First milestone: a complete game. A fresh save can unlock every god, beat The La
 | # | Step | Gate | State |
 |---|---|---|---|
 | 0 | Project setup | Project opens clean; empty EditMode test passes | Done, awaiting merge |
-| 1 | Foundations | Horde probe recorded; movement and camera play-tested; smoke build passes | |
+| 1 | Foundations | Horde probe recorded; movement and camera play-tested; smoke build passes | Built; awaiting Nick's play-test |
 | 2 | Core combat loop | Draft, XP and weapon rules tested; 5-minute survival fun enough to continue | |
 | 3 | The stage | Start to boss to next-stage portal playable; timeline tested | |
 | 4 | Map economy | Economy and shrine rules tested; every shrine used in a play-test | |

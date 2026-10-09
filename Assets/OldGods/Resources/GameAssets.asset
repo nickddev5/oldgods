@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94c699944dd320441bb20d65e7a09710, type: 3}
+  m_Name: GameAssets
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.GameAssets
+  LowPoly: {fileID: 2100000, guid: 564ebca2a0d118c4eb0ca03dbbad03dd, type: 2}
+  Horde: {fileID: 2100000, guid: c24e85eba12f2254aa2d1265ac2a3e06, type: 2}
+  Glow: {fileID: 2100000, guid: 22d2c638b1f67e04697bbd774753df7d, type: 2}
+  Content: {fileID: 11400000, guid: 56e4d215655c9eb4a8ddcd2611cb14e7, type: 2}
+  Motor:
+    RunSpeed: 8
+    GroundAccel: 60
+    GroundDecel: 50
+    AirControl: 0.35
+    Gravity: 28
+    JumpHeight: 2.2
+    CoyoteTime: 0.12
+    JumpBuffer: 0.12
+    SlideStartBoost: 4
+    SlideFriction: 5
+    SlideSlopeGain: 18
+    SlideMinSpeed: 4
+    SlideMaxSpeed: 22
+    TurnSpeedDegrees: 720
+    SafeFallSpeed: 20
+    FallDamagePerSpeed: 4
+  GreyboxTerrain:
+    Cells: 128
+    CellSize: 2
+    HillHeight: 18
+    HillScale: 55
+    HillOctaves: 4
+    CliffStep: 3
+    CliffAmount: 0.3
+    CliffScale: 90
+    SpawnFlatRadius: 12
+    RimHeight: 14
+    RimWidth: 16
+  GreyboxPalette:
+    Low: {r: 0.36, g: 0.45, b: 0.3, a: 1}
+    High: {r: 0.55, g: 0.58, b: 0.4, a: 1}
+    Cliff: {r: 0.45, g: 0.42, b: 0.38, a: 1}
+    Rim: {r: 0.32, g: 0.3, b: 0.28, a: 1}
+    CliffSlope: 38
