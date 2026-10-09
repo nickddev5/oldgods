@@ -19,7 +19,7 @@ MonoBehaviour:
   MoveSpeed: 2.6
   Scale: 3.2
   Radius: 1.6
-  ContactDamage: 14
+  ContactDamage: 10
   Rest: 1.3
   MinionId: enemy.husk
   EnrageAt: 0.35

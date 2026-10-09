@@ -36,6 +36,18 @@ After the milestone 9 art pass (13 enemy models, props, effects, sound): 1000 en
 
 **Decision (2026-10-09):** the single-threaded C# loop is far inside budget (0.44 ms for 1000 enemies), so the hot loop stays on the main thread; Jobs and Burst are not used. Re-run the probe after real enemy art and weapons land (milestones 2 and 9); revisit if horde CPU passes 4 ms at 1000.
 
+## Balance checks (autoplay bot)
+
+`python Tools/smoke.py --autoplay TestResults/autoplay.json --seed 1111 -- -speed 4` runs a simple bot through stage 1 at four times speed: it kites away from enemies and bosses, collects gems when nothing is close, takes the first draft card, and goes for the boss gate at 8:00. It is a floor, not a player: it never dodges telegraphs on purpose.
+
+| Date | Change | Seed | Result |
+|---|---|---|---|
+| 2026-10-09 | before tuning | 1111 | level 6 at 8:00 with 387 kills; most gems left on the ground; died at the gate |
+| 2026-10-09 | XP curve 5 + 4(n-1)^1.25, pickup range 5 m, bot collects gems | 1111 | level 16 at 8:00, 957 kills, full health until the gate; died to the Stone Warden plus the horde |
+| 2026-10-09 | Stone Warden contact 14 to 10, bot keeps 14 m from bosses | 2222 | short-range draft (Quake, Flame Aura): level 11 at 8:00, worn down to 20% on the way to the gate, died there |
+
+Reading: the first eight minutes are survivable and the draft now flows; the gate trek through the late-stage horde and the boss are the hard part. Nick's play-test decides whether that is right for a human.
+
 ## Seeds
 
 One `ulong` run seed, split by name into independent streams (`map`, `spawns`, `draft`, `loot`, `shrines`) so changing one system does not shift another's rolls.

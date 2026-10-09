@@ -28,6 +28,8 @@ def player_command(exe: Path, mode: str, out: Path, log: Path, seed: str | None,
         cmd += ["-probe", "-probeOut", str(out)]
     elif mode == "shots":
         cmd += ["-shots", str(out)]
+    elif mode == "autoplay":
+        cmd += ["-autoplay", "-autoplayOut", str(out)]
     else:
         raise ValueError(f"unknown mode {mode}")
     if seed:
@@ -40,6 +42,7 @@ def main(argv: list[str] | None = None) -> int:
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--probe", action="store_true")
     group.add_argument("--shots", type=Path)
+    group.add_argument("--autoplay", type=Path, help="bot plays stage 1; JSON summary to this path")
     parser.add_argument("--exe", type=Path, default=DEFAULT_BUILD)
     parser.add_argument("--seed")
     parser.add_argument("--timeout", type=float, default=300.0)
@@ -56,6 +59,8 @@ def main(argv: list[str] | None = None) -> int:
         mode, out = "probe", RESULTS / "horde-probe.json"
     elif args.shots:
         mode, out = "shots", args.shots
+    elif args.autoplay:
+        mode, out = "autoplay", args.autoplay
     else:
         mode, out = "smoke", RESULTS / "smoke.log"
     log = RESULTS / f"player-{mode}.log"
@@ -66,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
     except subprocess.TimeoutExpired:
         print(f"Timed out after {args.timeout:.0f}s; see {log}")
         return 1
-    if mode in ("smoke", "probe") and out.exists():
+    if mode in ("smoke", "probe", "autoplay") and out.exists():
         print(out.read_text(encoding="utf-8"))
     print(f"Player exited {code}; log: {log}")
     return code

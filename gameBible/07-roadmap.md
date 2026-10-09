@@ -15,4 +15,4 @@ First milestone: a complete game. A fresh save can unlock every god, beat The La
 | 8 | Story | Premise, god lines and ending text in place | Built; all text PLACEHOLDER |
 | 9 | Art and audio | Placeholders replaced; horde probe still meets target | Code-built art and synthesized sound in place; probe passes; hand-made art pass still open (ADR 0003) |
 | 10 | UI | Menus, settings, shop, quests; controller and keyboard | Built; awaiting Nick's controller check |
-| 11 | Finish | Balance, performance, Windows build, fresh-save play-through | |
+| 11 | Finish | Balance, performance, Windows build, fresh-save play-through | Build, smoke, probe and tests green; XP curve tuned from autoplay; awaiting Nick's fresh-save play-through |

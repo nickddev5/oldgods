@@ -4,7 +4,7 @@
 
 ## In a run
 
-- **XP curve:** level n needs `5 + 10 * (n - 1) ^ 1.3` XP, rounded (PLACEHOLDER).
+- **XP curve:** level n needs `5 + 4 * (n - 1) ^ 1.25` XP, rounded (PLACEHOLDER; flattened 2026-10-09 after the autoplay balance check showed level 6 at eight minutes).
 - **Level-up draft:** the game pauses and offers 3 choices: a new weapon, a new passive, or a level for one already owned.
   - Slots: 4 weapons, 4 passives (PLACEHOLDER).
   - Weapons and passives max at level 8.

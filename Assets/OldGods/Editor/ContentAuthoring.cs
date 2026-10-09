@@ -253,7 +253,7 @@ namespace OldGods.Editor
             var boss = LoadOrCreate<BossDefinition>(BossesDir + "/StoneWarden.asset", b =>
             {
                 b.Id = "boss.stone_warden"; b.DisplayName = "The Stone Warden"; b.Epithet = "It remembers the first wall";
-                b.MaxHealth = 3000f; b.MoveSpeed = 2.6f; b.Scale = 3.2f; b.Radius = 1.6f; b.ContactDamage = 14f; b.Rest = 1.3f;
+                b.MaxHealth = 3000f; b.MoveSpeed = 2.6f; b.Scale = 3.2f; b.Radius = 1.6f; b.ContactDamage = 10f; b.Rest = 1.3f;
                 b.MinionId = "enemy.husk"; b.Model = BossModel.Warden;
                 b.Color = new Color(0.55f, 0.53f, 0.5f); b.Accent = new Color(1.6f, 0.7f, 0.25f);
                 b.Attacks = new List<BossAttackDef>

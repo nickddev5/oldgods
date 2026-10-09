@@ -262,11 +262,11 @@ namespace OldGods.Rules
 
     public static class XpRules
     {
-        /// <summary>XP needed to go from level to level + 1. PLACEHOLDER curve: 5 + 10 * (level - 1)^1.3.</summary>
+        /// <summary>XP needed to go from level to level + 1. PLACEHOLDER curve: 5 + 4 * (level - 1)^1.25.</summary>
         public static int Required(int level)
         {
             if (level < 1) level = 1;
-            return (int)Math.Round(5.0 + 10.0 * Math.Pow(level - 1, 1.3));
+            return (int)Math.Round(5.0 + 4.0 * Math.Pow(level - 1, 1.25));
         }
 
         /// <summary>XP a Skip in the draft grants: a fifth of the current level's requirement.</summary>

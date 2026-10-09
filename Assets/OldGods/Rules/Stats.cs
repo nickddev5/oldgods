@@ -66,7 +66,7 @@ namespace OldGods.Rules
             b.SetBase(StatId.Area, 1f);
             b.SetBase(StatId.ProjectileSpeed, 1f);
             b.SetBase(StatId.Duration, 1f);
-            b.SetBase(StatId.PickupRange, 3.5f);
+            b.SetBase(StatId.PickupRange, 5f);
             b.SetBase(StatId.XpGain, 1f);
             b.SetBase(StatId.GoldGain, 1f);
             b.SetBase(StatId.Knockback, 1f);

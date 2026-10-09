@@ -156,6 +156,22 @@ namespace OldGods.Runtime
             if (n > 0) Graphics.RenderMeshInstanced(rp, gem, 0, batch, n);
         }
 
+        /// <summary>The nearest XP gem within range, for the autoplay bot.</summary>
+        public bool Nearest(Vector3 p, float range, out Vector3 at)
+        {
+            at = default;
+            float best = range * range;
+            bool found = false;
+            for (int i = 0; i < highWater; i++)
+            {
+                if (!alive[i] || homing[i] || kind[i] == PickupKind.Magnet) continue;
+                Vector3 d = pos[i] - p;
+                d.y = 0f;
+                if (d.sqrMagnitude < best) { best = d.sqrMagnitude; at = pos[i]; found = true; }
+            }
+            return found;
+        }
+
         /// <summary>Total XP lying on the map, for tests.</summary>
         public float TotalValue(PickupKind k)
         {
