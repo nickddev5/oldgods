@@ -30,4 +30,31 @@
 
 Final arena: **The Last Test**, a construct guarding the throne.
 
-Full lists of weapons, passives, enemies and quests live in `Assets/OldGods/Content/` and are summarised here as they are authored.
+## Weapons (milestone 2)
+
+| Weapon | Shape | Damage | Cooldown | Notes |
+|---|---|---|---|---|
+| Chain Lightning | Chain | 9 | 1.4 s | 3 jumps within 6 m |
+| Hammer Orbit | Orbit | 12 | 0.5 s per foe | 2 hammers, heavy knockback |
+| Tidal Wave | Projectile | 14 | 2.2 s | wide, pierces everything |
+| Spear Volley | Projectile | 13 | 1.0 s | 2 spears, pierce 1 |
+| Flame Aura | Aura | 4 | 0.45 s tick | 3 m ring |
+| Quake | Area (on self) | 20 | 2.5 s | 5.5 m, big knockback |
+| Crown Light | Area | 30 | 1.6 s | smites a nearby foe |
+| Frost Shards | Projectile | 7 | 0.9 s | 3 shards, slow 1.5 s |
+| Grave Pull | Pull | 5 per 0.5 s | 4 s | 2.5 s vortex |
+| Bone Ring | Orbit | 6 | 0.4 s per foe | 4 bones, wide |
+| Thunder Cloud | Area | 16 | 1.8 s | 2 strikes |
+| Ember Rain | Area | 9 | 1.2 s | 4 small strikes |
+
+## Passives (milestone 2)
+
+Per Common level: Swiftness +8% move speed, Iron Skin +1 armour, Regeneration +0.3 health/s, Keen Eye +5% crit, Fury +8% damage, Bulwark +15 max health, Resolve +8% XP, Haste +8% attack speed, Reach +10% area, Multitude +1 projectile, Magnetism +1 m pickup range, Fortune +8% luck.
+
+## Enemies
+
+| Enemy | Health | Speed | Contact damage | XP |
+|---|---|---|---|---|
+| Husk | 12 | 3.3 | 4 | 1 |
+
+Content assets live in `Assets/OldGods/Content/` and are the source of truth once created; `Old Gods > Build > Everything` only adds missing ones.

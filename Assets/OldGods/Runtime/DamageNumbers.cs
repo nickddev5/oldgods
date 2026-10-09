@@ -30,7 +30,7 @@ namespace OldGods.Runtime
                 go.transform.SetParent(transform, false);
                 var t = go.AddComponent<TextMeshPro>();
                 t.alignment = TextAlignmentOptions.Center;
-                t.fontSize = 4.5f;
+                t.fontSize = 3f;
                 t.fontStyle = FontStyles.Bold;
                 t.outlineWidth = 0.25f;
                 t.outlineColor = new Color32(0, 0, 0, 200);

@@ -82,10 +82,14 @@ namespace OldGods.Runtime
             Died?.Invoke();
         }
 
+        /// <summary>Changes max health; a raise also heals by the amount raised.</summary>
         public void SetMaxHealth(float max)
         {
             MaxHealth = max;
-            Health?.SetMax(max, true);
+            if (Health == null) return;
+            float old = Health.Max;
+            Health.SetMax(max, false);
+            if (max > old) Health.Heal(max - old);
         }
     }
 }

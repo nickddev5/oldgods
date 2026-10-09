@@ -22,7 +22,7 @@ namespace OldGods.Runtime
         public float AutoAlignDelay = 0.9f;
         [Tooltip("Degrees per second at full run speed.")]
         public float AutoAlignSpeed = 110f;
-        public float DefaultPitch = 20f;
+        public float DefaultPitch = 26f;
 
         float idle;
 

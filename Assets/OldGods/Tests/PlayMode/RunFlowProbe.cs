@@ -59,5 +59,33 @@ namespace OldGods.Tests.PlayMode
             first.Restart();
             yield return WaitFor(() => RunController.Instance != null && RunController.Instance != first && RunController.Instance.Player != null, 20f, "restart");
         }
+
+        [UnityTest]
+        public IEnumerator WeaponsKillDropXpAndTheDraftLevelsUp()
+        {
+            LevelUpScreen.AutoPick = true;
+            try
+            {
+                SceneManager.LoadScene("Run");
+                yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Combat != null, 20f, "run start");
+                var run = RunController.Instance;
+                run.PlayerHealth.Invincible = true;
+                Assert.AreEqual(1, run.Combat.Loadout.Weapons.Count, "starts with one weapon");
+
+                yield return WaitFor(() => run.Kills > 0, 30f, "first kill");
+                yield return WaitFor(() => run.Combat.Xp.Level >= 3, 60f, "two level-ups");
+                yield return null;
+                int progress = 0;
+                foreach (var w in run.Combat.Loadout.Weapons) progress += w.Level;
+                foreach (var p in run.Combat.Loadout.Passives) progress += p.Level;
+                Assert.GreaterOrEqual(progress, 3, "each draft pick added or levelled something");
+                Assert.AreEqual(0, run.Combat.PendingLevelUps);
+                Assert.AreEqual(1f, Time.timeScale, "draft closed and the run resumed");
+            }
+            finally
+            {
+                LevelUpScreen.AutoPick = false;
+            }
+        }
     }
 }

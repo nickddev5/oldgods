@@ -1,0 +1,12 @@
+{
+  "unity": "6000.6.3f1",
+  "device": "AMD Ryzen 7 9800X3D 8-Core Processor  / AMD Radeon RX 9070 XT",
+  "editor": true,
+  "batchMode": true,
+  "screen": "640x480",
+  "results": [
+    { "count": 250, "avgMs": 0.47, "onePercentLowMs": 0.62, "avgFps": 2115.6, "hordeCpuMs": 0.109 },
+    { "count": 500, "avgMs": 0.57, "onePercentLowMs": 0.76, "avgFps": 1739.3, "hordeCpuMs": 0.210 },
+    { "count": 1000, "avgMs": 0.85, "onePercentLowMs": 1.88, "avgFps": 1174.7, "hordeCpuMs": 0.431 }
+  ]
+}

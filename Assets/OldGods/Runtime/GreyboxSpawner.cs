@@ -6,19 +6,27 @@ namespace OldGods.Runtime
     public sealed class GreyboxSpawner : MonoBehaviour
     {
         public HordeManager Horde;
-        public int Target = 120;
+        [Tooltip("Enemies kept alive at the start; grows by RampPerSecond up to Target.")]
+        public int StartCount = 25;
+        public float RampPerSecond = 1.2f;
+        public int Target = 350;
         public float SpawnPerSecond = 40f;
-        float bank;
+        [Tooltip("Enemy health grows by this fraction per minute.")]
+        public float HealthPerMinute = 0.5f;
+        float bank, elapsed;
 
         void Update()
         {
             if (Horde == null || Horde.Types.Count == 0) return;
-            if (Horde.AliveCount >= Target) return;
+            elapsed += Time.deltaTime;
+            int want = Mathf.Min(Target, StartCount + Mathf.FloorToInt(elapsed * RampPerSecond));
+            if (Horde.AliveCount >= want) return;
             bank += SpawnPerSecond * Time.deltaTime;
-            while (bank >= 1f && Horde.AliveCount < Target)
+            float health = 1f + HealthPerMinute * elapsed / 60f;
+            while (bank >= 1f && Horde.AliveCount < want)
             {
                 bank -= 1f;
-                Horde.SpawnOnRing(Horde.SpawnRng.Range(0, Horde.Types.Count));
+                Horde.SpawnOnRing(Horde.SpawnRng.Range(0, Horde.Types.Count), health);
             }
         }
     }

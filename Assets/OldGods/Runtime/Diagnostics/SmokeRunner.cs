@@ -28,6 +28,7 @@ namespace OldGods.Runtime
         void Start()
         {
             started = Time.realtimeSinceStartup;
+            LevelUpScreen.AutoPick = true;
             SaveStore.FolderOverride = Path.Combine(Application.temporaryCachePath, "smoke-save");
             StartCoroutine(Run());
         }

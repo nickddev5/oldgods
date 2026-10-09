@@ -23,6 +23,11 @@ namespace OldGods.Rules
     public sealed class ContentSet
     {
         public readonly Dictionary<string, EnemyDef> Enemies = new Dictionary<string, EnemyDef>();
+        public readonly List<WeaponDef> Weapons = new List<WeaponDef>();
+        public readonly List<PassiveDef> Passives = new List<PassiveDef>();
+
+        public WeaponDef Weapon(string id) => Weapons.Find(w => w.Id == id) ?? throw new KeyNotFoundException($"No weapon with id '{id}'");
+        public PassiveDef Passive(string id) => Passives.Find(p => p.Id == id) ?? throw new KeyNotFoundException($"No passive with id '{id}'");
 
         public EnemyDef Enemy(string id)
         {
@@ -42,6 +47,16 @@ namespace OldGods.Rules
                 if (e.MoveSpeed < 0f) problems.Add($"Enemy '{e.Id}' has negative MoveSpeed");
                 if (e.Radius <= 0f) problems.Add($"Enemy '{e.Id}' has Radius <= 0");
             }
+            var ids = new HashSet<string>();
+            foreach (var w in Weapons)
+            {
+                if (string.IsNullOrEmpty(w.Id) || !ids.Add(w.Id)) problems.Add($"Weapon id '{w.Id}' is empty or duplicated");
+                if (w.Base.Cooldown <= 0f) problems.Add($"Weapon '{w.Id}' has Cooldown <= 0");
+                if (w.Base.Damage <= 0f) problems.Add($"Weapon '{w.Id}' has Damage <= 0");
+                if (w.UpgradePool.Count == 0) problems.Add($"Weapon '{w.Id}' has no upgrades");
+            }
+            foreach (var p in Passives)
+                if (string.IsNullOrEmpty(p.Id) || !ids.Add(p.Id)) problems.Add($"Passive id '{p.Id}' is empty or duplicated");
             return problems;
         }
 

@@ -105,6 +105,14 @@ namespace OldGods.Editor
             var horde = Mat("Horde", "OldGods/HordeInstanced", Color.white);
             horde.SetFloat("_WalkSwing", 0.22f);
             var glow = Mat("Glow", "OldGods/LowPoly", Color.white, new Color(1.2f, 1.1f, 0.8f));
+            var unlit = Mat("UnlitGlow", "OldGods/UnlitGlow", Color.white);
+            var fade = Mat("UnlitFade", "OldGods/UnlitGlow", Color.white);
+            fade.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            fade.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            fade.SetFloat("_ZWrite", 0f);
+            fade.SetFloat("_Cull", (float)UnityEngine.Rendering.CullMode.Off);
+            fade.SetOverrideTag("RenderType", "Transparent");
+            fade.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
 
             var content = LoadOrCreate<ContentLibrary>(ContentPath);
             ContentAuthoring.Populate(content);
@@ -114,6 +122,8 @@ namespace OldGods.Editor
             assets.LowPoly = lowPoly;
             assets.Horde = horde;
             assets.Glow = glow;
+            assets.UnlitGlow = unlit;
+            assets.UnlitFade = fade;
             assets.Content = content;
             EditorUtility.SetDirty(assets);
             AssetDatabase.SaveAssets();

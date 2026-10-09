@@ -13,7 +13,11 @@ namespace OldGods.Runtime
         public Material LowPoly;
         public Material Horde;
         public Material Glow;
+        public Material UnlitGlow;
+        public Material UnlitFade;
         public ContentLibrary Content;
+        [Tooltip("Weapon the greybox run starts with until gods pick their own.")]
+        public string StartingWeapon = "weapon.spear_volley";
         public MotorTuning Motor = new MotorTuning();
         public TerrainProfile GreyboxTerrain = new TerrainProfile();
         public GroundPalette GreyboxPalette = new GroundPalette();

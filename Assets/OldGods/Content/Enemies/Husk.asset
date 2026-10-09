@@ -15,9 +15,9 @@ MonoBehaviour:
   Id: enemy.husk
   DisplayName: Husk
   MaxHealth: 12
-  MoveSpeed: 3.6
+  MoveSpeed: 3.3
   Radius: 0.4
-  ContactDamage: 6
+  ContactDamage: 4
   XpValue: 1
   Scale: 1
   GoldChance: 0.02

@@ -17,13 +17,16 @@ namespace OldGods.Runtime
         [Tooltip("Hex seed for repeatable runs; empty picks a new one.")]
         public string FixedSeed = "";
         [Tooltip("Greybox: how many enemies the test spawner keeps alive.")]
-        public int GreyboxEnemyTarget = 120;
+        public int GreyboxEnemyTarget = 350;
 
         public RunSeed Seed { get; private set; }
         public PlayerMotor Player { get; private set; }
         public PlayerHealth PlayerHealth { get; private set; }
         public ChaseCamera Camera { get; private set; }
         public HordeManager Horde { get; private set; }
+        public PlayerCombat Combat { get; private set; }
+        public Pickups Pickups { get; private set; }
+        public ContentSet Content { get; private set; }
         public float Elapsed { get; private set; }
         public int Kills { get; private set; }
         public bool IsOver { get; private set; }
@@ -36,7 +39,9 @@ namespace OldGods.Runtime
         {
             Instance = this;
             if (Assets == null) Assets = GameAssets.Load();
+            Time.timeScale = 1f;
             GameInput.Ensure();
+            Fx.Init(Assets);
         }
 
         void OnDestroy()
@@ -73,13 +78,22 @@ namespace OldGods.Runtime
 
             Horde = WorldBuilder.CreateHorde(Assets, Player, null);
             Horde.SpawnRng = Seed.Stream(RunSeed.Spawns);
-            Horde.EnemyKilled += (_, _, byPlayer) => { if (byPlayer) Kills++; };
-            if (Assets.Content != null)
-            {
-                Assets.Content.Load();
-                foreach (var e in Assets.Content.Enemies)
-                    if (e != null) Horde.RegisterType(e.ToDef(), e.MeshOrPlaceholder, e.Color);
-            }
+            Content = Assets.Content.Load();
+            foreach (var e in Assets.Content.Enemies)
+                if (e != null) Horde.RegisterType(Content.Enemy(e.Id), e.MeshOrPlaceholder, e.Color);
+
+            var systems = new GameObject("Combat Systems");
+            Pickups = systems.AddComponent<Pickups>();
+            Pickups.Player = Player.transform;
+            systems.AddComponent<Projectiles>();
+            systems.AddComponent<Effects>();
+            Horde.EnemyKilled += OnEnemyKilled;
+            Pickups.Collected += OnPickup;
+
+            Combat = Player.gameObject.AddComponent<PlayerCombat>();
+            Combat.Init(Assets.Content, Content, Seed);
+            if (!string.IsNullOrEmpty(Assets.StartingWeapon)) Combat.GiveWeapon(Assets.StartingWeapon);
+            LevelUpScreen.Create(Combat, Seed.Stream(RunSeed.Draft));
 
             new GameObject("Damage Numbers").AddComponent<DamageNumbers>();
             var spawner = new GameObject("Greybox Spawner").AddComponent<GreyboxSpawner>();
@@ -106,10 +120,38 @@ namespace OldGods.Runtime
             }
         }
 
+        void OnEnemyKilled(Vector3 at, EnemyDef def, bool byPlayer)
+        {
+            if (!byPlayer) return;
+            Kills++;
+            Pickups.Spawn(PickupKind.Xp, at, def.XpValue);
+        }
+
+        void OnPickup(PickupKind kind, float amount)
+        {
+            switch (kind)
+            {
+                case PickupKind.Xp: Combat.AddXp(amount); break;
+                case PickupKind.Heal: PlayerHealth.Health.Heal(amount); break;
+            }
+        }
+
         void Update()
         {
             if (!IsOver) Elapsed += Time.deltaTime;
             if (IsOver && (GameInput.Pressed(GameInput.Jump) || GameInput.Pressed(GameInput.Interact))) Restart();
+            if (Debug.isDebugBuild || Application.isEditor) DebugKeys();
+        }
+
+        /// <summary>Development shortcuts: F1 level up, F2 heal, F3 kill every enemy, F4 toggle invincible.</summary>
+        void DebugKeys()
+        {
+            var kb = UnityEngine.InputSystem.Keyboard.current;
+            if (kb == null || IsOver) return;
+            if (kb.f1Key.wasPressedThisFrame && Combat != null) Combat.AddXp(Combat.Xp.Required - Combat.Xp.Xp + 0.01f);
+            if (kb.f2Key.wasPressedThisFrame) PlayerHealth.Health.Heal(PlayerHealth.Health.Max);
+            if (kb.f3Key.wasPressedThisFrame) Horde.KillAll(true);
+            if (kb.f4Key.wasPressedThisFrame) PlayerHealth.Invincible = !PlayerHealth.Invincible;
         }
 
         void OnPlayerDied()

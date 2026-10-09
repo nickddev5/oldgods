@@ -15,7 +15,10 @@ MonoBehaviour:
   LowPoly: {fileID: 2100000, guid: 564ebca2a0d118c4eb0ca03dbbad03dd, type: 2}
   Horde: {fileID: 2100000, guid: c24e85eba12f2254aa2d1265ac2a3e06, type: 2}
   Glow: {fileID: 2100000, guid: 22d2c638b1f67e04697bbd774753df7d, type: 2}
+  UnlitGlow: {fileID: 2100000, guid: c773e852fef71c641bd6cde8c6ddde03, type: 2}
+  UnlitFade: {fileID: 2100000, guid: e89ccecbab4773b479050690a6962f82, type: 2}
   Content: {fileID: 11400000, guid: 56e4d215655c9eb4a8ddcd2611cb14e7, type: 2}
+  StartingWeapon: weapon.spear_volley
   Motor:
     RunSpeed: 8
     GroundAccel: 60

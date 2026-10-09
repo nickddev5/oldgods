@@ -40,6 +40,7 @@ namespace OldGods.Runtime
             QualitySettings.vSyncCount = 0;
             Application.targetFrameRate = -1;
             DamageNumbers.Enabled = false;
+            LevelUpScreen.AutoPick = true;
 
             while (RunController.Instance == null || RunController.Instance.Horde == null || RunController.Instance.Horde.Types.Count == 0)
                 yield return null;

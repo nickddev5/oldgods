@@ -12,9 +12,13 @@ namespace OldGods.Runtime
     public sealed class ContentLibrary : ScriptableObject
     {
         public List<EnemyDefinition> Enemies = new List<EnemyDefinition>();
+        public List<WeaponDefinition> Weapons = new List<WeaponDefinition>();
+        public List<PassiveDefinition> Passives = new List<PassiveDefinition>();
 
         public ContentSet Set { get; private set; }
         readonly Dictionary<string, EnemyDefinition> enemyAssets = new Dictionary<string, EnemyDefinition>();
+        readonly Dictionary<string, WeaponDefinition> weaponAssets = new Dictionary<string, WeaponDefinition>();
+        readonly Dictionary<string, PassiveDefinition> passiveAssets = new Dictionary<string, PassiveDefinition>();
 
         public ContentSet Load()
         {
@@ -26,11 +30,27 @@ namespace OldGods.Runtime
                 set.Add(e.ToDef());
                 enemyAssets[e.Id] = e;
             }
+            weaponAssets.Clear();
+            foreach (var w in Weapons)
+            {
+                if (w == null) continue;
+                set.Weapons.Add(w.ToDef());
+                weaponAssets[w.Id] = w;
+            }
+            passiveAssets.Clear();
+            foreach (var p in Passives)
+            {
+                if (p == null) continue;
+                set.Passives.Add(p.ToDef());
+                passiveAssets[p.Id] = p;
+            }
             foreach (var problem in set.Validate()) Debug.LogWarning($"OldGods content: {problem}");
             Set = set;
             return set;
         }
 
         public EnemyDefinition EnemyAsset(string id) => enemyAssets.TryGetValue(id, out var a) ? a : null;
+        public WeaponDefinition WeaponAsset(string id) => weaponAssets.TryGetValue(id, out var a) ? a : null;
+        public PassiveDefinition PassiveAsset(string id) => passiveAssets.TryGetValue(id, out var a) ? a : null;
     }
 }

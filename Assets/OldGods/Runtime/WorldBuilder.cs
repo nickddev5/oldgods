@@ -120,7 +120,7 @@ namespace OldGods.Runtime
 
             var orbit = rig.AddComponent<CinemachineOrbitalFollow>();
             orbit.OrbitStyle = CinemachineOrbitalFollow.OrbitStyles.Sphere;
-            orbit.Radius = 7.5f;
+            orbit.Radius = 9f;
             var tracker = orbit.TrackerSettings;
             tracker.BindingMode = Unity.Cinemachine.TargetTracking.BindingMode.WorldSpace;
             tracker.PositionDamping = new Vector3(0.15f, 0.25f, 0.15f);
@@ -129,8 +129,8 @@ namespace OldGods.Runtime
             orbit.HorizontalAxis.Wrap = true;
             orbit.HorizontalAxis.Value = 0f;
             orbit.VerticalAxis.Range = new Vector2(2f, 50f);
-            orbit.VerticalAxis.Center = 20f;
-            orbit.VerticalAxis.Value = 20f;
+            orbit.VerticalAxis.Center = 26f;
+            orbit.VerticalAxis.Value = 26f;
             orbit.RadialAxis.Range = new Vector2(1f, 1f);
             orbit.RadialAxis.Value = 1f;
 

@@ -36,6 +36,7 @@ namespace OldGods.Runtime
         IEnumerator Start()
         {
             Directory.CreateDirectory(dir);
+            if (CommandLine.Has("-autopick")) LevelUpScreen.AutoPick = true;
             float start = Time.realtimeSinceStartup;
             bool hold = CommandLine.Has("-shotHold");
             for (int i = 0; i < times.Length; i++)
