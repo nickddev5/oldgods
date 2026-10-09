@@ -23,6 +23,8 @@ namespace OldGods.Runtime
         {
             if (!CommandLine.Has("-autoplay") || FindAnyObjectByType<AutoPilot>() != null) return;
             SaveStore.FolderOverride = Path.Combine(Application.temporaryCachePath, "autoplay-save");
+            // Keep running when the window loses focus, so scripted checks do not stall.
+            Application.runInBackground = true;
             var go = new GameObject("AutoPilot");
             DontDestroyOnLoad(go);
             var a = go.AddComponent<AutoPilot>();

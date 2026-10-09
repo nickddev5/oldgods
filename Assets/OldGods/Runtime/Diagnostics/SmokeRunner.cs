@@ -20,6 +20,8 @@ namespace OldGods.Runtime
         {
             if (!CommandLine.Has("-smoke")) return;
             if (FindAnyObjectByType<SmokeRunner>() != null) return;
+            // Keep running when the window loses focus, so scripted checks do not stall.
+            Application.runInBackground = true;
             var go = new GameObject("Smoke Runner");
             DontDestroyOnLoad(go);
             go.AddComponent<SmokeRunner>();
