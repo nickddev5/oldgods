@@ -157,8 +157,9 @@ namespace OldGods.Runtime
         {
             float h = f.Spec.HeadSize;
             f.Kit.Part(BodyPart.Head, f.NeckBase);
-            f.Kit.Ball(f.Head + new Vector3(0f, -h * 0.62f, h * 0.48f), new Vector3(h * 0.62f, h * 0.5f, h * 0.42f), hair, 12, 6);
-            f.Kit.Ball(f.Head + new Vector3(0f, -h * 1.0f, h * 0.52f), new Vector3(h * 0.42f, h * 0.35f, h * 0.3f), hair, 10, 5);
+            // A squared-off beard: a wide block along the jaw and a narrower one at the chin.
+            f.Kit.Block(f.Head + new Vector3(0f, -h * 0.6f, h * 0.45f), new Vector3(h * 1.3f, h * 0.85f, h * 0.8f), hair, 0.45f);
+            f.Kit.Block(f.Head + new Vector3(0f, -h * 1.02f, h * 0.52f), new Vector3(h * 0.8f, h * 0.55f, h * 0.55f), hair, 0.45f);
             f.Kit.Body();
         }
 
