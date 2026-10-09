@@ -105,6 +105,7 @@ namespace OldGods.Runtime
             preview.localScale = Vector3.one * 1.3f;
             previewMesh = preview.gameObject.AddComponent<MeshFilter>();
             previewRenderer = preview.gameObject.AddComponent<MeshRenderer>();
+            preview.gameObject.AddComponent<WalkAnimator>().IdleSwing = 0.05f;
         }
 
         void Update()
@@ -124,7 +125,7 @@ namespace OldGods.Runtime
                 previewModel = WorldBuilder.AttachModel(g.ModelPrefab, preview, g.ModelScale);
                 return;
             }
-            previewMesh.sharedMesh = PlaceholderMeshes.God(g.Look);
+            previewMesh.sharedMesh = GodModels.Get(g.Look);
             previewRenderer.sharedMaterial = WorldBuilder.Tinted(Assets.LowPoly, g.Robe);
         }
 

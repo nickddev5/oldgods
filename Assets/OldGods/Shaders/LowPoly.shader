@@ -6,6 +6,7 @@ Shader "OldGods/LowPoly"
         [HDR] _EmissionColor ("Emission", Color) = (0, 0, 0, 0)
         _AmbientBoost ("Ambient Boost", Range(0, 2)) = 0.2
         _WalkSwing ("Walk Swing (horde only)", Float) = 0
+        _AnimPhase ("Anim Phase (set per renderer)", Float) = 0
     }
 
     SubShader

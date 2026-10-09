@@ -101,9 +101,10 @@ namespace OldGods.Runtime
                 AttachModel(prefab, visual.transform, prefabScale);
                 return motor;
             }
-            visual.AddComponent<MeshFilter>().sharedMesh = body != null ? body : PlaceholderMeshes.God();
+            visual.AddComponent<MeshFilter>().sharedMesh = body != null ? body : GodModels.Get(GodLook.Storm);
             var mr = visual.AddComponent<MeshRenderer>();
             mr.sharedMaterial = Tinted(assets.LowPoly, robe);
+            visual.AddComponent<WalkAnimator>().Tracked = go.transform;
             if (mark != default)
             {
                 var gem = new GameObject("Mark");

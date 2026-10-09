@@ -9,6 +9,7 @@ Shader "OldGods/HordeInstanced"
         [HDR] _EmissionColor ("Emission", Color) = (0, 0, 0, 0)
         _AmbientBoost ("Ambient Boost", Range(0, 2)) = 0.2
         _WalkSwing ("Walk Swing", Float) = 0.22
+        _AnimPhase ("Anim Phase (set per renderer)", Float) = 0
     }
 
     SubShader

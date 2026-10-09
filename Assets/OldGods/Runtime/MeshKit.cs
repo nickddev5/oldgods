@@ -4,18 +4,38 @@ using UnityEngine.Rendering;
 
 namespace OldGods.Runtime
 {
+    /// <summary>Which body part a vertex belongs to; the shaders swing limbs by part.</summary>
+    public enum BodyPart { Body = 0, LeftLeg = 1, RightLeg = 2, LeftArm = 3, RightArm = 4, Head = 5 }
+
     /// <summary>
     /// Builds flat-shaded low-poly meshes from simple parts. Every face gets its own
-    /// vertices so normals are per-face, and every vertex carries a colour.
+    /// vertices so normals are per-face, and every vertex carries a colour. Vertices also
+    /// carry their body part (uv0.x) and the joint it swings around (uv1), so the shaders
+    /// can animate legs and arms without a rig.
     /// </summary>
     public sealed class MeshKit
     {
         readonly List<Vector3> verts = new List<Vector3>();
         readonly List<Vector3> normals = new List<Vector3>();
         readonly List<Color> colors = new List<Color>();
+        readonly List<Vector2> parts = new List<Vector2>();
+        readonly List<Vector3> pivots = new List<Vector3>();
         readonly List<int> tris = new List<int>();
 
+        BodyPart part;
+        Vector3 pivot;
+
         public int VertexCount => verts.Count;
+        public int TriangleCount => tris.Count / 3;
+
+        /// <summary>Everything added until the next call belongs to this part, swinging around the joint.</summary>
+        public void Part(BodyPart p, Vector3 joint)
+        {
+            part = p;
+            pivot = joint;
+        }
+
+        public void Body() => Part(BodyPart.Body, Vector3.zero);
 
         public void Triangle(Vector3 a, Vector3 b, Vector3 c, Color color)
         {
@@ -28,6 +48,9 @@ namespace OldGods.Runtime
             // Vertex colours are not converted by the pipeline; author in sRGB, store linear.
             Color lin = color.linear;
             colors.Add(lin); colors.Add(lin); colors.Add(lin);
+            var pp = new Vector2((float)part, 0f);
+            parts.Add(pp); parts.Add(pp); parts.Add(pp);
+            pivots.Add(pivot); pivots.Add(pivot); pivots.Add(pivot);
             tris.Add(i); tris.Add(i + 1); tris.Add(i + 2);
         }
 
@@ -58,6 +81,50 @@ namespace OldGods.Runtime
             Quad(b3, t3, t0, b0, color * 0.95f);  // -x
         }
 
+        /// <summary>
+        /// A box with its edges cut at 45 degrees (a chamfered block): reads as carved stone or
+        /// plate instead of a crate. bevel is the cut size as a fraction of the smallest half-size.
+        /// </summary>
+        public void Block(Vector3 center, Vector3 size, Color color, float bevel = 0.3f, Quaternion? rotation = null)
+        {
+            Quaternion r = rotation ?? Quaternion.identity;
+            Vector3 h = size * 0.5f;
+            float b = Mathf.Min(h.x, Mathf.Min(h.y, h.z)) * Mathf.Clamp01(bevel);
+            // An octagonal prism along y with chamfered top and bottom rims.
+            var ring = new Vector3[8];
+            for (int i = 0; i < 8; i++)
+            {
+                float sx = (i == 0 || i == 1 || i == 6 || i == 7) ? 1f : -1f;
+                float sz = (i < 4) ? 1f : -1f;
+                bool alongX = i % 2 == 0;
+                float x = alongX ? sx * (h.x - b) : sx * h.x;
+                float z = alongX ? sz * h.z : sz * (h.z - b);
+                ring[i] = new Vector3(x, 0f, z);
+            }
+            // Order the ring around the y axis.
+            System.Array.Sort(ring, (p, q) => Mathf.Atan2(p.z, p.x).CompareTo(Mathf.Atan2(q.z, q.x)));
+            Vector3 L(Vector3 v, float y, float inset)
+            {
+                var flat = new Vector3(v.x, 0f, v.z);
+                var shrink = new Vector3(flat.x - Mathf.Sign(flat.x) * inset, 0f, flat.z - Mathf.Sign(flat.z) * inset);
+                return center + r * new Vector3(shrink.x, y, shrink.z);
+            }
+            float yTop = h.y, yBot = -h.y;
+            for (int i = 0; i < 8; i++)
+            {
+                var a = ring[i];
+                var c = ring[(i + 1) % 8];
+                // side band
+                Quad(L(a, yBot + b, 0f), L(a, yTop - b, 0f), L(c, yTop - b, 0f), L(c, yBot + b, 0f), color * (0.92f + 0.08f * Mathf.Cos(i)));
+                // chamfers
+                Quad(L(a, yTop - b, 0f), L(a, yTop, b), L(c, yTop, b), L(c, yTop - b, 0f), color);
+                Quad(L(a, yBot, b), L(a, yBot + b, 0f), L(c, yBot + b, 0f), L(c, yBot, b), color * 0.85f);
+                // caps
+                Triangle(center + r * new Vector3(0f, yTop, 0f), L(c, yTop, b), L(a, yTop, b), color);
+                Triangle(center + r * new Vector3(0f, yBot, 0f), L(a, yBot, b), L(c, yBot, b), color * 0.8f);
+            }
+        }
+
         /// <summary>An n-sided prism (a low-poly cylinder) standing on y.</summary>
         public void Prism(Vector3 baseCenter, float radius, float height, int sides, Color color, float topScale = 1f)
         {
@@ -72,6 +139,99 @@ namespace OldGods.Runtime
                 Quad(b0, t0, t1, b1, color * (0.9f + 0.1f * Mathf.Cos(a0)));
                 if (topScale > 0f) Triangle(top, t1, t0, color);
                 Triangle(baseCenter, b0, b1, color * 0.8f);
+            }
+        }
+
+        /// <summary>
+        /// A stack of rings along y with a radius per ring: robes, tree trunks, vases.
+        /// profile is (height, radius) pairs from bottom to top; the last radius may be 0 for a point.
+        /// </summary>
+        public void Lathe(Vector3 baseCenter, Vector2[] profile, int sides, Color color, float squashZ = 1f)
+        {
+            for (int r = 0; r < profile.Length - 1; r++)
+            {
+                float y0 = profile[r].x, y1 = profile[r + 1].x;
+                float r0 = profile[r].y, r1 = profile[r + 1].y;
+                for (int i = 0; i < sides; i++)
+                {
+                    float a0 = i * Mathf.PI * 2f / sides, a1 = (i + 1) * Mathf.PI * 2f / sides;
+                    Vector3 D(float a, float rad, float y) => baseCenter + new Vector3(Mathf.Cos(a) * rad, y, Mathf.Sin(a) * rad * squashZ);
+                    var shade = color * (0.9f + 0.1f * Mathf.Cos(a0 + 0.6f));
+                    if (r1 > 1e-4f) Quad(D(a0, r0, y0), D(a0, r1, y1), D(a1, r1, y1), D(a1, r0, y0), shade);
+                    else Triangle(D(a0, r0, y0), baseCenter + Vector3.up * y1, D(a1, r0, y0), shade);
+                }
+            }
+            var first = profile[0];
+            if (first.y > 1e-4f)
+                for (int i = 0; i < sides; i++)
+                {
+                    float a0 = i * Mathf.PI * 2f / sides, a1 = (i + 1) * Mathf.PI * 2f / sides;
+                    Triangle(baseCenter + Vector3.up * first.x,
+                        baseCenter + new Vector3(Mathf.Cos(a0) * first.y, first.x, Mathf.Sin(a0) * first.y * squashZ),
+                        baseCenter + new Vector3(Mathf.Cos(a1) * first.y, first.x, Mathf.Sin(a1) * first.y * squashZ), color * 0.8f);
+                }
+            var last = profile[profile.Length - 1];
+            if (last.y > 1e-4f)
+                for (int i = 0; i < sides; i++)
+                {
+                    float a0 = i * Mathf.PI * 2f / sides, a1 = (i + 1) * Mathf.PI * 2f / sides;
+                    Triangle(baseCenter + Vector3.up * last.x,
+                        baseCenter + new Vector3(Mathf.Cos(a1) * last.y, last.x, Mathf.Sin(a1) * last.y * squashZ),
+                        baseCenter + new Vector3(Mathf.Cos(a0) * last.y, last.x, Mathf.Sin(a0) * last.y * squashZ), color);
+                }
+        }
+
+        /// <summary>
+        /// A faceted ellipsoid (a low-poly sphere): heads, muscles, boulders. jitter roughens it
+        /// deterministically for rocks.
+        /// </summary>
+        public void Ball(Vector3 center, Vector3 radii, Color color, int segments = 8, int rings = 5, Quaternion? rotation = null, float jitter = 0f, int seed = 0)
+        {
+            Quaternion q = rotation ?? Quaternion.identity;
+            var rnd = new System.Random(seed);
+            var grid = new Vector3[rings + 1, segments];
+            for (int y = 0; y <= rings; y++)
+            {
+                float v = y / (float)rings;
+                float phi = Mathf.Lerp(-Mathf.PI / 2f, Mathf.PI / 2f, v);
+                for (int x = 0; x < segments; x++)
+                {
+                    float theta = x * Mathf.PI * 2f / segments;
+                    var p = new Vector3(Mathf.Cos(phi) * Mathf.Cos(theta), Mathf.Sin(phi), Mathf.Cos(phi) * Mathf.Sin(theta));
+                    if (jitter > 0f && y > 0 && y < rings) p *= 1f + ((float)rnd.NextDouble() * 2f - 1f) * jitter;
+                    grid[y, x] = center + q * Vector3.Scale(p, radii);
+                }
+            }
+            for (int y = 0; y < rings; y++)
+                for (int x = 0; x < segments; x++)
+                {
+                    int x1 = (x + 1) % segments;
+                    var shade = color * (0.85f + 0.15f * (y / (float)rings));
+                    Vector3 a = grid[y, x], b = grid[y + 1, x], c = grid[y + 1, x1], d = grid[y, x1];
+                    if (y == 0) Triangle(a, b, c, shade);
+                    else if (y == rings - 1) Triangle(a, b, d, shade);
+                    else Quad(a, b, c, d, shade);
+                }
+        }
+
+        /// <summary>A tapered limb between two points with flat ends: arms, legs, horns, branches.</summary>
+        public void Limb(Vector3 from, Vector3 to, float radiusFrom, float radiusTo, Color color, int sides = 6)
+        {
+            Vector3 axis = to - from;
+            float len = axis.magnitude;
+            if (len < 1e-5f) return;
+            Vector3 dir = axis / len;
+            Vector3 side = Vector3.Cross(dir, Mathf.Abs(dir.y) > 0.9f ? Vector3.forward : Vector3.up).normalized;
+            Vector3 up = Vector3.Cross(side, dir);
+            for (int i = 0; i < sides; i++)
+            {
+                float a0 = i * Mathf.PI * 2f / sides, a1 = (i + 1) * Mathf.PI * 2f / sides;
+                Vector3 o0 = side * Mathf.Cos(a0) + up * Mathf.Sin(a0);
+                Vector3 o1 = side * Mathf.Cos(a1) + up * Mathf.Sin(a1);
+                var shade = color * (0.88f + 0.12f * Mathf.Sin(a0 + 0.8f));
+                Quad(from + o0 * radiusFrom, to + o0 * radiusTo, to + o1 * radiusTo, from + o1 * radiusFrom, shade);
+                if (radiusTo > 1e-4f) Triangle(to, to + o1 * radiusTo, to + o0 * radiusTo, color);
+                if (radiusFrom > 1e-4f) Triangle(from, from + o0 * radiusFrom, from + o1 * radiusFrom, color * 0.85f);
             }
         }
 
@@ -99,6 +259,8 @@ namespace OldGods.Runtime
             mesh.SetVertices(verts);
             mesh.SetNormals(normals);
             mesh.SetColors(colors);
+            mesh.SetUVs(0, parts);
+            mesh.SetUVs(1, pivots);
             mesh.SetTriangles(tris, 0);
             mesh.RecalculateBounds();
             return mesh;
@@ -118,94 +280,6 @@ namespace OldGods.Runtime
             return m;
         }
 
-        /// <summary>
-        /// A hunched husk about 1.6 units tall, feet at y = 0, facing +z. Legs sit at
-        /// |x| > 0.05 and below y = 0.7 so the horde shader can swing them.
-        /// </summary>
-        public static Mesh Husk() => Cached("husk", () =>
-        {
-            var k = new MeshKit();
-            var skin = new Color(0.85f, 0.85f, 0.85f);
-            var dark = new Color(0.55f, 0.55f, 0.55f);
-            k.Box(new Vector3(-0.16f, 0.35f, 0f), new Vector3(0.18f, 0.7f, 0.2f), dark, 0.9f);
-            k.Box(new Vector3(0.16f, 0.35f, 0f), new Vector3(0.18f, 0.7f, 0.2f), dark, 0.9f);
-            k.Box(new Vector3(0f, 1.02f, 0.04f), new Vector3(0.56f, 0.66f, 0.34f), skin, 1.25f, Quaternion.Euler(12f, 0f, 0f));
-            k.Box(new Vector3(-0.38f, 0.95f, 0.12f), new Vector3(0.14f, 0.6f, 0.14f), dark, 0.8f, Quaternion.Euler(-35f, 0f, 8f));
-            k.Box(new Vector3(0.38f, 0.95f, 0.12f), new Vector3(0.14f, 0.6f, 0.14f), dark, 0.8f, Quaternion.Euler(-35f, 0f, -8f));
-            k.Gem(new Vector3(0f, 1.48f, 0.14f), new Vector3(0.17f, 0.17f, 0.17f), skin);
-            return k.Build("Husk");
-        });
-
-        /// <summary>The player stand-in: a robed figure about 1.8 tall with a pale mask, facing +z.</summary>
-        public static Mesh God() => Cached("god", () =>
-        {
-            var k = new MeshKit();
-            var robe = new Color(0.9f, 0.9f, 0.9f);
-            var trim = new Color(0.7f, 0.7f, 0.7f);
-            k.Prism(Vector3.zero, 0.42f, 1.15f, 7, robe, 0.55f);
-            k.Box(new Vector3(0f, 1.3f, 0f), new Vector3(0.5f, 0.35f, 0.32f), trim, 0.8f);
-            k.Gem(new Vector3(0f, 1.66f, 0.02f), new Vector3(0.17f, 0.2f, 0.17f), Color.white);
-            k.Box(new Vector3(0f, 1.66f, 0.17f), new Vector3(0.18f, 0.12f, 0.04f), new Color(1f, 0.85f, 0.4f));
-            return k.Build("GodPlaceholder");
-        });
-
-        /// <summary>The robed god figure with a head piece that tells the gods apart.</summary>
-        public static Mesh God(GodLook look) => Cached("god" + look, () =>
-        {
-            var k = new MeshKit();
-            var robe = new Color(0.9f, 0.9f, 0.9f);
-            var trim = new Color(0.7f, 0.7f, 0.7f);
-            var pale = new Color(1f, 1f, 1f);
-            float tall = look == GodLook.Elias ? 1.08f : 1f;
-            k.Prism(Vector3.zero, 0.42f, 1.15f * tall, 7, robe, 0.55f);
-            k.Box(new Vector3(0f, 1.3f * tall, 0f), new Vector3(0.5f, 0.35f, 0.32f), trim, 0.8f);
-            float hy = 1.66f * tall;
-            k.Gem(new Vector3(0f, hy, 0.02f), new Vector3(0.17f, 0.2f, 0.17f), pale);
-            k.Box(new Vector3(0f, hy, 0.17f), new Vector3(0.18f, 0.12f, 0.04f), new Color(1f, 0.85f, 0.4f));
-            switch (look)
-            {
-                case GodLook.Storm:
-                    for (int i = -1; i <= 1; i++)
-                        k.Box(new Vector3(i * 0.12f, hy + 0.28f, 0f), new Vector3(0.05f, 0.32f, 0.05f), pale, 0.2f, Quaternion.Euler(0f, 0f, i * -22f));
-                    break;
-                case GodLook.Forge:
-                    k.Box(new Vector3(-0.36f, 1.42f, 0f), new Vector3(0.3f, 0.18f, 0.36f), trim, 0.8f);
-                    k.Box(new Vector3(0.36f, 1.42f, 0f), new Vector3(0.3f, 0.18f, 0.36f), trim, 0.8f);
-                    k.Box(new Vector3(0f, 1.05f, -0.32f), new Vector3(0.08f, 0.9f, 0.08f), trim, 1f, Quaternion.Euler(0f, 0f, 30f));
-                    k.Box(new Vector3(0.24f, 1.44f, -0.32f), new Vector3(0.32f, 0.2f, 0.2f), pale, 1f, Quaternion.Euler(0f, 0f, 30f));
-                    break;
-                case GodLook.Tide:
-                    k.Box(new Vector3(0f, hy + 0.05f, -0.06f), new Vector3(0.34f, 0.5f, 0.34f), robe, 0.5f);
-                    k.Box(new Vector3(0f, hy + 0.3f, -0.16f), new Vector3(0.05f, 0.35f, 0.3f), pale, 0.4f, Quaternion.Euler(-25f, 0f, 0f));
-                    break;
-                case GodLook.Hunt:
-                    k.Box(new Vector3(-0.14f, hy + 0.3f, 0f), new Vector3(0.04f, 0.38f, 0.04f), pale, 1f, Quaternion.Euler(0f, 0f, 25f));
-                    k.Box(new Vector3(0.14f, hy + 0.3f, 0f), new Vector3(0.04f, 0.38f, 0.04f), pale, 1f, Quaternion.Euler(0f, 0f, -25f));
-                    k.Box(new Vector3(0.18f, 1.1f, -0.33f), new Vector3(0.14f, 0.7f, 0.14f), trim, 1f, Quaternion.Euler(0f, 0f, -15f));
-                    break;
-                case GodLook.Ember:
-                    for (int i = 0; i < 5; i++)
-                    {
-                        float a = i * Mathf.PI * 2f / 5f;
-                        k.Gem(new Vector3(Mathf.Cos(a) * 0.14f, hy + 0.24f, Mathf.Sin(a) * 0.14f), new Vector3(0.05f, 0.14f, 0.05f), new Color(1f, 0.7f, 0.4f));
-                    }
-                    break;
-                case GodLook.Earth:
-                    k.Box(new Vector3(0f, 1.38f, 0f), new Vector3(0.8f, 0.2f, 0.48f), trim, 0.85f);
-                    k.Box(new Vector3(-0.16f, hy + 0.12f, 0.05f), new Vector3(0.06f, 0.24f, 0.06f), pale, 0.3f, Quaternion.Euler(0f, 0f, 60f));
-                    k.Box(new Vector3(0.16f, hy + 0.12f, 0.05f), new Vector3(0.06f, 0.24f, 0.06f), pale, 0.3f, Quaternion.Euler(0f, 0f, -60f));
-                    break;
-                case GodLook.Elias:
-                    for (int i = 0; i < 7; i++)
-                    {
-                        float a = i * Mathf.PI * 2f / 7f;
-                        k.Box(new Vector3(Mathf.Cos(a) * 0.15f, hy + 0.2f, Mathf.Sin(a) * 0.15f), new Vector3(0.04f, 0.12f, 0.04f), new Color(1f, 0.85f, 0.45f), 0.3f);
-                    }
-                    break;
-            }
-            return k.Build("God" + look);
-        });
-
         public static Mesh XpGem() => Cached("xpgem", () =>
         {
             var k = new MeshKit();
@@ -218,53 +292,6 @@ namespace OldGods.Runtime
             var k = new MeshKit();
             k.Gem(Vector3.zero, new Vector3(0.12f, 0.12f, 0.45f), Color.white);
             return k.Build("Shard");
-        });
-
-        /// <summary>Placeholder boss bodies, about 1.7 units tall before the boss's scale, facing +z.</summary>
-        public static Mesh Boss(BossModel model) => Cached("boss" + model, () =>
-        {
-            var k = new MeshKit();
-            var main = new Color(0.9f, 0.9f, 0.9f);
-            var dark = new Color(0.6f, 0.6f, 0.6f);
-            switch (model)
-            {
-                case BossModel.Warden:
-                    k.Box(new Vector3(-0.25f, 0.3f, 0f), new Vector3(0.3f, 0.6f, 0.35f), dark);
-                    k.Box(new Vector3(0.25f, 0.3f, 0f), new Vector3(0.3f, 0.6f, 0.35f), dark);
-                    k.Box(new Vector3(0f, 0.95f, 0f), new Vector3(1f, 0.8f, 0.6f), main, 1.15f);
-                    k.Box(new Vector3(-0.7f, 0.85f, 0.1f), new Vector3(0.35f, 0.9f, 0.35f), dark, 1.2f);
-                    k.Box(new Vector3(0.7f, 0.85f, 0.1f), new Vector3(0.35f, 0.9f, 0.35f), dark, 1.2f);
-                    k.Box(new Vector3(0f, 1.52f, 0.1f), new Vector3(0.38f, 0.32f, 0.38f), main);
-                    k.Box(new Vector3(0f, 1.52f, 0.3f), new Vector3(0.24f, 0.06f, 0.02f), new Color(1f, 0.6f, 0.2f));
-                    break;
-                case BossModel.Stag:
-                    k.Box(new Vector3(0f, 0.85f, 0f), new Vector3(0.6f, 0.5f, 1.3f), main, 0.9f);
-                    foreach (var (x, z) in new[] { (-0.22f, 0.45f), (0.22f, 0.45f), (-0.22f, -0.45f), (0.22f, -0.45f) })
-                        k.Box(new Vector3(x, 0.3f, z), new Vector3(0.14f, 0.6f, 0.14f), dark);
-                    k.Box(new Vector3(0f, 1.25f, 0.65f), new Vector3(0.28f, 0.5f, 0.28f), main, 0.8f, Quaternion.Euler(-25f, 0f, 0f));
-                    k.Box(new Vector3(0f, 1.5f, 0.85f), new Vector3(0.24f, 0.22f, 0.4f), main);
-                    k.Box(new Vector3(-0.3f, 1.85f, 0.75f), new Vector3(0.06f, 0.6f, 0.06f), dark, 1f, Quaternion.Euler(0f, 0f, 30f));
-                    k.Box(new Vector3(0.3f, 1.85f, 0.75f), new Vector3(0.06f, 0.6f, 0.06f), dark, 1f, Quaternion.Euler(0f, 0f, -30f));
-                    break;
-                case BossModel.Mother:
-                    k.Prism(Vector3.zero, 0.6f, 1.2f, 8, dark, 0.45f);
-                    k.Box(new Vector3(0f, 1.35f, 0f), new Vector3(0.5f, 0.4f, 0.4f), main, 0.8f);
-                    k.Gem(new Vector3(0f, 1.75f, 0f), new Vector3(0.22f, 0.26f, 0.22f), main);
-                    for (int i = 0; i < 6; i++)
-                    {
-                        float a = i * Mathf.PI / 3f;
-                        k.Box(new Vector3(Mathf.Cos(a) * 0.55f, 0.15f, Mathf.Sin(a) * 0.55f), new Vector3(0.12f, 0.3f, 0.5f), dark, 0.5f, Quaternion.Euler(0f, -a * Mathf.Rad2Deg, 0f));
-                    }
-                    break;
-                default:
-                    k.Prism(Vector3.zero, 0.5f, 0.4f, 6, dark, 0.8f);
-                    k.Gem(new Vector3(0f, 1.05f, 0f), new Vector3(0.6f, 0.65f, 0.6f), main);
-                    k.Gem(new Vector3(0f, 1.05f, 0.45f), new Vector3(0.12f, 0.12f, 0.12f), new Color(1f, 0.9f, 0.5f));
-                    k.Box(new Vector3(-0.85f, 1.1f, 0f), new Vector3(0.25f, 0.25f, 0.25f), dark);
-                    k.Box(new Vector3(0.85f, 1.1f, 0f), new Vector3(0.25f, 0.25f, 0.25f), dark);
-                    break;
-            }
-            return k.Build("Boss" + model);
         });
 
         /// <summary>A standing portal ring about 4 units tall, facing +z.</summary>

@@ -66,7 +66,7 @@ namespace OldGods.Runtime
 
             var enemyDef = new EnemyDef { Id = Def.Id, DisplayName = Def.Name, MaxHealth = Def.MaxHealth, MoveSpeed = 0f, Radius = Def.Radius / Def.Scale, Scale = Def.Scale, XpValue = 0, IsElite = true };
             int type = h.TypeOf(enemyDef);
-            if (type < 0) type = h.RegisterType(enemyDef, PlaceholderMeshes.Husk(), Color.white);
+            if (type < 0) type = h.RegisterType(enemyDef, EnemyModels.Get(EnemyModel.Husk), Color.white);
             MaxHealth = BossScaling.Health(Def, stageIndex, curses);
             Slot = h.Spawn(type, transform.position, MaxHealth / Def.MaxHealth);
             if (Slot < 0)
@@ -88,9 +88,13 @@ namespace OldGods.Runtime
             else
             {
                 m.transform.localScale = Vector3.one * Def.Scale;
-                m.AddComponent<MeshFilter>().sharedMesh = PlaceholderMeshes.Boss(asset.Model);
+                m.AddComponent<MeshFilter>().sharedMesh = BossModels.Get(asset.Model);
                 modelRenderer = m.AddComponent<MeshRenderer>();
                 modelRenderer.sharedMaterial = WorldBuilder.Tinted(assets.LowPoly, asset.Color);
+                var walk = m.AddComponent<WalkAnimator>();
+                walk.Tracked = transform;
+                walk.RunSpeed = Mathf.Max(0.5f, Def.MoveSpeed * 1.8f / Mathf.Max(0.1f, Def.Scale));
+                walk.MaxSwing = 0.16f;
             }
             model = m.transform;
             All.Add(this);
@@ -186,8 +190,12 @@ namespace OldGods.Runtime
             horde.Z[Slot] = p.z;
             horde.Y[Slot] = p.y;
             float flash = horde.Flash[Slot];
-            props.SetColor("_EmissionColor", Color.white * flash * 0.6f);
-            if (modelRenderer != null) modelRenderer.SetPropertyBlock(props);
+            if (modelRenderer != null)
+            {
+                modelRenderer.GetPropertyBlock(props);
+                props.SetColor("_EmissionColor", Color.white * flash * 0.6f);
+                modelRenderer.SetPropertyBlock(props);
+            }
         }
 
         bool PlayerGrounded => player.transform.position.y - Ground.Height(player.transform.position.x, player.transform.position.z) < 0.6f;

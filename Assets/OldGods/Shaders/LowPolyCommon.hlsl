@@ -14,6 +14,7 @@ CBUFFER_START(UnityPerMaterial)
     half4 _EmissionColor;
     half _AmbientBoost;
     half _WalkSwing;
+    float _AnimPhase;
 CBUFFER_END
 
 struct Attributes
@@ -21,6 +22,8 @@ struct Attributes
     float4 positionOS : POSITION;
     float3 normalOS   : NORMAL;
     half4  color      : COLOR;
+    float2 part       : TEXCOORD0; // x: body part (0 body, 1-2 legs, 3-4 arms, 5 head)
+    float3 joint      : TEXCOORD1; // the joint the part swings around
 #ifdef OG_HORDE
     uint   instanceID : SV_InstanceID;
 #else
@@ -51,33 +54,41 @@ struct HordeInstance
 StructuredBuffer<HordeInstance> _Instances;
 #endif
 
+// Rotates a point around the x axis through a joint.
+float3 SwingX(float3 p, float3 joint, float angle)
+{
+    float3 d = p - joint;
+    float c = cos(angle), s = sin(angle);
+    return joint + float3(d.x, d.y * c - d.z * s, d.y * s + d.z * c);
+}
+
+// Procedural walk from body parts baked into the mesh: legs swing in opposite phase,
+// arms counter-swing, the body bobs twice per stride, the head nods a little.
+void Animate(inout float3 p, inout float3 n, float part, float3 joint, float phase, float swing)
+{
+    if (swing <= 0.0) return;
+    float angle = 0.0;
+    if (part > 0.5 && part < 2.5) angle = sin(phase + (part < 1.5 ? 0.0 : PI)) * swing * 2.6;
+    else if (part > 2.5 && part < 4.5) angle = sin(phase + (part < 3.5 ? PI : 0.0)) * swing * 1.8;
+    else if (part > 4.5) angle = sin(phase * 2.0) * swing * 0.25;
+    if (angle != 0.0)
+    {
+        p = SwingX(p, joint, angle);
+        n = SwingX(n, float3(0, 0, 0), angle);
+    }
+    p.y += abs(sin(phase)) * swing * 0.2;
+}
+
 // Object space to world space for both ordinary renderers and horde instances.
 void OGTransform(Attributes IN, out float3 positionWS, out float3 normalWS, out half flash, out half tint)
 {
     flash = 0;
     tint = 1;
-#ifdef OG_HORDE
-    HordeInstance inst = _Instances[IN.instanceID];
     float3 p = IN.positionOS.xyz;
     float3 n = IN.normalOS;
-
-    // Procedural walk until baked vertex animation lands: legs below the hip swing
-    // in opposite phase, the upper body bobs.
-    float hip = 0.7;
-    float side = p.x > 0.05 ? 1.0 : (p.x < -0.05 ? -1.0 : 0.0);
-    if (p.y < hip && side != 0.0)
-    {
-        float k = (hip - p.y) / hip;
-        float s = sin(inst.phase + (side > 0 ? 0.0 : PI));
-        p.z += s * _WalkSwing * k;
-        p.y += max(0.0, s) * _WalkSwing * 0.35 * k;
-    }
-    else
-    {
-        p.y += abs(sin(inst.phase)) * _WalkSwing * 0.18;
-        p.z += sin(inst.phase * 2.0) * _WalkSwing * 0.05 * saturate(p.y - hip);
-    }
-
+#ifdef OG_HORDE
+    HordeInstance inst = _Instances[IN.instanceID];
+    Animate(p, n, IN.part.x, IN.joint, inst.phase, _WalkSwing);
     float c = cos(inst.yaw), s2 = sin(inst.yaw);
     float3 r = float3(p.x * c + p.z * s2, p.y, -p.x * s2 + p.z * c);
     positionWS = r * inst.scale + inst.position;
@@ -86,8 +97,9 @@ void OGTransform(Attributes IN, out float3 positionWS, out float3 normalWS, out 
     tint = inst.tint;
 #else
     UNITY_SETUP_INSTANCE_ID(IN);
-    positionWS = TransformObjectToWorld(IN.positionOS.xyz);
-    normalWS = TransformObjectToWorldNormal(IN.normalOS);
+    Animate(p, n, IN.part.x, IN.joint, _AnimPhase, _WalkSwing);
+    positionWS = TransformObjectToWorld(p);
+    normalWS = TransformObjectToWorldNormal(n);
 #endif
 }
 
