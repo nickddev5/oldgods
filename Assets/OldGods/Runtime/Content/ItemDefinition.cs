@@ -17,6 +17,8 @@ namespace OldGods.Runtime
         public string Special = "";
         public float SpecialValue;
         public string UnlockId = "";
+        [Tooltip("Embers to unlock at the Shrine of Embers when UnlockId is set.")]
+        public int UnlockCost;
         public Color Color = Color.white;
 
         public ItemDef ToDef() => new ItemDef

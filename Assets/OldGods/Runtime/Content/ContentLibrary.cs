@@ -60,5 +60,14 @@ namespace OldGods.Runtime
         public WeaponDefinition WeaponAsset(string id) => weaponAssets.TryGetValue(id, out var a) ? a : null;
         public PassiveDefinition PassiveAsset(string id) => passiveAssets.TryGetValue(id, out var a) ? a : null;
         public GodDefinition GodAsset(string id) => Gods.Find(g => g != null && g.Id == id);
+
+        /// <summary>Embers to unlock a weapon, passive or item by its unlock id; 0 if unknown.</summary>
+        public int UnlockCost(string unlockId)
+        {
+            foreach (var w in Weapons) if (w != null && w.UnlockId == unlockId) return w.UnlockCost;
+            foreach (var p in Passives) if (p != null && p.UnlockId == unlockId) return p.UnlockCost;
+            foreach (var i in Items) if (i != null && i.UnlockId == unlockId) return i.UnlockCost;
+            return 0;
+        }
     }
 }

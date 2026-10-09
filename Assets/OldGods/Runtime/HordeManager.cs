@@ -22,6 +22,8 @@ namespace OldGods.Runtime
         [Tooltip("Enemies farther than this from the player are moved back to the spawn ring.")]
         public float LeashDistance = 70f;
         public float PlayerRadius = 0.5f;
+        /// <summary>Speed multiplier for every enemy (the Swift Horde modifier).</summary>
+        public float GlobalSpeed = 1f;
 
         public Transform Target;
         public PlayerHealth TargetHealth;
@@ -299,7 +301,7 @@ namespace OldGods.Runtime
                     continue;
                 }
                 var def = types[TypeIndex[i]];
-                float speed = def.MoveSpeed * SpeedMul[i] * (SlowFor[i] > 0f ? 0.45f : 1f);
+                float speed = def.MoveSpeed * SpeedMul[i] * GlobalSpeed * (SlowFor[i] > 0f ? 0.45f : 1f);
                 float radius = def.Radius * def.Scale;
 
                 Vec2 desired = hasTarget

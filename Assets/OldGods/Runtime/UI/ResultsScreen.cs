@@ -25,6 +25,13 @@ namespace OldGods.Runtime
             return $"{s / 60}:{s % 60:00}";
         }
 
+        static string QuestLines(RunController run)
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (var q in run.QuestsCompleted) sb.Append($"<size=24><color=#a8ffb0>Quest complete: {q.Name} (+{q.Reward})</color></size>\n");
+            return sb.ToString();
+        }
+
         void Build(RectTransform root, RunController run)
         {
             var dim = UiKit.Panel(root, "Dim", new Color(0f, 0f, 0f, 0.7f));
@@ -42,7 +49,9 @@ namespace OldGods.Runtime
                 $"Time  <b>{Clock(s.Seconds)}</b>     Level  <b>{s.Level}</b>     Kills  <b>{s.Kills}</b>\n" +
                 $"Bosses  <b>{s.BossesKilled}</b>     Chests  <b>{s.ChestsOpened}</b>     Shrines  <b>{s.ShrinesUsed}</b>\n" +
                 (s.BestSwarmSeconds > 0f ? $"Longest final swarm  <b>{Clock(s.BestSwarmSeconds)}</b>  (x{OldGods.Rules.FinalSwarm.SurvivalMultiplier(s.BestSwarmSeconds):0.00})\n" : "") +
-                $"\n<size=44><color=#ffb860>+{run.EmbersEarned} Embers</color></size>\n\n" +
+                $"\n<size=44><color=#ffb860>+{run.EmbersEarned} Embers</color></size>\n" +
+                QuestLines(run) +
+                $"<size=24>You now hold {SaveStore.Current.currency} Embers</size>\n\n" +
                 $"<size=20><color=#999999>seed {s.Seed}</color></size>",
                 30, TextAlignmentOptions.Center);
             UiKit.Anchor(body.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 20f), new Vector2(1400f, 440f));

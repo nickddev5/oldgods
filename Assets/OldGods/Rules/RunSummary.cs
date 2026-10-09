@@ -19,6 +19,7 @@ namespace OldGods.Rules
         public int ChestsOpened;
         public int ShrinesUsed;
         public int GoldEarned;
+        public int ItemsFound;
         /// <summary>Sum of active difficulty modifiers' payout bonuses (0.25 = +25%).</summary>
         public float DifficultyBonus;
     }

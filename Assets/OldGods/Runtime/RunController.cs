@@ -50,6 +50,7 @@ namespace OldGods.Runtime
         public GodDef God { get; private set; }
         public RunSummary Summary { get; } = new RunSummary();
         public int EmbersEarned { get; private set; }
+        public List<QuestDef> QuestsCompleted { get; private set; } = new List<QuestDef>();
         /// <summary>Boss Curse shrines taken this stage: each makes the boss stronger.</summary>
         public int BossCurses { get; set; }
 
@@ -129,9 +130,9 @@ namespace OldGods.Runtime
                 Combat.ExternalMods.AddRange(God.Kit);
                 if (!string.IsNullOrEmpty(God.StartingWeapon)) Combat.GiveWeapon(God.StartingWeapon);
                 if (!string.IsNullOrEmpty(God.StartingPassive)) Combat.GivePassive(God.StartingPassive);
-                Combat.RecomputeStats();
             }
             else if (!string.IsNullOrEmpty(Assets.StartingWeapon)) Combat.GiveWeapon(Assets.StartingWeapon);
+            ApplyMeta();
             Economy.Init(this);
             var interaction = Player.gameObject.AddComponent<InteractionDriver>();
             interaction.Player = Combat;
@@ -141,6 +142,26 @@ namespace OldGods.Runtime
             Hud = Hud.Create(this);
             Minimap = Minimap.Create(Hud.Root);
             GameInput.SetCursorLocked(true);
+        }
+
+        /// <summary>Permanent powerups and the chosen difficulty modifiers.</summary>
+        void ApplyMeta()
+        {
+            var save = SaveStore.Current;
+            save.runsStarted++;
+            Combat.ExternalMods.AddRange(MetaRules.PowerupMods(save));
+            foreach (var id in RunSetup.Modifiers)
+            {
+                var m = MetaCatalog.Modifier(id);
+                if (m == null) continue;
+                Director.RunDifficulty += m.EnemyHealthAndDensity;
+                Horde.GlobalSpeed *= 1f + m.EnemySpeed;
+                if (m.PlayerMaxHealthPercent != 0f) Combat.ExternalMods.Add(new StatMod(StatId.MaxHealth, 0f, m.PlayerMaxHealthPercent));
+                if (m.NoDraftCharges) { Combat.Charges.Refresh = 0; Combat.Charges.Skip = 0; Combat.Charges.Banish = 0; }
+            }
+            Summary.DifficultyBonus = MetaRules.PayoutBonus(RunSetup.Modifiers);
+            Combat.RecomputeStats();
+            PlayerHealth.Health.Reset();
         }
 
         public BiomeDefinition BiomeFor(int stage)
@@ -423,7 +444,12 @@ namespace OldGods.Runtime
             Summary.ChestsOpened = Economy.ChestsOpened;
             Summary.ShrinesUsed = Economy.ShrinesUsed;
             Summary.GoldEarned = Economy.Wallet.Earned;
+            Summary.ItemsFound = Combat.Items.Total;
             EmbersEarned = RunRewards.Embers(Summary);
+            var save = SaveStore.Current;
+            QuestsCompleted = MetaRules.PayRun(save, Summary, EmbersEarned);
+            try { SaveStore.Save(save); }
+            catch (Exception e) { Debug.LogError("OldGods: could not write the save: " + e.Message); }
             Paid?.Invoke(this);
             RunOver?.Invoke();
         }

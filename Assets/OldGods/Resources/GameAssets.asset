@@ -25,6 +25,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a9d524dec9e6ffb478c62dbd9a701900, type: 2}
   GreyboxBiome: {fileID: 11400000, guid: 266d2d67e531faa488ed1175ca305560, type: 2}
   FinalArena: {fileID: 11400000, guid: 65795348b9c41ab44b169f8341a280a1, type: 2}
+  ContentVersion: 1
   Motor:
     RunSpeed: 8
     GroundAccel: 60

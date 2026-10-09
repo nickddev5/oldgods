@@ -17,8 +17,12 @@ namespace OldGods.Runtime
         public int StageIndex;
         public HordeManager Horde;
         public Rng Rng;
-        /// <summary>Extra difficulty from modifiers and Greed shrines: multiplies density and health.</summary>
-        public float DifficultyBonus;
+        /// <summary>Difficulty from run modifiers; lasts the whole run.</summary>
+        public float RunDifficulty;
+        /// <summary>Difficulty from Greed shrines; resets each stage.</summary>
+        public float StageDifficulty;
+        /// <summary>Extra enemy density and health: 0.3 is +30%.</summary>
+        public float DifficultyBonus => RunDifficulty + StageDifficulty;
 
         public float Elapsed { get; private set; }
         public float Remaining => TimelineEvaluator.Remaining(Timeline, Elapsed);
@@ -49,6 +53,7 @@ namespace OldGods.Runtime
             Rng = rng;
             Elapsed = 0f;
             bank = 0f;
+            StageDifficulty = 0f;
             swarmAnnounced = false;
             typeById.Clear();
             for (int i = 0; i < horde.Types.Count; i++)

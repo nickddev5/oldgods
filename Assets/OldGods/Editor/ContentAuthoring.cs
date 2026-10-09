@@ -354,6 +354,30 @@ namespace OldGods.Editor
             Passive(l, "Fortune", "passive.fortune", "Fortune", StatId.Luck, 0.08f, new Color(0.4f, 1f, 0.5f));
         }
 
+        /// <summary>
+        /// One-time changes to content that already exists, keyed by GameAssets.ContentVersion,
+        /// so Inspector tuning after a migration is never overwritten.
+        /// </summary>
+        public static void Migrate(GameAssets assets, ContentLibrary l)
+        {
+            if (assets.ContentVersion < 1)
+            {
+                // Milestone 7: content that must be bought at the Shrine of Embers.
+                var costs = new Dictionary<string, int>
+                {
+                    { "weapon.frost_shards", 100 }, { "weapon.bone_ring", 100 }, { "weapon.grave_pull", 150 },
+                    { "weapon.ember_rain", 150 }, { "weapon.thunder_cloud", 200 },
+                    { "passive.magnetism", 80 }, { "passive.fortune", 100 }, { "passive.multitude", 200 },
+                    { "item.bloodstone", 150 }, { "item.quiver_of_dawn", 200 }, { "item.winged_crown", 250 },
+                };
+                foreach (var w in l.Weapons) if (w != null && costs.TryGetValue(w.Id, out int c)) { w.UnlockId = w.Id; w.UnlockCost = c; EditorUtility.SetDirty(w); }
+                foreach (var p in l.Passives) if (p != null && costs.TryGetValue(p.Id, out int c)) { p.UnlockId = p.Id; p.UnlockCost = c; EditorUtility.SetDirty(p); }
+                foreach (var i in l.Items) if (i != null && costs.TryGetValue(i.Id, out int c)) { i.UnlockId = i.Id; i.UnlockCost = c; EditorUtility.SetDirty(i); }
+                assets.ContentVersion = 1;
+                EditorUtility.SetDirty(assets);
+            }
+        }
+
         static void Items(ContentLibrary l)
         {
             Item(l, "Whetstone", "item.whetstone", "Whetstone", Rarity.Common, "A stone that remembers every edge.", new StatMod(StatId.Damage, 0.06f));

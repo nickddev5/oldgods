@@ -37,7 +37,8 @@ MonoBehaviour:
   - Stat: 7
     Amount: 0.1
   SlowSeconds: 0
-  UnlockId: 
+  UnlockId: weapon.bone_ring
+  UnlockCost: 100
   Color: {r: 0.9, g: 0.88, b: 0.8, a: 1}
   Glow: {r: 1.6, g: 1.6, b: 1.4, a: 1}
   VisualScale: {x: 0.8, y: 0.8, z: 0.8}

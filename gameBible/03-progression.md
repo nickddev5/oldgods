@@ -30,10 +30,12 @@
 ## Between runs
 
 - **Currency:** "Embers" (working name), paid at the end of a run: 20 per stage cleared, 30 per boss, 1 per 30 kills, 40 for reaching The Last Test, 100 for winning; times the best final-swarm survival multiplier; times (1 + difficulty modifier bonus). Shown on the results screen with the seed.
-- **Unlock tree:** gods, weapons, passives and items enter the pool when bought. Most of the tree is content, not power.
-- **Powerups:** a few small, capped stat buys (max health, damage, pickup range, move speed, luck, XP gain).
-- **Quests:** about 12 goals ("open 25 chests", "beat a boss without being hit") that grant currency or unlock items.
-- **Difficulty modifiers:** optional; raise enemy health or density for a higher currency payout.
-- **Elias:** unlocks only when every other god is unlocked.
+- **Shrine of Embers (menu):** spend Embers on the unlock tree and powerups.
+- **Unlock tree:** gods in order (Forge 150, Tide 300, Hunt 500, Ember 750, Earth 1000; Elias 1500 once all six are owned), five weapons (Frost Shards 100, Bone Ring 100, Grave Pull 150, Ember Rain 150, Thunder Cloud 200), three passives (Magnetism 80, Fortune 100, Multitude 200) and three items (Bloodstone 150, Quiver of Dawn 200, Winged Crown 250). Locked content never appears in drafts, chests or the merchant. Most of the tree is content, not power.
+- **Powerups:** six capped stat buys, five levels each, costing base x next level: Vitality +5 health (40), Might +3% damage (60), Stride +2% speed (50), Reach of Hand +0.3 m pickup (30), Favour +2% luck (60), Insight +3% XP (50).
+- **Quests (12):** First Steps (clear a stage, 30), Slayer (1000 kills, 50), Opener (25 chests, 60), Devout (20 shrines, 60), Guardians' Bane (5 bosses, 80), Swarm Walker (60 s of a final swarm in one run, 80), The Deep Road (reach The Last Test, 100), Hoarder (2000 gold, 60), Ascendant (level 30 in one run, 80), Collector (15 items in one run, 80), Slaughter (1500 kills in one run, 100), The Throne (win as Elias, 200). Totals add up across runs unless marked "in one run". Rewards are Embers.
+- **Difficulty modifiers (character select):** Hardened (foes +30% health and numbers, +25% Embers), Swift Horde (foes +15% speed, +20%), Frail (-30% max health, +25%), No Second Thoughts (no refresh, skip or banish, +15%). Bonuses add.
+- **Elias:** unlocks only when every other god is unlocked. A typical winning run pays about 400 Embers, so a player who wins reaches Elias in roughly ten wins (checked by the FreshSaveReachesEliasByPlaying test).
+- **Save:** JSON at persistentDataPath/oldgods/save.json with a version number and migration step; written through a temp file; an unreadable save is kept as .corrupt and a fresh one starts.
 
 No banking: currency is awarded at the end of a run, never stored mid-run.

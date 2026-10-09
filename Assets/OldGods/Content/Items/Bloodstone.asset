@@ -22,5 +22,6 @@ MonoBehaviour:
     Percent: 0
   Special: heal_on_kill
   SpecialValue: 0.08
-  UnlockId: 
+  UnlockId: item.bloodstone
+  UnlockCost: 150
   Color: {r: 1, g: 1, b: 1, a: 1}

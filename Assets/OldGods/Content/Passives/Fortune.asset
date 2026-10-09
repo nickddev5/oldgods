@@ -18,5 +18,6 @@ MonoBehaviour:
   Stat: 12
   AddPerLevel: 0.08
   PercentPerLevel: 0
-  UnlockId: 
+  UnlockId: passive.fortune
+  UnlockCost: 100
   Color: {r: 0.4, g: 1, b: 0.5, a: 1}

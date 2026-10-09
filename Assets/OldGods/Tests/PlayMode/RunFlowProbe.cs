@@ -190,6 +190,77 @@ namespace OldGods.Tests.PlayMode
             Assert.AreEqual(7, weapons.Count, "every god has a different weapon");
         }
 
+        /// <summary>
+        /// Milestone 7 gate: a fresh save earns Embers from a real run, the save survives a
+        /// reload, and repeating that payout buys every god in order up to Elias.
+        /// </summary>
+        [UnityTest, Timeout(240000)]
+        public IEnumerator FreshSaveEarnsSavesAndReachesElias()
+        {
+            SaveStore.Reset();
+            LevelUpScreen.AutoPick = true;
+            try
+            {
+                SceneManager.LoadScene("Run");
+                yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Combat != null, 20f, "run start");
+                var run = RunController.Instance;
+                run.PlayerHealth.Invincible = true;
+                for (int stage = 0; stage < run.StageCount; stage++)
+                {
+                    yield return KillBossesAndLeave(run, true);
+                    yield return WaitFor(() => run.BossDefeated, 5f, "boss defeat");
+                    Object.FindAnyObjectByType<NextPortal>().Use(run.Combat);
+                    yield return null;
+                }
+                yield return KillBossesAndLeave(run, false);
+                yield return WaitFor(() => run.IsOver, 60f, "ending");
+                int earned = run.EmbersEarned;
+                Assert.Greater(earned, 0);
+
+                SaveStore.Forget();
+                var save = SaveStore.Load(out var result);
+                Assert.AreEqual(SaveStore.LoadResult.Loaded, result, "the save was written and reads back");
+                Assert.GreaterOrEqual(save.currency, earned);
+                Assert.AreEqual(1, save.runsWon);
+                Assert.IsTrue(save.lastRun.won);
+
+                var content = GameAssets.Load().Content.Load();
+                var tree = OldGods.Rules.MetaRules.Tree(content, GameAssets.Load().Content.UnlockCost);
+                int runs = 1;
+                while (!save.IsUnlocked(OldGods.Rules.LastTest.EliasId) && runs < 60)
+                {
+                    foreach (var e in tree)
+                        if (e.Kind == OldGods.Rules.UnlockKind.God) OldGods.Rules.MetaRules.TryUnlock(save, e, content.Gods);
+                    if (save.IsUnlocked(OldGods.Rules.LastTest.EliasId)) break;
+                    OldGods.Rules.MetaRules.PayRun(save, run.Summary, earned);
+                    runs++;
+                }
+                Assert.IsTrue(save.IsUnlocked(OldGods.Rules.LastTest.EliasId), $"Elias after {runs} winning runs");
+                SaveStore.Save(save);
+
+                MenuController.StartRun(OldGods.Rules.LastTest.EliasId);
+                yield return WaitFor(() => RunController.Instance != null && RunController.Instance != run && RunController.Instance.Combat != null, 20f, "run as Elias");
+                Assert.AreEqual(OldGods.Rules.LastTest.EliasId, RunController.Instance.GodId);
+            }
+            finally
+            {
+                LevelUpScreen.AutoPick = false;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CorruptSaveIsKeptAsideAndAFreshOneStarts()
+        {
+            SaveStore.Reset();
+            System.IO.File.WriteAllText(SaveStore.SavePath, "{ this is not json");
+            SaveStore.Forget();
+            var save = SaveStore.Load(out var result);
+            Assert.AreEqual(SaveStore.LoadResult.RecoveredFromCorrupt, result);
+            Assert.AreEqual(0, save.currency);
+            Assert.IsNotEmpty(System.IO.Directory.GetFiles(SaveStore.Folder, "*.corrupt"));
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator MenuStartsARunWithTheChosenGod()
         {

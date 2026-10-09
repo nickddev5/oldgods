@@ -37,7 +37,8 @@ MonoBehaviour:
   - Stat: 1
     Amount: 0.1
   SlowSeconds: 0
-  UnlockId: 
+  UnlockId: weapon.thunder_cloud
+  UnlockCost: 200
   Color: {r: 0.7, g: 0.75, b: 1, a: 1}
   Glow: {r: 1.2, g: 1.3, b: 2.4, a: 1}
   VisualScale: {x: 1, y: 1, z: 1}

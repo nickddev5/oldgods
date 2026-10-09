@@ -18,5 +18,6 @@ MonoBehaviour:
   Stat: 11
   AddPerLevel: 1
   PercentPerLevel: 0
-  UnlockId: 
+  UnlockId: passive.magnetism
+  UnlockCost: 80
   Color: {r: 0.5, g: 0.8, b: 1, a: 1}

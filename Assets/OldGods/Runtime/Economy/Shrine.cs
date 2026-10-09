@@ -107,7 +107,7 @@ namespace OldGods.Runtime
                     eco.Grant(eco.RollItem(Rarity.Uncommon));
                     break;
                 case ShrineKind.Greed:
-                    run.Director.DifficultyBonus += ShrineRules.GreedDifficulty;
+                    run.Director.StageDifficulty += ShrineRules.GreedDifficulty;
                     eco.GreedGold += ShrineRules.GreedGold;
                     run.Announce("Greed answers", $"Foes +{ShrineRules.GreedDifficulty * 100f:0}%, gold +{ShrineRules.GreedGold * 100f:0}%");
                     break;

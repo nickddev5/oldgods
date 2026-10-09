@@ -68,7 +68,9 @@ namespace OldGods.Runtime
         {
             while (MenuController.Instance == null) yield return null;
             yield return new WaitForSeconds(2f);
-            MenuController.Instance.ShowSelect();
+            string page = CommandLine.Value("-shotPage");
+            if (string.IsNullOrEmpty(page)) MenuController.Instance.ShowSelect();
+            else MenuController.Instance.ShowPage(page);
         }
 
         IEnumerator Start()

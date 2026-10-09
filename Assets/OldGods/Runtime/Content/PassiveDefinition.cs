@@ -14,6 +14,8 @@ namespace OldGods.Runtime
         public float AddPerLevel;
         public float PercentPerLevel;
         public string UnlockId = "";
+        [Tooltip("Embers to unlock at the Shrine of Embers when UnlockId is set.")]
+        public int UnlockCost;
         public Color Color = Color.white;
 
         public PassiveDef ToDef() => new PassiveDef

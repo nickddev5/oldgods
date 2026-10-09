@@ -28,5 +28,6 @@ MonoBehaviour:
     Percent: 0
   Special: 
   SpecialValue: 0
-  UnlockId: 
+  UnlockId: item.winged_crown
+  UnlockCost: 250
   Color: {r: 1, g: 1, b: 1, a: 1}

@@ -169,9 +169,10 @@ namespace OldGods.Runtime
             cardGrid = grid;
 
             detail = UiKit.Panel(p, "Detail", new Color(0f, 0f, 0f, 0.55f));
-            UiKit.Anchor(detail, new Vector2(1f, 0.5f), new Vector2(-80f, 0f), new Vector2(600f, 560f));
+            UiKit.Anchor(detail, new Vector2(1f, 0.5f), new Vector2(-80f, 120f), new Vector2(600f, 500f));
             detailText = UiKit.Text(detail, "", 26, TextAlignmentOptions.TopLeft);
             UiKit.Stretch(detailText.rectTransform, 28f);
+            MetaPages.AddModifierToggles(p);
             playButton = UiKit.Button(p, "Walk the road", 34, Play);
             UiKit.Anchor(playButton.GetComponent<RectTransform>(), new Vector2(1f, 0f), new Vector2(-80f, 60f), new Vector2(380f, 74f));
             if (Debug.isDebugBuild || Application.isEditor)
@@ -245,7 +246,7 @@ namespace OldGods.Runtime
             RefreshCards();
         }
 
-        void ShowPage(string label)
+        public void ShowPage(string label)
         {
             mainPage.gameObject.SetActive(false);
             selectPage.gameObject.SetActive(false);

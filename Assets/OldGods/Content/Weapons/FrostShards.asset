@@ -37,7 +37,8 @@ MonoBehaviour:
   - Stat: 5
     Amount: 0.15
   SlowSeconds: 1.5
-  UnlockId: 
+  UnlockId: weapon.frost_shards
+  UnlockCost: 100
   Color: {r: 0.7, g: 0.9, b: 1, a: 1}
   Glow: {r: 1.1, g: 1.8, b: 2.2, a: 1}
   VisualScale: {x: 0.9, y: 0.9, z: 1.3}

@@ -17,6 +17,8 @@ namespace OldGods.Runtime
         public float SlowSeconds;
         [Tooltip("Unlock id that must be owned before the weapon is drafted; empty if always available.")]
         public string UnlockId = "";
+        [Tooltip("Embers to unlock at the Shrine of Embers when UnlockId is set.")]
+        public int UnlockCost;
         [Header("Look")]
         public Color Color = Color.white;
         [ColorUsage(false, true)] public Color Glow = Color.white;

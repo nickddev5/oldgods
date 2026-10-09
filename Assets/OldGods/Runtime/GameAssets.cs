@@ -23,6 +23,8 @@ namespace OldGods.Runtime
         public BiomeDefinition GreyboxBiome;
         [Tooltip("The Last Test's arena, after the last stage.")]
         public BiomeDefinition FinalArena;
+        [Tooltip("Content migrations applied by Old Gods > Build. Do not edit.")]
+        public int ContentVersion;
         public MotorTuning Motor = new MotorTuning();
         public TerrainProfile GreyboxTerrain = new TerrainProfile();
         public GroundPalette GreyboxPalette = new GroundPalette();
