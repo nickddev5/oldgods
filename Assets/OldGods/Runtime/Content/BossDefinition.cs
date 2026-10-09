@@ -26,6 +26,11 @@ namespace OldGods.Runtime
         public BossModel Model;
         public Color Color = new Color(0.5f, 0.5f, 0.55f);
         [ColorUsage(false, true)] public Color Accent = new Color(1.5f, 0.6f, 0.2f);
+        [Header("Imported model (optional)")]
+        [Tooltip("A model prefab (FBX or prefab) shown instead of the built-in body. Face +Z, feet at the origin.")]
+        public GameObject ModelPrefab;
+        [Tooltip("Uniform scale applied to the imported model.")]
+        public float ModelScale = 1f;
 
         public BossDef ToDef() => new BossDef
         {

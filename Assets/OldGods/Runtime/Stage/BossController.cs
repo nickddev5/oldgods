@@ -81,10 +81,17 @@ namespace OldGods.Runtime
 
             var m = new GameObject("Model");
             m.transform.SetParent(transform, false);
-            m.transform.localScale = Vector3.one * Def.Scale;
-            m.AddComponent<MeshFilter>().sharedMesh = PlaceholderMeshes.Boss(asset.Model);
-            modelRenderer = m.AddComponent<MeshRenderer>();
-            modelRenderer.sharedMaterial = WorldBuilder.Tinted(assets.LowPoly, asset.Color);
+            if (asset.ModelPrefab != null)
+            {
+                WorldBuilder.AttachModel(asset.ModelPrefab, m.transform, asset.ModelScale);
+            }
+            else
+            {
+                m.transform.localScale = Vector3.one * Def.Scale;
+                m.AddComponent<MeshFilter>().sharedMesh = PlaceholderMeshes.Boss(asset.Model);
+                modelRenderer = m.AddComponent<MeshRenderer>();
+                modelRenderer.sharedMaterial = WorldBuilder.Tinted(assets.LowPoly, asset.Color);
+            }
             model = m.transform;
             All.Add(this);
 
@@ -180,7 +187,7 @@ namespace OldGods.Runtime
             horde.Y[Slot] = p.y;
             float flash = horde.Flash[Slot];
             props.SetColor("_EmissionColor", Color.white * flash * 0.6f);
-            modelRenderer.SetPropertyBlock(props);
+            if (modelRenderer != null) modelRenderer.SetPropertyBlock(props);
         }
 
         bool PlayerGrounded => player.transform.position.y - Ground.Height(player.transform.position.x, player.transform.position.z) < 0.6f;

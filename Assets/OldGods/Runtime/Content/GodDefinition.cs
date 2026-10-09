@@ -23,6 +23,11 @@ namespace OldGods.Runtime
         public GodLook Look;
         public Color Robe = Color.white;
         [ColorUsage(false, true)] public Color Mark = Color.white;
+        [Header("Imported model (optional)")]
+        [Tooltip("A model prefab (FBX or prefab) shown instead of the built-in body. Face +Z, feet at the origin.")]
+        public GameObject ModelPrefab;
+        [Tooltip("Uniform scale applied to the imported model.")]
+        public float ModelScale = 1f;
 
         public GodDef ToDef() => new GodDef
         {

@@ -29,6 +29,7 @@ namespace OldGods.Runtime
         Transform preview;
         MeshFilter previewMesh;
         MeshRenderer previewRenderer;
+        GameObject previewModel;
         readonly Dictionary<string, RectTransform> pages = new Dictionary<string, RectTransform>();
         string selected;
 
@@ -116,6 +117,13 @@ namespace OldGods.Runtime
         {
             var g = Assets.Content.GodAsset(godId);
             if (g == null) return;
+            if (previewModel != null) Destroy(previewModel);
+            previewRenderer.enabled = g.ModelPrefab == null;
+            if (g.ModelPrefab != null)
+            {
+                previewModel = WorldBuilder.AttachModel(g.ModelPrefab, preview, g.ModelScale);
+                return;
+            }
             previewMesh.sharedMesh = PlaceholderMeshes.God(g.Look);
             previewRenderer.sharedMaterial = WorldBuilder.Tinted(Assets.LowPoly, g.Robe);
         }

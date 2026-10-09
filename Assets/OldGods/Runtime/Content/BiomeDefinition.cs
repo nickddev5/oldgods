@@ -33,5 +33,8 @@ namespace OldGods.Runtime
         public int RockCount = 70;
         public Color TreeColor = new Color(0.3f, 0.42f, 0.25f);
         public int TreeCount;
+        [Tooltip("Imported prefabs used instead of the built-in rocks and trees, picked at random.")]
+        public System.Collections.Generic.List<GameObject> RockPrefabs = new System.Collections.Generic.List<GameObject>();
+        public System.Collections.Generic.List<GameObject> TreePrefabs = new System.Collections.Generic.List<GameObject>();
     }
 }

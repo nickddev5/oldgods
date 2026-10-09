@@ -61,7 +61,20 @@ namespace OldGods.Runtime
             return go;
         }
 
-        public static PlayerMotor CreatePlayer(GameAssets assets, Vector3 position, Color robe, Transform parent, Mesh body = null, Color mark = default)
+        /// <summary>Instantiates an imported model under a parent, scaled, with shadows on and colliders removed.</summary>
+        public static GameObject AttachModel(GameObject prefab, Transform parent, float scale)
+        {
+            var go = Object.Instantiate(prefab, parent, false);
+            go.name = "Imported Model";
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one * scale;
+            foreach (var c in go.GetComponentsInChildren<Collider>()) Object.Destroy(c);
+            foreach (var r in go.GetComponentsInChildren<Renderer>()) r.shadowCastingMode = ShadowCastingMode.On;
+            return go;
+        }
+
+        public static PlayerMotor CreatePlayer(GameAssets assets, Vector3 position, Color robe, Transform parent, Mesh body = null, Color mark = default, GameObject prefab = null, float prefabScale = 1f)
         {
             var go = new GameObject("Player");
             go.transform.SetParent(parent, false);
@@ -82,10 +95,15 @@ namespace OldGods.Runtime
             var visual = new GameObject("Visual");
             visual.transform.SetParent(go.transform, false);
             visual.layer = Layers.Player;
+            motor.Visual = visual.transform;
+            if (prefab != null)
+            {
+                AttachModel(prefab, visual.transform, prefabScale);
+                return motor;
+            }
             visual.AddComponent<MeshFilter>().sharedMesh = body != null ? body : PlaceholderMeshes.God();
             var mr = visual.AddComponent<MeshRenderer>();
             mr.sharedMaterial = Tinted(assets.LowPoly, robe);
-            motor.Visual = visual.transform;
             if (mark != default)
             {
                 var gem = new GameObject("Mark");

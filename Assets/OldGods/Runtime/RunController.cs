@@ -100,7 +100,7 @@ namespace OldGods.Runtime
         {
             var godAsset = God != null ? Assets.Content.GodAsset(God.Id) : null;
             Player = godAsset != null
-                ? WorldBuilder.CreatePlayer(Assets, Vector3.up * 50f, godAsset.Robe, null, PlaceholderMeshes.God(godAsset.Look), godAsset.Mark)
+                ? WorldBuilder.CreatePlayer(Assets, Vector3.up * 50f, godAsset.Robe, null, PlaceholderMeshes.God(godAsset.Look), godAsset.Mark, godAsset.ModelPrefab, godAsset.ModelScale)
                 : WorldBuilder.CreatePlayer(Assets, Vector3.up * 50f, new Color(0.85f, 0.82f, 0.7f), null);
             PlayerHealth = Player.GetComponent<PlayerHealth>();
             PlayerHealth.Died += OnPlayerDied;
@@ -302,8 +302,9 @@ namespace OldGods.Runtime
                 if (x * x + z * z < 15f * 15f) continue;
                 float s = rng.Range(0.8f, 2.6f);
                 var pos = new Vector3(x, field.Sample(x, z) - 0.3f, z);
-                WorldBuilder.CreateProp("Rock", rock, rockMat, pos, Quaternion.Euler(0f, rng.Range(0f, 360f), rng.Range(-8f, 8f)),
-                    new Vector3(s, s * rng.Range(0.8f, 1.6f), s), worldRoot, true);
+                var rot = Quaternion.Euler(0f, rng.Range(0f, 360f), rng.Range(-8f, 8f));
+                if (Biome.RockPrefabs.Count > 0) PlacePrefab(Biome.RockPrefabs[rng.Range(0, Biome.RockPrefabs.Count)], pos, rot, s);
+                else WorldBuilder.CreateProp("Rock", rock, rockMat, pos, rot, new Vector3(s, s * rng.Range(0.8f, 1.6f), s), worldRoot, true);
             }
             if (Biome.TreeCount > 0)
             {
@@ -315,10 +316,22 @@ namespace OldGods.Runtime
                     float z = rng.Range(field.MinZ + 20f, field.MaxZ - 20f);
                     if (x * x + z * z < 15f * 15f || field.SlopeDegrees(x, z) > 30f) continue;
                     float s = rng.Range(0.9f, 1.6f);
-                    WorldBuilder.CreateProp("Tree", tree, treeMat, new Vector3(x, field.Sample(x, z) - 0.2f, z),
-                        Quaternion.Euler(0f, rng.Range(0f, 360f), 0f), Vector3.one * s, worldRoot, true);
+                    var at = new Vector3(x, field.Sample(x, z) - 0.2f, z);
+                    var rot = Quaternion.Euler(0f, rng.Range(0f, 360f), 0f);
+                    if (Biome.TreePrefabs.Count > 0) PlacePrefab(Biome.TreePrefabs[rng.Range(0, Biome.TreePrefabs.Count)], at, rot, s);
+                    else WorldBuilder.CreateProp("Tree", tree, treeMat, at, rot, Vector3.one * s, worldRoot, true);
                 }
             }
+        }
+
+        /// <summary>An imported prop: kept solid with a mesh collider when it has none of its own.</summary>
+        void PlacePrefab(GameObject prefab, Vector3 at, Quaternion rot, float scale)
+        {
+            var go = Instantiate(prefab, at, rot, worldRoot);
+            go.transform.localScale = prefab.transform.localScale * scale;
+            if (go.GetComponentInChildren<Collider>() == null)
+                foreach (var mf in go.GetComponentsInChildren<MeshFilter>())
+                    mf.gameObject.AddComponent<MeshCollider>().sharedMesh = mf.sharedMesh;
         }
 
         public void Announce(string headline, string subline) => Announced?.Invoke(headline, subline);
