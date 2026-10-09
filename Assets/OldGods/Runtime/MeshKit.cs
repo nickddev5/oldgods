@@ -47,6 +47,26 @@ namespace OldGods.Runtime
 
         public void Body() => Part(BodyPart.Body, Vector3.zero);
 
+        /// <summary>
+        /// Hip height of a built mesh in its own units: the highest leg joint. Falls back to half
+        /// the mesh's height when it has no legs or cannot be read.
+        /// </summary>
+        public static float HipHeight(Mesh mesh)
+        {
+            if (mesh == null) return 0.85f;
+            float fallback = Mathf.Max(0.1f, mesh.bounds.size.y * 0.5f);
+            if (!mesh.isReadable) return fallback;
+            var p = new List<Vector2>();
+            var j = new List<Vector3>();
+            mesh.GetUVs(0, p);
+            mesh.GetUVs(1, j);
+            if (p.Count == 0 || p.Count != j.Count) return fallback;
+            float hip = 0f;
+            for (int i = 0; i < p.Count; i++)
+                if (p[i].x > 0.5f && p[i].x < 2.5f) hip = Mathf.Max(hip, j[i].y);
+            return hip > 0.05f ? hip : fallback;
+        }
+
         public void Triangle(Vector3 a, Vector3 b, Vector3 c, Color color)
         {
             Vector3 n = Vector3.Cross(b - a, c - a);

@@ -18,7 +18,6 @@ namespace OldGods.Runtime
         public int Capacity = 2048;
         public float SeparationWeight = 1.1f;
         public float Acceleration = 14f;
-        public float StepsPerUnit = 1.6f;
         [Tooltip("Enemies farther than this from the player are moved back to the spawn ring.")]
         public float LeashDistance = 70f;
         public float PlayerRadius = 0.5f;
@@ -44,6 +43,7 @@ namespace OldGods.Runtime
         public float[] SpeedMul, DamageMul;
 
         readonly List<EnemyDef> types = new List<EnemyDef>();
+        readonly List<float> legLengths = new List<float>(); // hip height in metres, per type
         readonly Stack<int> free = new Stack<int>();
         int highWater;
         SpatialHash hash;
@@ -96,6 +96,7 @@ namespace OldGods.Runtime
             int existing = types.IndexOf(def);
             if (existing >= 0) return existing;
             types.Add(def);
+            legLengths.Add(MeshKit.HipHeight(mesh) * def.Scale);
             maxRadius = Mathf.Max(maxRadius, def.Radius * def.Scale);
             hash = new SpatialHash(Mathf.Max(1.2f, maxRadius * 2.5f), 13);
             if (Renderer == null) Renderer = GetComponent<HordeRenderer>();
@@ -370,7 +371,7 @@ namespace OldGods.Runtime
                     float targetYaw = Mathf.Atan2(v.X, v.Z);
                     Yaw[i] = Mathf.LerpAngle(Yaw[i] * Mathf.Rad2Deg, targetYaw * Mathf.Rad2Deg, 1f - Mathf.Exp(-10f * dt)) * Mathf.Deg2Rad;
                 }
-                Phase[i] += Mathf.Sqrt(sp2) * StepsPerUnit * dt * Mathf.PI / Mathf.Max(0.3f, def.Scale);
+                Phase[i] += Gait.PhaseStep(Mathf.Sqrt(sp2), legLengths[TypeIndex[i]], dt);
                 if (Phase[i] > 1000f) Phase[i] -= 6.2831853f * 159f;
                 Flash[i] = Mathf.Max(0f, Flash[i] - dt * 6f);
                 SlowFor[i] = Mathf.Max(0f, SlowFor[i] - dt);
