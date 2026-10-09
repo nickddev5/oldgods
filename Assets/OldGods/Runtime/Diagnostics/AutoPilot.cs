@@ -96,7 +96,7 @@ namespace OldGods.Runtime
                         goingToGate = true;
                         Vector3 to = gate.transform.position - p;
                         to.y = 0f;
-                        dir = to.normalized * 2f + dir * 0.4f;
+                        dir = TowardGate(gate.transform.position, p, to) * 2f + dir * 0.4f;
                         if (to.magnitude < gate.Range) gate.Use(run.Combat);
                     }
                 }
@@ -112,6 +112,8 @@ namespace OldGods.Runtime
                     }
                 }
 
+                dir = AroundDressing(p, dir);
+
                 // Convert the world direction into camera-relative input.
                 var cam = run.Player.ViewYaw;
                 Vector3 f = cam != null ? cam.forward : Vector3.forward;
@@ -123,7 +125,7 @@ namespace OldGods.Runtime
 
                 if (run.Elapsed >= nextLog)
                 {
-                    nextLog += 30f;
+                    nextLog += 10f;
                     Line(run, goingToGate ? "heading to the gate" : "");
                 }
                 yield return null;
@@ -142,6 +144,56 @@ namespace OldGods.Runtime
             Application.Quit(0);
         }
 
+        /// <summary>
+        /// Turns the wanted direction aside when walls, columns or a cliff lie just ahead, as a
+        /// player would, trying small turns before large ones. Keeps the sharpest free turn
+        /// on the same side for a moment so the bot does not dither at a corner.
+        /// </summary>
+        Vector3 AroundDressing(Vector3 p, Vector3 dir)
+        {
+            float m = dir.magnitude;
+            if (m < 1e-3f) return dir;
+            Vector3 d = dir / m;
+            if (Clear(p, d)) { turnSide = 0f; return dir; }
+            float first = turnSide != 0f ? turnSide : 1f;
+            foreach (float step in new[] { 30f, 60f, 90f, 120f, 150f })
+                foreach (float side in new[] { first, -first })
+                {
+                    var t = Quaternion.Euler(0f, step * side, 0f) * d;
+                    if (!Clear(p, t)) continue;
+                    turnSide = side;
+                    return t * m;
+                }
+            return -dir;
+        }
+
+        float turnSide;
+        OldGods.Rules.FlowField gatePaths;
+
+        /// <summary>The way to the gate round walls and cliffs, as a player who knows the map would walk it.</summary>
+        Vector3 TowardGate(Vector3 gate, Vector3 p, Vector3 straight)
+        {
+            if (Ground.Field == null) return straight.normalized;
+            if (gatePaths == null || gatePaths.Cells != Ground.Field.Cells || gatePaths.TargetCell != gatePaths.CellOf(gate.x, gate.z))
+            {
+                gatePaths = OldGods.Rules.FlowField.FromTerrain(Ground.Field, Ground.Obstacles, Ground.RimWidth);
+                gatePaths.Solve(gate.x, gate.z);
+            }
+            if (straight.magnitude > 6f && gatePaths.Direction(p.x, p.z, out float dx, out float dz)) return new Vector3(dx, 0f, dz);
+            return straight.normalized;
+        }
+
+        static bool Clear(Vector3 p, Vector3 d)
+        {
+            for (float s = 1f; s <= 3.5f; s += 1.25f)
+            {
+                Vector3 q = p + d * s;
+                if (Ground.Obstacles != null && Ground.Obstacles.Overlaps(q.x, q.z, 0.6f)) return false;
+                if (Ground.Flow != null && Ground.Flow.ClassAt(q.x, q.z) == OldGods.Rules.CellClass.Blocked) return false;
+            }
+            return true;
+        }
+
         void Line(RunController run, string note)
         {
             var h = run.PlayerHealth.Health;
@@ -149,7 +201,7 @@ namespace OldGods.Runtime
             foreach (var w in run.Combat.Loadout.Weapons) weapons.Append(w.Def.Name).Append(' ').Append(w.Level).Append(", ");
             if (log.Length > 0) log.Append(",\n");
             log.Append(System.FormattableString.Invariant(
-                $"    \"{run.Elapsed:0}s hp {h.Current:0}/{h.Max:0} lv {run.Combat.Xp.Level} kills {run.Kills} alive {run.Horde.AliveCount} gold {run.Economy.Wallet.Gold} | {weapons}{note}\""));
+                $"    \"{run.Elapsed:0}s hp {h.Current:0}/{h.Max:0} lv {run.Combat.Xp.Level} kills {run.Kills} alive {run.Horde.AliveCount} gold {run.Economy.Wallet.Gold} at ({run.Player.transform.position.x:0}, {run.Player.transform.position.z:0}) | {weapons}{note}\""));
         }
     }
 }

@@ -31,6 +31,19 @@ namespace OldGods.Runtime
         /// <summary>Rounded shapes (balls, limbs, lathes) shade smoothly; blocks and boxes stay faceted.</summary>
         public bool Smooth = true;
 
+        Matrix4x4 place = Matrix4x4.identity;
+        bool placing;
+
+        /// <summary>
+        /// Moves everything added from now on by this transform, so many pieces can be built
+        /// into one mesh in their own local space. Identity turns it off.
+        /// </summary>
+        public Matrix4x4 Placement
+        {
+            get => place;
+            set { place = value; placing = !value.isIdentity; }
+        }
+
         public int VertexCount => verts.Count;
         public int TriangleCount => tris.Count / 3;
 
@@ -47,21 +60,41 @@ namespace OldGods.Runtime
 
         public void Body() => Part(BodyPart.Body, Vector3.zero);
 
+        /// <summary>
+        /// Hip height of a built mesh in its own units: the highest leg joint. Falls back to half
+        /// the mesh's height when it has no legs or cannot be read.
+        /// </summary>
+        public static float HipHeight(Mesh mesh)
+        {
+            if (mesh == null) return 0.85f;
+            float fallback = Mathf.Max(0.1f, mesh.bounds.size.y * 0.5f);
+            if (!mesh.isReadable) return fallback;
+            var p = new List<Vector2>();
+            var j = new List<Vector3>();
+            mesh.GetUVs(0, p);
+            mesh.GetUVs(1, j);
+            if (p.Count == 0 || p.Count != j.Count) return fallback;
+            float hip = 0f;
+            for (int i = 0; i < p.Count; i++)
+                if (p[i].x > 0.5f && p[i].x < 2.5f) hip = Mathf.Max(hip, j[i].y);
+            return hip > 0.05f ? hip : fallback;
+        }
+
         public void Triangle(Vector3 a, Vector3 b, Vector3 c, Color color)
         {
             Vector3 n = Vector3.Cross(b - a, c - a);
             if (n.sqrMagnitude < 1e-12f) return;
             n.Normalize();
             int i = verts.Count;
+            Vector3 na = n, nb = n, nc = n;
+            if (normalAt != null) { na = normalAt(a, n); nb = normalAt(b, n); nc = normalAt(c, n); }
+            if (placing)
+            {
+                a = place.MultiplyPoint3x4(a); b = place.MultiplyPoint3x4(b); c = place.MultiplyPoint3x4(c);
+                na = place.MultiplyVector(na).normalized; nb = place.MultiplyVector(nb).normalized; nc = place.MultiplyVector(nc).normalized;
+            }
             verts.Add(a); verts.Add(b); verts.Add(c);
-            if (normalAt != null)
-            {
-                normals.Add(normalAt(a, n)); normals.Add(normalAt(b, n)); normals.Add(normalAt(c, n));
-            }
-            else
-            {
-                normals.Add(n); normals.Add(n); normals.Add(n);
-            }
+            normals.Add(na); normals.Add(nb); normals.Add(nc);
             // Vertex colours are not converted by the pipeline; author in sRGB, store linear.
             Color lin = color.linear;
             colors.Add(lin); colors.Add(lin); colors.Add(lin);

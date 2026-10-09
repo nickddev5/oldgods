@@ -13,6 +13,9 @@ namespace OldGods.Rules
         /// <summary>World units per noise unit for the hills; larger is broader.</summary>
         public float HillScale = 60f;
         public int HillOctaves = 4;
+        /// <summary>Height of long ridges and the valleys between them; 0 disables them.</summary>
+        public float RidgeHeight = 0f;
+        public float RidgeScale = 110f;
         /// <summary>Height of terraced cliff steps; 0 disables cliffs.</summary>
         public float CliffStep = 0f;
         /// <summary>0..1, how much of the map is terraced.</summary>
@@ -37,6 +40,7 @@ namespace OldGods.Rules
             var hills = new Noise2D(rng);
             var cliffs = new Noise2D(rng);
             var cliffMask = new Noise2D(rng);
+            var ridges = new Noise2D(rng);
 
             for (int iz = 0; iz <= p.Cells; iz++)
                 for (int ix = 0; ix <= p.Cells; ix++)
@@ -44,6 +48,12 @@ namespace OldGods.Rules
                     float x = field.OriginX + ix * p.CellSize;
                     float z = field.OriginZ + iz * p.CellSize;
                     float h = (hills.Fbm(x / p.HillScale, z / p.HillScale, p.HillOctaves) * 0.5f + 0.5f) * p.HillHeight;
+                    if (p.RidgeHeight > 0f)
+                    {
+                        // Ridged noise: sharp crests where the noise crosses zero, broad valleys between.
+                        float r = 1f - Math.Abs(ridges.Fbm(x / p.RidgeScale, z / p.RidgeScale, 3));
+                        h += r * r * p.RidgeHeight;
+                    }
 
                     if (p.CliffStep > 0f && p.CliffAmount > 0f)
                     {

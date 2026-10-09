@@ -18,7 +18,6 @@ namespace OldGods.Runtime
         public int Capacity = 2048;
         public float SeparationWeight = 1.1f;
         public float Acceleration = 14f;
-        public float StepsPerUnit = 1.6f;
         [Tooltip("Enemies farther than this from the player are moved back to the spawn ring.")]
         public float LeashDistance = 70f;
         public float PlayerRadius = 0.5f;
@@ -44,6 +43,7 @@ namespace OldGods.Runtime
         public float[] SpeedMul, DamageMul;
 
         readonly List<EnemyDef> types = new List<EnemyDef>();
+        readonly List<float> legLengths = new List<float>(); // hip height in metres, per type
         readonly Stack<int> free = new Stack<int>();
         int highWater;
         SpatialHash hash;
@@ -96,6 +96,7 @@ namespace OldGods.Runtime
             int existing = types.IndexOf(def);
             if (existing >= 0) return existing;
             types.Add(def);
+            legLengths.Add(MeshKit.HipHeight(mesh) * def.Scale);
             maxRadius = Mathf.Max(maxRadius, def.Radius * def.Scale);
             hash = new SpatialHash(Mathf.Max(1.2f, maxRadius * 2.5f), 13);
             if (Renderer == null) Renderer = GetComponent<HordeRenderer>();
@@ -137,8 +138,26 @@ namespace OldGods.Runtime
         public int SpawnOnRing(int type, float healthMultiplier = 1f, float speedMultiplier = 1f, float damageMultiplier = 1f)
         {
             Vector3 c = Target != null ? Target.position : Vector3.zero;
-            var p = HordeSteering.RingPoint(new Vec2(c.x, c.z), SpawnRingMin, SpawnRingMax, SpawnRng);
+            var p = RingSpawnPoint(new Vec2(c.x, c.z));
             return Spawn(type, new Vector3(p.X, 0f, p.Z), healthMultiplier, speedMultiplier, damageMultiplier);
+        }
+
+        /// <summary>
+        /// A point on the spawn ring the horde can walk to the player from: not inside a wall,
+        /// on a cliff or in a pocket with no path. Falls back to any ring point.
+        /// </summary>
+        Vec2 RingSpawnPoint(Vec2 center)
+        {
+            var p = HordeSteering.RingPoint(center, SpawnRingMin, SpawnRingMax, SpawnRng);
+            var flow = Ground.Flow;
+            if (flow == null) return p;
+            for (int attempt = 0; attempt < 8; attempt++)
+            {
+                var clamped = Ground.ClampToPlayable(new Vector3(p.X, 0f, p.Z), 1f);
+                if (flow.ClassAt(clamped.x, clamped.z) == CellClass.Open && flow.Reachable(clamped.x, clamped.z)) return new Vec2(clamped.x, clamped.z);
+                p = HordeSteering.RingPoint(center, SpawnRingMin, SpawnRingMax, SpawnRng);
+            }
+            return p;
         }
 
         public EnemyDef Def(int i) => types[TypeIndex[i]];
@@ -291,6 +310,14 @@ namespace OldGods.Runtime
         public float LastSimulateMs { get; private set; }
         readonly System.Diagnostics.Stopwatch simWatch = new System.Diagnostics.Stopwatch();
 
+        /// <summary>
+        /// An enemy follows the flow field only when the path is this much longer than the
+        /// straight line, so on open ground the horde still runs straight at the player.
+        /// </summary>
+        public float DetourRatio = 1.25f;
+        FlowField solvedFlow;
+        int solvedCell = -1;
+
         void Update()
         {
             float dt = Time.deltaTime;
@@ -310,6 +337,20 @@ namespace OldGods.Runtime
             bool hasTarget = Target != null;
             float leash2 = LeashDistance * LeashDistance;
 
+            // Paths only change when the player moves to another cell.
+            var flow = hasTarget ? Ground.Flow : null;
+            var obstacles = Ground.Obstacles;
+            if (flow != null)
+            {
+                int cell = flow.CellOf(tp.x, tp.z);
+                if (flow != solvedFlow || cell != solvedCell)
+                {
+                    flow.Solve(tp.x, tp.z);
+                    solvedFlow = flow;
+                    solvedCell = cell;
+                }
+            }
+
             for (int i = 0; i < highWater; i++)
             {
                 if (!Alive[i]) continue;
@@ -322,8 +363,25 @@ namespace OldGods.Runtime
                 float speed = def.MoveSpeed * SpeedMul[i] * GlobalSpeed * (SlowFor[i] > 0f ? 0.45f : 1f);
                 float radius = def.Radius * def.Scale;
 
+                // Around walls and cliffs, head for the next step of the path instead of the player.
+                Vec2 goal = target;
+                CellClass here = CellClass.Open;
+                if (flow != null)
+                {
+                    here = flow.ClassAt(X[i], Z[i]);
+                    if (here == CellClass.Climb) speed *= 0.5f;
+                    float ex = tp.x - X[i], ez = tp.z - Z[i];
+                    float straight = Mathf.Sqrt(ex * ex + ez * ez);
+                    if (straight > 3f)
+                    {
+                        float path = flow.Distance(X[i], Z[i]);
+                        if (!float.IsInfinity(path) && path > straight * DetourRatio + 2f && flow.Direction(X[i], Z[i], out float fdx, out float fdz))
+                            goal = new Vec2(X[i] + fdx * 8f, Z[i] + fdz * 8f);
+                    }
+                }
+
                 Vec2 desired = hasTarget
-                    ? HordeSteering.Desired(i, X, Z, target, speed, radius * 2.2f, SeparationWeight, hash, scratch)
+                    ? HordeSteering.Desired(i, X, Z, goal, speed, radius * 2.2f, SeparationWeight, hash, scratch)
                     : default;
                 var v = HordeSteering.Accelerate(new Vec2(VX[i], VZ[i]), desired, Acceleration, dt);
                 VX[i] = v.X;
@@ -353,10 +411,20 @@ namespace OldGods.Runtime
 
                     if (d2 > leash2)
                     {
-                        var rp = HordeSteering.RingPoint(target, SpawnRingMin, SpawnRingMax, SpawnRng);
+                        var rp = RingSpawnPoint(target);
                         nx = rp.X;
                         nz = rp.Z;
+                        here = CellClass.Blocked; // a fresh spot: skip the cliff check below
                     }
+                }
+
+                // Solid dressing pushes enemies out; cliffs stop them, sliding along the edge.
+                if (obstacles != null) obstacles.PushOut(ref nx, ref nz, radius * 0.8f);
+                if (flow != null && here != CellClass.Blocked && flow.ClassAt(nx, nz) == CellClass.Blocked)
+                {
+                    if (flow.ClassAt(nx, Z[i]) != CellClass.Blocked) nz = Z[i];
+                    else if (flow.ClassAt(X[i], nz) != CellClass.Blocked) nx = X[i];
+                    else { nx = X[i]; nz = Z[i]; }
                 }
 
                 var clamped = Ground.ClampToPlayable(new Vector3(nx, 0f, nz), 0.5f);
@@ -370,7 +438,7 @@ namespace OldGods.Runtime
                     float targetYaw = Mathf.Atan2(v.X, v.Z);
                     Yaw[i] = Mathf.LerpAngle(Yaw[i] * Mathf.Rad2Deg, targetYaw * Mathf.Rad2Deg, 1f - Mathf.Exp(-10f * dt)) * Mathf.Deg2Rad;
                 }
-                Phase[i] += Mathf.Sqrt(sp2) * StepsPerUnit * dt * Mathf.PI / Mathf.Max(0.3f, def.Scale);
+                Phase[i] += Gait.PhaseStep(Mathf.Sqrt(sp2), legLengths[TypeIndex[i]], dt);
                 if (Phase[i] > 1000f) Phase[i] -= 6.2831853f * 159f;
                 Flash[i] = Mathf.Max(0f, Flash[i] - dt * 6f);
                 SlowFor[i] = Mathf.Max(0f, SlowFor[i] - dt);

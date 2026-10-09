@@ -94,8 +94,7 @@ namespace OldGods.Runtime
                 modelRenderer.sharedMaterial = WorldBuilder.Outlined(WorldBuilder.Tinted(assets.LowPoly, Color.white), 3.5f);
                 var walk = m.AddComponent<WalkAnimator>();
                 walk.Tracked = transform;
-                walk.RunSpeed = Mathf.Max(0.5f, Def.MoveSpeed * 1.8f / Mathf.Max(0.1f, Def.Scale));
-                walk.MaxSwing = 0.16f;
+                walk.MaxSwing = 0.22f;
             }
             model = m.transform;
             All.Add(this);
@@ -174,6 +173,8 @@ namespace OldGods.Runtime
         void Move(Vector3 delta)
         {
             Vector3 p = Ground.ClampToPlayable(transform.position + delta, 2f);
+            // Bosses shoulder along walls and columns rather than walking through them.
+            if (Ground.Obstacles != null) Ground.Obstacles.PushOut(ref p.x, ref p.z, Def.Radius * 0.8f);
             transform.position = Ground.Snap(p);
         }
 
