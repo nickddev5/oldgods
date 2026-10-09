@@ -82,7 +82,7 @@ namespace OldGods.Runtime
                     // Lord of the heavens (Nick's concept sheet): a navy robe over a white underlayer and a dark centre panel, a sash
                     // with a silver disc and hanging medallions, dark plate shoulders and a long cape, white
                     // hair and beard, a spiked crown and the spear Skybreaker.
-                    f.Body(p.Cloth2, p.Cloth2, p.Cloth).Face(false);
+                    f.Body(p.Cloth2, p.Cloth2, p.Cloth).Face();
                     f.Boots(p.Metal * 0.7f, 0.2f);
                     f.Robe(p.Cloth, 0.03f, 2.0f).Sleeves(p.Cloth, false, p.Trim).Gloves(p.Metal * 0.75f);
                     RobePanels(f, new Color(0.88f, 0.89f, 0.91f), p.Cloth2, p.Trim);
@@ -95,6 +95,7 @@ namespace OldGods.Runtime
                     PointedBeard(f, p.Hair);
                     SpikedCrown(f, p.Metal, p.Glow);
                     Skybreaker(f, p.Metal * 0.6f, new Color(0.75f, 0.86f, 1f), p.Trim);
+                    StormDetail(f, new Color(0.88f, 0.89f, 0.91f));
                     break;
                 case GodLook.Forge:
                     // The smith: bare forearms, leather apron, heavy gloves, beard, hammer.
@@ -319,6 +320,175 @@ namespace OldGods.Runtime
             var mid = guard + Vector3.up * 0.1f;
             k.Box(mid + Vector3.up * 0.2f, new Vector3(0.11f, 0.4f, 0.025f), blade, 0f);
             k.Box(mid - Vector3.up * 0.04f, new Vector3(0.11f, 0.08f, 0.025f), blade, 0f, Quaternion.Euler(0f, 0f, 180f));
+            k.Body();
+        }
+
+        /// <summary>
+        /// The Storm god's finer layers: robe hem bands, white side drapes, runes on the centre panel,
+        /// sash tails, a standing collar, a chain across the chest, bell cuffs, ridged pauldrons, an
+        /// edged cape, loose strands of hair and beard braids.
+        /// </summary>
+        static void StormDetail(Figure f, Color white)
+        {
+            var s = f.Spec;
+            var p = f.P;
+            var k = f.Kit;
+            Color gold = p.Trim, navy = p.Cloth, dark = p.Cloth2, metal = p.Metal * 0.8f, glow = p.Glow;
+            float squash = s.TorsoDepth / s.TorsoWidth * 1.08f;
+            k.Body();
+
+            // Robe hem: a gold band with a white band above it.
+            k.Lathe(Vector3.zero, new[] { new Vector2(0.032f, s.TorsoWidth * 2.03f), new Vector2(0.075f, s.TorsoWidth * 1.99f) }, 16, gold, squash);
+            k.Lathe(Vector3.zero, new[] { new Vector2(0.1f, s.TorsoWidth * 1.95f), new Vector2(0.125f, s.TorsoWidth * 1.92f) }, 16, white, squash);
+
+            // White drapes falling from the sash on either side of the front, edged in gold, with pointed ends.
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var rot = Quaternion.Euler(0f, side * 38f, 0f) * Quaternion.Euler(-13f, 0f, 0f);
+                var c = new Vector3(side * 0.2f, 0.5f, 0.165f);
+                k.Box(c, new Vector3(0.13f, 0.8f, 0.012f), white, 0.75f, rot);
+                k.Box(c + rot * new Vector3(side * -0.06f, 0f, 0.008f), new Vector3(0.012f, 0.8f, 0.01f), gold, 1f, rot);
+                k.Limb(c + rot * new Vector3(0f, -0.4f, 0f), c + rot * new Vector3(side * 0.02f, -0.5f, 0.01f), 0.05f, 0f, white, 4);
+            }
+
+            // Runes down the dark centre panel: diamonds, then a compass ring near the hem.
+            float top = s.LegLength + s.TorsoLength * 0.1f, z = s.TorsoDepth * 1.25f + 0.08f;
+            var lean = Quaternion.Euler(-9f, 0f, 0f);
+            Vector3 OnPanel(float y) => new Vector3(0f, top * 0.5f, 0f) + lean * new Vector3(0f, y - top * 0.5f, z);
+            foreach (float y in new[] { 0.72f, 0.62f, 0.52f })
+                k.Gem(OnPanel(y), new Vector3(0.022f, 0.03f, 0.008f), gold);
+            var rune = OnPanel(0.3f);
+            for (int i = 0; i < 8; i++)
+            {
+                float a0 = i * Mathf.PI / 4f, a1 = (i + 1) * Mathf.PI / 4f;
+                k.Limb(rune + lean * new Vector3(Mathf.Cos(a0), Mathf.Sin(a0), 0f) * 0.045f, rune + lean * new Vector3(Mathf.Cos(a1), Mathf.Sin(a1), 0f) * 0.045f, 0.006f, 0.006f, gold, 4);
+            }
+            k.Box(rune, new Vector3(0.012f, 0.11f, 0.01f), gold, 1f, lean);
+            k.Box(rune, new Vector3(0.11f, 0.012f, 0.01f), gold, 1f, lean);
+            k.Gem(rune + lean * Vector3.forward * 0.006f, new Vector3(0.014f, 0.014f, 0.008f), glow);
+
+            // Sash tails hanging on the left hip, with gold ends and tassels.
+            var hip = f.Torso(-s.TorsoWidth * 0.75f, s.TorsoLength * 0.08f, s.TorsoDepth * 0.95f);
+            for (int i = 0; i < 2; i++)
+            {
+                float len = 0.32f - i * 0.08f;
+                var rot = Quaternion.Euler(-6f, -30f, i * 6f);
+                var c = hip + new Vector3(-0.02f + i * 0.035f, -len * 0.5f, 0.02f + i * 0.01f);
+                k.Box(c, new Vector3(0.055f, len, 0.012f), navy, 1f, rot);
+                var end = c + rot * new Vector3(0f, -len * 0.5f, 0f);
+                k.Box(end + rot * new Vector3(0f, 0.02f, 0.004f), new Vector3(0.06f, 0.03f, 0.012f), gold, 1f, rot);
+                k.Limb(end, end + Vector3.down * 0.07f, 0.012f, 0.02f, gold, 5);
+            }
+
+            // A standing collar behind the neck: three dark plates flaring back, rimmed in gold.
+            for (int i = -1; i <= 1; i++)
+            {
+                var rot = f.TorsoRotation * Quaternion.Euler(-22f, i * 40f, 0f);
+                var at = f.NeckBase + f.TorsoRotation * new Vector3(i * 0.075f, 0.05f, -0.07f + Mathf.Abs(i) * 0.03f);
+                k.Block(at, new Vector3(0.1f, 0.13f, 0.02f), dark, 0.3f, rot);
+                k.Box(at + rot * new Vector3(0f, 0.066f, 0f), new Vector3(0.1f, 0.012f, 0.026f), gold, 1f, rot);
+            }
+
+            // A gold chain across the chest between two clasps, sagging in the middle.
+            var clL = f.Torso(-s.TorsoWidth * 0.7f, s.TorsoLength * 0.78f, s.TorsoDepth * 1.25f);
+            var clR = f.Torso(s.TorsoWidth * 0.7f, s.TorsoLength * 0.78f, s.TorsoDepth * 1.25f);
+            foreach (var cl in new[] { clL, clR })
+            {
+                k.Lathe(cl, new[] { new Vector2(0f, 0.028f), new Vector2(0.012f, 0.028f) }, 8, gold, 1f, f.TorsoRotation * Quaternion.Euler(90f, 0f, 0f));
+                k.Gem(cl + f.TorsoRotation * Vector3.forward * 0.014f, new Vector3(0.014f, 0.014f, 0.008f), glow);
+            }
+            Vector3 prev = clL;
+            for (int i = 1; i <= 6; i++)
+            {
+                float t = i / 6f;
+                var pt = Vector3.Lerp(clL, clR, t) + Vector3.down * Mathf.Sin(t * Mathf.PI) * 0.05f + Vector3.forward * (0.01f + Mathf.Sin(t * Mathf.PI) * 0.045f);
+                k.Limb(prev, pt, 0.006f, 0.006f, gold, 4);
+                prev = pt;
+            }
+
+            // Ridges and gold rims on the shoulder plates.
+            for (int side = 0; side < 2; side++)
+            {
+                bool left = side == 0;
+                float sx = left ? -1f : 1f;
+                f.ArmPart(left);
+                var sh = left ? f.ShoulderL : f.ShoulderR;
+                var ridge = sh + new Vector3(sx * 0.03f, 0.05f, 0f);
+                k.Limb(ridge + Vector3.back * 0.08f, ridge + Vector3.forward * 0.08f, 0.012f, 0.012f, gold, 4);
+                k.Limb(ridge, ridge + new Vector3(sx * 0.02f, 0.06f, 0f), 0.016f, 0f, metal, 4);
+                k.Block(sh + new Vector3(sx * 0.1f, -0.06f, 0f), new Vector3(0.15f, 0.03f, 0.15f), metal * 0.9f, 0.5f, Quaternion.Euler(0f, 0f, sx * -55f));
+            }
+
+            // Bell cuffs: wide white lining flaring from the wrist, with a gold rim, and gold bands on the upper arm.
+            for (int side = 0; side < 2; side++)
+            {
+                bool left = side == 0;
+                f.ArmPart(left);
+                Vector3 sh = left ? f.ShoulderL : f.ShoulderR, el = left ? f.ElbowL : f.ElbowR, wr = left ? f.WristL : f.WristR;
+                var dir = (wr - el).normalized;
+                var a = wr - dir * 0.12f;
+                var b = wr - dir * 0.01f;
+                k.Limb(a, b, s.ArmThickness * 1.7f, s.ArmThickness * 2.4f, navy, 8);
+                k.Limb(b - dir * 0.012f, b + dir * 0.004f, s.ArmThickness * 2.42f, s.ArmThickness * 2.42f, gold, 8);
+                k.Limb(b - dir * 0.02f, b - dir * 0.005f, s.ArmThickness * 2.2f, s.ArmThickness * 2.2f, white, 8);
+                var up = Vector3.Lerp(sh, el, 0.62f);
+                var ud = (el - sh).normalized;
+                k.Limb(up - ud * 0.012f, up + ud * 0.012f, s.ArmThickness * 1.48f, s.ArmThickness * 1.42f, gold, 8);
+            }
+
+            // Gold edging down the sides and along the bottom of the cape (the same corners as Figure.Cloak).
+            k.Body();
+            var ct = f.Torso(0f, s.TorsoLength * 0.92f, -s.TorsoDepth * 0.85f);
+            float w = s.ShoulderWidth * 1.15f;
+            Vector3 tl = ct + new Vector3(-w, 0f, 0f), tr = ct + new Vector3(w, 0f, 0f);
+            Vector3 bl = new Vector3(-w * 1.25f, 0.04f, ct.z - 0.18f), br = new Vector3(w * 1.25f, 0.04f, ct.z - 0.18f);
+            Vector3 ml = Vector3.Lerp(tl, bl, 0.5f) + new Vector3(0f, 0f, -0.07f), mr = Vector3.Lerp(tr, br, 0.5f) + new Vector3(0f, 0f, -0.07f);
+            var bc = (bl + br) * 0.5f + new Vector3(0f, 0f, -0.05f);
+            Vector3 o = new Vector3(0f, 0f, -0.006f);
+            k.Limb(tl + o, ml + o, 0.01f, 0.01f, gold, 4); k.Limb(ml + o, bl + o, 0.01f, 0.01f, gold, 4);
+            k.Limb(tr + o, mr + o, 0.01f, 0.01f, gold, 4); k.Limb(mr + o, br + o, 0.01f, 0.01f, gold, 4);
+            k.Limb(bl + o, bc + o, 0.012f, 0.012f, gold, 4); k.Limb(bc + o, br + o, 0.012f, 0.012f, gold, 4);
+            // A storm sigil on the back of the cape: a ring with a cross.
+            var sig = Vector3.Lerp((ml + mr) * 0.5f, bc, 0.15f) + new Vector3(0f, 0f, -0.075f);
+            for (int i = 0; i < 8; i++)
+            {
+                float a0 = i * Mathf.PI / 4f, a1 = (i + 1) * Mathf.PI / 4f;
+                k.Limb(sig + new Vector3(Mathf.Cos(a0), Mathf.Sin(a0), 0f) * 0.08f, sig + new Vector3(Mathf.Cos(a1), Mathf.Sin(a1), 0f) * 0.08f, 0.008f, 0.008f, gold, 4);
+            }
+            k.Box(sig, new Vector3(0.014f, 0.2f, 0.01f), gold);
+            k.Box(sig, new Vector3(0.2f, 0.014f, 0.01f), gold);
+
+            // Loose strands of hair over the back, and two thin braids beside the beard.
+            bool smooth = k.Smooth;
+            k.Smooth = false;
+            float h = s.HeadSize;
+            for (int i = 0; i < 5; i++)
+            {
+                float x = (i - 2) * h * 0.38f;
+                var root = f.Head + new Vector3(x, -h * 0.2f, -h * 0.9f);
+                var tip = root + new Vector3(x * 0.6f, -0.3f - (i % 2) * 0.08f, -0.08f);
+                k.Limb(root, tip, 0.03f, 0f, p.Hair * (i % 2 == 0 ? 1f : 0.92f), 4);
+            }
+            k.Part(BodyPart.Head, f.NeckBase);
+            for (int side = -1; side <= 1; side += 2)
+                for (int i = 0; i < 3; i++)
+                    k.Gem(f.Head + new Vector3(side * h * 0.52f, -h * (1.0f + i * 0.32f), h * 0.62f), new Vector3(h * 0.13f, h * 0.18f, h * 0.13f), p.Hair * (i % 2 == 0 ? 1f : 0.9f));
+            // More stones on the crown.
+            var band = f.Head + new Vector3(0f, h * 0.55f + 0.015f, 0f);
+            for (int side = -1; side <= 1; side += 2)
+                k.Gem(band + new Vector3(side * h * 0.62f, 0f, h * 0.7f), new Vector3(0.012f, 0.016f, 0.008f), glow);
+            k.Smooth = smooth;
+
+            // Skybreaker: gold bands up the grip, side prongs on the ring and a tassel below it.
+            f.HeldPart(false);
+            var hand = f.HandR;
+            foreach (float y in new[] { -0.2f, 0.12f, 0.25f, 0.38f })
+                k.Limb(hand + Vector3.up * y, hand + Vector3.up * (y + 0.02f), 0.023f, 0.023f, gold, 6);
+            var ring = hand + Vector3.up * 1.06f;
+            for (int side = -1; side <= 1; side += 2)
+                k.Limb(ring + new Vector3(side * 0.095f, 0f, 0f), ring + new Vector3(side * 0.15f, 0.03f, 0f), 0.014f, 0f, gold, 4);
+            k.Limb(ring + Vector3.down * 0.095f, ring + Vector3.down * 0.13f, 0.006f, 0.006f, gold, 4);
+            k.Limb(ring + Vector3.down * 0.13f, ring + Vector3.down * 0.22f, 0.012f, 0.022f, navy, 5);
             k.Body();
         }
 
