@@ -249,6 +249,28 @@ namespace OldGods.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator LoreStoneIsReadAndRemembered()
+        {
+            SaveStore.Reset();
+            SceneManager.LoadScene("Run");
+            yield return WaitFor(() => RunController.Instance != null && Object.FindAnyObjectByType<LoreStone>() != null, 20f, "a lore stone on the map");
+            var run = RunController.Instance;
+            var stone = Object.FindAnyObjectByType<LoreStone>();
+            Assert.AreEqual(run.Biome.Id, stone.Fragment.BiomeId, "the stone belongs to this biome");
+            stone.Use(run.Combat);
+            Assert.IsTrue(ReadScreen.IsOpen);
+            Assert.AreEqual(0f, Time.timeScale, "reading pauses the run");
+            SaveStore.Forget();
+            Assert.Contains(stone.Fragment.Id, SaveStore.Load(out _).lore, "saved");
+            LevelUpScreen.AutoPick = true; // closes the page
+            yield return null;
+            yield return null;
+            LevelUpScreen.AutoPick = false;
+            Assert.IsFalse(ReadScreen.IsOpen);
+            Assert.AreEqual(1f, Time.timeScale);
+        }
+
+        [UnityTest]
         public IEnumerator CorruptSaveIsKeptAsideAndAFreshOneStarts()
         {
             SaveStore.Reset();

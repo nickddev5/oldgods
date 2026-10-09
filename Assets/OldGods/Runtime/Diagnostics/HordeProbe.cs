@@ -27,6 +27,7 @@ namespace OldGods.Runtime
         {
             if (!CommandLine.Has("-probe")) return;
             if (FindAnyObjectByType<HordeProbe>() != null) return;
+            SaveStore.FolderOverride = System.IO.Path.Combine(Application.temporaryCachePath, "probe-save");
             var go = new GameObject("Horde Probe");
             DontDestroyOnLoad(go);
             var probe = go.AddComponent<HordeProbe>();

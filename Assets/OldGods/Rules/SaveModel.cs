@@ -23,6 +23,8 @@ namespace OldGods.Rules
         public int runsStarted;
         public int runsWon;
         public Settings settings = new Settings();
+        public List<string> lore = new List<string>();
+        public bool seenPremise;
 
         public bool IsUnlocked(string id) => unlocked.Contains(id);
 
@@ -88,6 +90,7 @@ namespace OldGods.Rules
             data.completedQuests ??= new List<string>();
             data.lastRun ??= new RunRecord();
             data.settings ??= new Settings();
+            data.lore ??= new List<string>();
             return data.version == SaveData.CurrentVersion;
         }
     }

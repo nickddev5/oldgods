@@ -20,7 +20,34 @@ namespace OldGods.Editor
         {
             var problems = new List<string>();
             problems.AddRange(VerifyContent());
+            problems.AddRange(VerifyStory());
             problems.AddRange(SettingsGuard.Check());
+            return problems;
+        }
+
+        /// <summary>Every god and stage has a line, every stage has lore, both endings exist.</summary>
+        public static List<string> VerifyStory()
+        {
+            var problems = new List<string>();
+            var assets = AssetDatabase.LoadAssetAtPath<GameAssets>(ProjectBuilder.GameAssetsPath);
+            if (assets == null) return problems;
+            var story = assets.Story;
+            if (story == null)
+            {
+                problems.Add("GameAssets.Story is not set");
+                return problems;
+            }
+            if (string.IsNullOrWhiteSpace(story.Premise)) problems.Add("Story premise is empty");
+            if (story.EliasEnding.Count == 0) problems.Add("Story has no Elias ending");
+            if (story.RefusedEnding.Count == 0) problems.Add("Story has no refused ending");
+            foreach (var g in assets.Content.Gods)
+                if (g != null && string.IsNullOrEmpty(story.GodLine(g.Id))) problems.Add($"Story has no line for {g.Id}");
+            foreach (var b in assets.Stages)
+            {
+                if (b == null) continue;
+                if (string.IsNullOrEmpty(story.BiomeLine(b.Id))) problems.Add($"Story has no line for {b.Id}");
+                if (!story.Fragments.Exists(f => f.BiomeId == b.Id)) problems.Add($"Story has no lore stone for {b.Id}");
+            }
             return problems;
         }
 

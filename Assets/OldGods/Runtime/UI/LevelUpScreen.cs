@@ -93,7 +93,7 @@ namespace OldGods.Runtime
             if (combat == null) return;
             if (!IsOpen)
             {
-                if (combat.PendingLevelUps > 0 && !ChoiceScreen.IsOpen && !(RunController.Instance != null && RunController.Instance.IsOver)) Open();
+                if (combat.PendingLevelUps > 0 && !ChoiceScreen.IsOpen && !ReadScreen.IsOpen && !(RunController.Instance != null && RunController.Instance.IsOver)) Open();
                 return;
             }
             if (AutoPick) { Take(0); return; }

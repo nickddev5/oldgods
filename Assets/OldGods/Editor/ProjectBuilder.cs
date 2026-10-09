@@ -128,6 +128,7 @@ namespace OldGods.Editor
             if (assets.GreyboxBiome == null) assets.GreyboxBiome = ContentAuthoring.GreyboxBiome();
             ContentAuthoring.Biomes(assets, content);
             ContentAuthoring.Migrate(assets, content);
+            if (assets.Story == null) assets.Story = StoryAuthoring.Create();
             EditorUtility.SetDirty(content);
             EditorUtility.SetDirty(assets);
             AssetDatabase.SaveAssets();

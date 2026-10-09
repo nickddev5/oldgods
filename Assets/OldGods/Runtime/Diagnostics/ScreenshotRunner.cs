@@ -19,6 +19,8 @@ namespace OldGods.Runtime
         {
             string d = CommandLine.Value("-shots");
             if (string.IsNullOrEmpty(d) || FindAnyObjectByType<ScreenshotRunner>() != null) return;
+            // Scripted runs never touch the real save.
+            SaveStore.FolderOverride = System.IO.Path.Combine(Application.temporaryCachePath, "shots-save");
             if (CommandLine.Has("-elias")) RunSetup.GodId = OldGods.Rules.LastTest.EliasId;
             var go = new GameObject("Screenshot Runner");
             DontDestroyOnLoad(go);

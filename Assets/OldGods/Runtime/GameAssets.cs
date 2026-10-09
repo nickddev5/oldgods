@@ -16,6 +16,7 @@ namespace OldGods.Runtime
         public Material UnlitGlow;
         public Material UnlitFade;
         public ContentLibrary Content;
+        public StoryText Story;
         [Tooltip("Weapon the greybox run starts with until gods pick their own.")]
         public string StartingWeapon = "weapon.spear_volley";
         [Tooltip("The stages of a run, in order. Empty uses the greybox biome three times.")]

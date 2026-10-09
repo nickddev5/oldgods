@@ -213,7 +213,22 @@ namespace OldGods.Runtime
                 Announce(Biome.DisplayName, "The throne waits");
                 StartCoroutine(WakeTheLastTest());
             }
-            else Announce($"{Biome.DisplayName}", $"Stage {stage + 1} of {StageCount}");
+            else
+            {
+                string line = Assets.Story != null ? Assets.Story.BiomeLine(Biome.Id) : null;
+                if (stage == 0 && God != null && Assets.Story != null)
+                {
+                    Announce(God.Name, Assets.Story.GodLine(God.Id));
+                    StartCoroutine(AnnounceLater(4.5f, Biome.DisplayName, line ?? $"Stage {stage + 1} of {StageCount}"));
+                }
+                else Announce(Biome.DisplayName, line ?? $"Stage {stage + 1} of {StageCount}");
+            }
+        }
+
+        System.Collections.IEnumerator AnnounceLater(float seconds, string head, string sub)
+        {
+            yield return new WaitForSeconds(seconds);
+            if (!IsOver) Announce(head, sub);
         }
 
         System.Collections.IEnumerator WakeTheLastTest()
@@ -243,6 +258,7 @@ namespace OldGods.Runtime
             new FeatureRequest(FeatureKind.Duplicator, 1, 0f),
             new FeatureRequest(FeatureKind.Shrine, 8, 24f),
             new FeatureRequest(FeatureKind.Chest, 10, 22f),
+            new FeatureRequest(FeatureKind.LorePickup, 1, 0f),
         };
 
         /// <summary>Hook for later milestones to build chests, shrines and the merchant.</summary>
@@ -259,6 +275,7 @@ namespace OldGods.Runtime
                     float yaw = Mathf.Atan2(-p.X, -p.Z) * Mathf.Rad2Deg;
                     BossGate.Create(at, yaw, Assets, Biome.Boss != null ? Biome.Boss.Accent : Color.white, worldRoot);
                 }
+                else if (p.Kind == FeatureKind.LorePickup) LoreStone.Place(this, at, worldRoot, StageIndex);
                 else Features.Build(this, p, worldRoot);
                 FeaturePlaced?.Invoke(this, p, worldRoot);
             }
@@ -377,7 +394,13 @@ namespace OldGods.Runtime
             bool takes = LastTest.TakesTheThrone(GodId);
             var arena = FinalArena.Instance;
             if (arena != null)
-                yield return takes ? arena.EliasEnding(this, EndingLines(true)) : arena.RefusedEnding(this, EndingLines(false));
+            {
+                IList<string> lines = EndingLines(takes);
+                var story = Assets.Story;
+                if (story != null && (takes ? story.EliasEnding.Count : story.RefusedEnding.Count) > 0)
+                    lines = takes ? story.EliasEnding : story.RefusedEnding;
+                yield return takes ? arena.EliasEnding(this, lines) : arena.RefusedEnding(this, lines);
+            }
             EndRun(true);
         }
 

@@ -74,6 +74,13 @@ namespace OldGods.Runtime
             var first = GodRules.Default(Content.Gods, SaveStore.Current.IsUnlocked);
             if (first != null) ShowPreview(first.Id);
             ShowMain();
+            var save = SaveStore.Current;
+            if (!save.seenPremise && Assets.Story != null && !CommandLine.Has("-smoke"))
+            {
+                save.seenPremise = true;
+                try { SaveStore.Save(save); } catch (System.Exception e) { Debug.LogWarning(e.Message); }
+                ReadScreen.Show("Before the throne", Assets.Story.Premise);
+            }
         }
 
         void BuildStage()

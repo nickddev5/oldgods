@@ -11,13 +11,15 @@ namespace OldGods.Runtime
     {
         public const string Shrine = "Shrine of Embers";
         public const string Quests = "Quests";
+        public const string Lore = "Lore";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Register()
         {
-            MenuController.ExtraPages.RemoveAll(p => p.label == Shrine || p.label == Quests);
+            MenuController.ExtraPages.RemoveAll(p => p.label == Shrine || p.label == Quests || p.label == Lore);
             MenuController.ExtraPages.Add((Shrine, BuildShrine));
             MenuController.ExtraPages.Add((Quests, BuildQuests));
+            MenuController.ExtraPages.Add((Lore, BuildLore));
         }
 
         static RectTransform Column(RectTransform parent, string name, Vector2 anchor, Vector2 offset, Vector2 size)
@@ -105,6 +107,36 @@ namespace OldGods.Runtime
             }
 
             MenuController.PageShown += label => { if (label == Quests && page != null) Refresh(); };
+            Refresh();
+            return page;
+        }
+
+        static RectTransform BuildLore(MenuController menu)
+        {
+            var page = menu.NewPage("Lore", Lore);
+            var list = Column(page, "List", new Vector2(0.5f, 1f), new Vector2(0f, -160f), new Vector2(1200f, 780f));
+
+            void Refresh()
+            {
+                foreach (Transform c in list) Object.Destroy(c.gameObject);
+                var story = menu.Assets.Story;
+                if (story == null) return;
+                var premise = UiKit.Text(list, $"<b>Before the throne</b>\n<size=22>{story.Premise}</size>", 26, TextAlignmentOptions.TopLeft);
+                premise.gameObject.AddComponent<LayoutElement>().preferredHeight = 230f;
+                var save = SaveStore.Current;
+                int found = 0;
+                foreach (var f in story.Fragments)
+                {
+                    bool has = save.lore.Contains(f.Id);
+                    if (has) found++;
+                    var t = UiKit.Text(list, has ? $"<b>{f.Title}</b>\n<size=20>{f.Text}</size>" : "<color=#777777>A stone not yet read</color>", 24, TextAlignmentOptions.TopLeft);
+                    t.gameObject.AddComponent<LayoutElement>().preferredHeight = has ? 92f : 34f;
+                }
+                var count = UiKit.Text(list, $"<size=20>{found} of {story.Fragments.Count} stones read</size>", 20, TextAlignmentOptions.Left);
+                count.gameObject.AddComponent<LayoutElement>().preferredHeight = 30f;
+            }
+
+            MenuController.PageShown += label => { if (label == Lore && page != null) Refresh(); };
             Refresh();
             return page;
         }

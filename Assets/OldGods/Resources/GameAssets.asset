@@ -18,6 +18,7 @@ MonoBehaviour:
   UnlitGlow: {fileID: 2100000, guid: c773e852fef71c641bd6cde8c6ddde03, type: 2}
   UnlitFade: {fileID: 2100000, guid: e89ccecbab4773b479050690a6962f82, type: 2}
   Content: {fileID: 11400000, guid: 56e4d215655c9eb4a8ddcd2611cb14e7, type: 2}
+  Story: {fileID: 11400000, guid: 5a62ce1095470334fbb539fea79f6dbb, type: 2}
   StartingWeapon: weapon.spear_volley
   Stages:
   - {fileID: 11400000, guid: 7e9a590d12bfd354baedede1cac4528c, type: 2}
