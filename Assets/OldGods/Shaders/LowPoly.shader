@@ -9,6 +9,7 @@ Shader "OldGods/LowPoly"
         _AnimPhase ("Anim Phase (set per renderer)", Float) = 0
         _AirPose ("Air Pose (set per renderer)", Range(0, 1)) = 0
         _SlidePose ("Slide Pose (set per renderer)", Range(0, 1)) = 0
+        _CapeSwing ("Cape Swing (set per renderer by CapeSway)", Vector) = (0, 0, 0, 0)
         _OutlineWidth ("Outline Width (pixels, 0 = none)", Range(0, 4)) = 0
         _PixelAmount ("Pixel Texture Amount", Range(0, 0.6)) = 0
         _TexelsPerMeter ("Pixel Texels Per Metre", Range(2, 64)) = 10

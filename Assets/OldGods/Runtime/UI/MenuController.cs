@@ -111,6 +111,7 @@ namespace OldGods.Runtime
             previewMesh = preview.gameObject.AddComponent<MeshFilter>();
             previewRenderer = preview.gameObject.AddComponent<MeshRenderer>();
             preview.gameObject.AddComponent<WalkAnimator>().IdleSwing = 0.05f;
+            preview.gameObject.AddComponent<CapeSway>();
         }
 
         void Update()

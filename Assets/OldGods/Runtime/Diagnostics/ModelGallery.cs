@@ -93,6 +93,25 @@ namespace OldGods.Runtime
             yield return Shoot(cam, new Vector3(0f, 1.1f, -9f), new Vector3(0f, 0.9f, 0f), "poses");
             Destroy(poses.gameObject);
 
+            // Capes, side on: hanging, walking, running, and swung to one side, for each caped god.
+            var swings = new[] { new Vector4(0f, 0f, 0f, 0f), new Vector4(0.3f, 0f, 0.4f, 0f), new Vector4(0.7f, 0f, 1f, 0f), new Vector4(0.3f, 0.5f, 0.5f, 0f) };
+            foreach (var look in new[] { GodLook.Hunt, GodLook.Elias, GodLook.Storm })
+            {
+                var capes = new GameObject("Capes").transform;
+                for (int i = 0; i < swings.Length; i++)
+                {
+                    var go = WorldBuilder.CreateProp($"Cape {look} {i}", GodModels.Get(look), white, new Vector3((i - 1.5f) * 1.3f, 0f, 0f), Quaternion.Euler(0f, 90f, 0f), Vector3.one, capes, false);
+                    var block = new MaterialPropertyBlock();
+                    block.SetFloat("_WalkSwing", swings[i].x > 0.6f ? 0.2f : swings[i].x > 0f ? 0.1f : 0.02f);
+                    block.SetFloat("_AnimPhase", 1.57f);
+                    block.SetVector("_CapeSwing", swings[i]);
+                    go.GetComponent<MeshRenderer>().SetPropertyBlock(block);
+                }
+                yield return Shoot(cam, new Vector3(0f, 1.1f, -8f), new Vector3(0f, 0.9f, 0f), $"capes_{look}");
+                Destroy(capes.gameObject);
+                yield return null;
+            }
+
             var enemies = new GameObject("Enemies").transform;
             int n = System.Enum.GetValues(typeof(EnemyModel)).Length;
             for (int i = 0; i < n; i++)
