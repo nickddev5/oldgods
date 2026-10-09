@@ -1,0 +1,122 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a2c61708764e1c48a7e9519e3580275, type: 3}
+  m_Name: AshWood
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.BiomeDefinition
+  Id: biome.ash_wood
+  DisplayName: The Ash Wood
+  Terrain:
+    Cells: 128
+    CellSize: 2
+    HillHeight: 22
+    HillScale: 40
+    HillOctaves: 4
+    CliffStep: 3.5
+    CliffAmount: 0.4
+    CliffScale: 90
+    SpawnFlatRadius: 12
+    RimHeight: 14
+    RimWidth: 16
+    WaterLevel: -1000
+  Palette:
+    Low: {r: 0.25, g: 0.23, b: 0.22, a: 1}
+    High: {r: 0.38, g: 0.33, b: 0.3, a: 1}
+    Cliff: {r: 0.3, g: 0.26, b: 0.24, a: 1}
+    Rim: {r: 0.18, g: 0.16, b: 0.15, a: 1}
+    CliffSlope: 38
+  Timeline:
+    Duration: 600
+    Phases:
+    - Start: 0
+      End: 60
+      AliveFrom: 15
+      AliveTo: 35
+      Rate: 5
+      Mix:
+      - EnemyId: enemy.cinder
+        Weight: 1
+    - Start: 60
+      End: 180
+      AliveFrom: 35
+      AliveTo: 70
+      Rate: 8
+      Mix:
+      - EnemyId: enemy.cinder
+        Weight: 3
+      - EnemyId: enemy.ashling
+        Weight: 1
+    - Start: 180
+      End: 360
+      AliveFrom: 70
+      AliveTo: 130
+      Rate: 12
+      Mix:
+      - EnemyId: enemy.cinder
+        Weight: 3
+      - EnemyId: enemy.ashling
+        Weight: 2
+      - EnemyId: enemy.hulk
+        Weight: 1
+    - Start: 360
+      End: 600
+      AliveFrom: 130
+      AliveTo: 220
+      Rate: 18
+      Mix:
+      - EnemyId: enemy.cinder
+        Weight: 2
+      - EnemyId: enemy.ashling
+        Weight: 2
+      - EnemyId: enemy.hulk
+        Weight: 2
+    Events:
+    - At: 90
+      Kind: 1
+      EnemyId: enemy.ashling
+      Count: 30
+    - At: 150
+      Kind: 0
+      EnemyId: enemy.ash_champion
+      Count: 1
+    - At: 270
+      Kind: 2
+      EnemyId: enemy.hulk
+      Count: 8
+    - At: 330
+      Kind: 0
+      EnemyId: enemy.ash_champion
+      Count: 2
+    - At: 420
+      Kind: 1
+      EnemyId: enemy.cinder
+      Count: 60
+    - At: 510
+      Kind: 0
+      EnemyId: enemy.ash_champion
+      Count: 3
+    HealthPerMinute: 0.18
+    SwarmEnemyId: enemy.ghost
+  Boss: {fileID: 11400000, guid: b0033786960edd74ca380e1c35783b2c, type: 2}
+  Sun: {r: 1, g: 0.62, b: 0.42, a: 1}
+  SunIntensity: 1.1
+  SunEuler: {x: 25, y: -60, z: 0}
+  AmbientSky: {r: 0.55, g: 0.45, b: 0.4, a: 1}
+  AmbientEquator: {r: 0.45, g: 0.35, b: 0.3, a: 1}
+  AmbientGround: {r: 0.2, g: 0.15, b: 0.12, a: 1}
+  Fog: {r: 0.45, g: 0.35, b: 0.3, a: 1}
+  FogStart: 30
+  FogEnd: 140
+  WaterColor: {r: 0.25, g: 0.45, b: 0.55, a: 0.55}
+  RockColor: {r: 0.3, g: 0.28, b: 0.27, a: 1}
+  RockCount: 40
+  TreeColor: {r: 0.2, g: 0.18, b: 0.17, a: 1}
+  TreeCount: 140

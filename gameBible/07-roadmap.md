@@ -9,7 +9,7 @@ First milestone: a complete game. A fresh save can unlock every god, beat The La
 | 2 | Core combat loop | Draft, XP and weapon rules tested; 5-minute survival fun enough to continue | Built; awaiting Nick's play-test |
 | 3 | The stage | Start to boss to next-stage portal playable; timeline tested | Built; awaiting Nick's pacing play-test |
 | 4 | Map economy | Economy and shrine rules tested; every shrine used in a play-test | Built; awaiting Nick's play-test |
-| 5 | Full run | A run can be won; Nick plays three stages | |
+| 5 | Full run | A run can be won; Nick plays three stages | Built; awaiting Nick's three-stage play |
 | 6 | Characters | 7 gods selectable in order with distinct kits | |
 | 7 | Meta-progression and saving | Save/load tested; a fresh save can reach Elias | |
 | 8 | Story | Premise, god lines and ending text in place | |

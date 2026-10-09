@@ -29,7 +29,7 @@
 
 ## Between runs
 
-- **Currency:** "Embers" (working name). Earned for stages cleared, bosses killed and time survived in the final swarm.
+- **Currency:** "Embers" (working name), paid at the end of a run: 20 per stage cleared, 30 per boss, 1 per 30 kills, 40 for reaching The Last Test, 100 for winning; times the best final-swarm survival multiplier; times (1 + difficulty modifier bonus). Shown on the results screen with the seed.
 - **Unlock tree:** gods, weapons, passives and items enter the pool when bought. Most of the tree is content, not power.
 - **Powerups:** a few small, capped stat buys (max health, damage, pickup range, move speed, luck, XP gain).
 - **Quests:** about 12 goals ("open 25 chests", "beat a boss without being hit") that grant currency or unlock items.

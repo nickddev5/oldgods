@@ -19,6 +19,7 @@ namespace OldGods.Runtime
         {
             string d = CommandLine.Value("-shots");
             if (string.IsNullOrEmpty(d) || FindAnyObjectByType<ScreenshotRunner>() != null) return;
+            if (CommandLine.Has("-elias")) RunSetup.GodId = OldGods.Rules.LastTest.EliasId;
             var go = new GameObject("Screenshot Runner");
             DontDestroyOnLoad(go);
             var r = go.AddComponent<ScreenshotRunner>();
@@ -43,6 +44,26 @@ namespace OldGods.Runtime
             run.StartBoss(run.Player.transform.position + run.Player.Facing * 14f);
         }
 
+        /// <summary>-shotStage 1|2|final|ending: jumps to a stage, the arena, or straight to the throne ending.</summary>
+        IEnumerator JumpTo(string stage)
+        {
+            while (RunController.Instance == null || RunController.Instance.Player == null) yield return null;
+            yield return new WaitForSeconds(0.5f);
+            var run = RunController.Instance;
+            run.PlayerHealth.Invincible = true;
+            if (stage == "final" || stage == "ending")
+            {
+                run.BuildStage(run.StageCount, final: true);
+                if (stage == "ending")
+                {
+                    while (BossController.Active == null) yield return null;
+                    yield return new WaitForSeconds(1.5f);
+                    run.Horde.Damage(BossController.Active.Slot, BossController.Active.MaxHealth * 2f);
+                }
+            }
+            else if (int.TryParse(stage, out int n)) run.BuildStage(n);
+        }
+
         IEnumerator Start()
         {
             Directory.CreateDirectory(dir);
@@ -50,6 +71,8 @@ namespace OldGods.Runtime
             float start = Time.realtimeSinceStartup;
             bool hold = CommandLine.Has("-shotHold");
             if (CommandLine.Has("-shotBoss")) StartCoroutine(WakeBoss());
+            string stage = CommandLine.Value("-shotStage");
+            if (!string.IsNullOrEmpty(stage)) StartCoroutine(JumpTo(stage));
             for (int i = 0; i < times.Length; i++)
             {
                 while (Time.realtimeSinceStartup - start < times[i])

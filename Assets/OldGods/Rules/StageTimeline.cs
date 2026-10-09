@@ -152,6 +152,35 @@ namespace OldGods.Rules
     /// <summary>The default greybox timeline; biome timelines in content override it.</summary>
     public static class DefaultTimelines
     {
+        /// <summary>
+        /// The standard ten-minute stage from four enemy roles: the basic foe, a fast one,
+        /// a tank, and the stage's champion.
+        /// </summary>
+        public static StageTimelineDef Standard(string basic, string fast, string tank, string champion, string swarmer = null)
+        {
+            swarmer ??= fast;
+            var def = new StageTimelineDef { Duration = 600f };
+            def.Phases.Add(new SpawnPhase { Start = 0f, End = 60f, AliveFrom = 15, AliveTo = 35, Rate = 5f, Mix = { new MixEntry(basic, 1f) } });
+            def.Phases.Add(new SpawnPhase { Start = 60f, End = 180f, AliveFrom = 35, AliveTo = 70, Rate = 8f, Mix = { new MixEntry(basic, 3f), new MixEntry(fast, 1f) } });
+            def.Phases.Add(new SpawnPhase { Start = 180f, End = 360f, AliveFrom = 70, AliveTo = 130, Rate = 12f, Mix = { new MixEntry(basic, 3f), new MixEntry(fast, 2f), new MixEntry(tank, 1f) } });
+            def.Phases.Add(new SpawnPhase { Start = 360f, End = 600f, AliveFrom = 130, AliveTo = 220, Rate = 18f, Mix = { new MixEntry(basic, 2f), new MixEntry(fast, 2f), new MixEntry(tank, 2f) } });
+            def.Events.Add(new StageEvent { At = 90f, Kind = StageEventKind.Swarm, EnemyId = swarmer, Count = 30 });
+            def.Events.Add(new StageEvent { At = 150f, Kind = StageEventKind.Miniboss, EnemyId = champion, Count = 1 });
+            def.Events.Add(new StageEvent { At = 270f, Kind = StageEventKind.EliteWave, EnemyId = tank, Count = 8 });
+            def.Events.Add(new StageEvent { At = 330f, Kind = StageEventKind.Miniboss, EnemyId = champion, Count = 2 });
+            def.Events.Add(new StageEvent { At = 420f, Kind = StageEventKind.Swarm, EnemyId = basic, Count = 60 });
+            def.Events.Add(new StageEvent { At = 510f, Kind = StageEventKind.Miniboss, EnemyId = champion, Count = 3 });
+            return def;
+        }
+
+        /// <summary>The Last Test: no clock, a thin stream of ghosts and husks around the fight.</summary>
+        public static StageTimelineDef FinalArena()
+        {
+            var def = new StageTimelineDef { Duration = 3600f, HealthPerMinute = 0.1f };
+            def.Phases.Add(new SpawnPhase { Start = 0f, End = 3600f, AliveFrom = 20, AliveTo = 60, Rate = 4f, Mix = { new MixEntry("enemy.ghost", 2f), new MixEntry("enemy.husk", 1f) } });
+            return def;
+        }
+
         public static StageTimelineDef Greybox()
         {
             var def = new StageTimelineDef { Duration = 600f };

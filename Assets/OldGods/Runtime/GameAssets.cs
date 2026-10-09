@@ -21,6 +21,8 @@ namespace OldGods.Runtime
         [Tooltip("The stages of a run, in order. Empty uses the greybox biome three times.")]
         public System.Collections.Generic.List<BiomeDefinition> Stages = new System.Collections.Generic.List<BiomeDefinition>();
         public BiomeDefinition GreyboxBiome;
+        [Tooltip("The Last Test's arena, after the last stage.")]
+        public BiomeDefinition FinalArena;
         public MotorTuning Motor = new MotorTuning();
         public TerrainProfile GreyboxTerrain = new TerrainProfile();
         public GroundPalette GreyboxPalette = new GroundPalette();

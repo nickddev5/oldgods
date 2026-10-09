@@ -26,6 +26,7 @@ namespace OldGods.Editor
             library.Passives.RemoveAll(e => e == null);
             library.Items.RemoveAll(e => e == null);
             Enemies(library);
+            MoreEnemies(library);
             Weapons(library);
             Passives(library);
             Items(library);
@@ -63,6 +64,154 @@ namespace OldGods.Editor
                 e.MaxHealth = 20f; e.MoveSpeed = 5f; e.Radius = 0.4f; e.ContactDamage = 8f; e.XpValue = 2;
                 e.Color = new Color(0.75f, 0.85f, 0.95f); e.Emission = new Color(0.25f, 0.4f, 0.6f); e.GoldChance = 0f;
             });
+        }
+
+        static void MoreEnemies(ContentLibrary library)
+        {
+            Enemy(library, "Ashling", e =>
+            {
+                e.Id = "enemy.ashling"; e.DisplayName = "Ashling";
+                e.MaxHealth = 6f; e.MoveSpeed = 6.2f; e.Radius = 0.3f; e.ContactDamage = 3f; e.XpValue = 1; e.Scale = 0.7f;
+                e.Color = new Color(0.3f, 0.28f, 0.27f); e.Emission = new Color(0.5f, 0.15f, 0.02f);
+            });
+            Enemy(library, "Cinder", e =>
+            {
+                e.Id = "enemy.cinder"; e.DisplayName = "Cinder Husk";
+                e.MaxHealth = 14f; e.MoveSpeed = 3.6f; e.Radius = 0.4f; e.ContactDamage = 6f; e.XpValue = 2;
+                e.Color = new Color(0.22f, 0.2f, 0.2f); e.Emission = new Color(0.3f, 0.08f, 0.01f);
+            });
+            Enemy(library, "Hulk", e =>
+            {
+                e.Id = "enemy.hulk"; e.DisplayName = "Charred Hulk";
+                e.MaxHealth = 60f; e.MoveSpeed = 2.4f; e.Radius = 0.55f; e.ContactDamage = 12f; e.XpValue = 6; e.Scale = 1.7f;
+                e.Color = new Color(0.18f, 0.16f, 0.15f); e.Emission = new Color(0.4f, 0.1f, 0.02f); e.GoldChance = 0.15f;
+            });
+            Enemy(library, "Drowned", e =>
+            {
+                e.Id = "enemy.drowned"; e.DisplayName = "Drowned";
+                e.MaxHealth = 16f; e.MoveSpeed = 3f; e.Radius = 0.42f; e.ContactDamage = 7f; e.XpValue = 2;
+                e.Color = new Color(0.35f, 0.48f, 0.45f);
+            });
+            Enemy(library, "BrineRunner", e =>
+            {
+                e.Id = "enemy.brine_runner"; e.DisplayName = "Brine Runner";
+                e.MaxHealth = 9f; e.MoveSpeed = 6f; e.Radius = 0.35f; e.ContactDamage = 5f; e.XpValue = 2; e.Scale = 0.85f;
+                e.Color = new Color(0.5f, 0.6f, 0.62f);
+            });
+            Enemy(library, "ShellBrute", e =>
+            {
+                e.Id = "enemy.shell_brute"; e.DisplayName = "Shell Brute";
+                e.MaxHealth = 75f; e.MoveSpeed = 2.2f; e.Radius = 0.6f; e.ContactDamage = 15f; e.XpValue = 8; e.Scale = 1.8f;
+                e.Color = new Color(0.55f, 0.45f, 0.4f); e.GoldChance = 0.2f;
+            });
+            Enemy(library, "AshChampion", e =>
+            {
+                e.Id = "enemy.ash_champion"; e.DisplayName = "An Ash Champion";
+                e.MaxHealth = 700f; e.MoveSpeed = 3.6f; e.Radius = 0.55f; e.ContactDamage = 16f; e.XpValue = 40; e.Scale = 2.4f;
+                e.Color = new Color(0.2f, 0.17f, 0.16f); e.Emission = new Color(0.8f, 0.25f, 0.04f); e.IsElite = true; e.GoldChance = 1f;
+            });
+            Enemy(library, "TideChampion", e =>
+            {
+                e.Id = "enemy.tide_champion"; e.DisplayName = "A Tide Champion";
+                e.MaxHealth = 800f; e.MoveSpeed = 3f; e.Radius = 0.6f; e.ContactDamage = 18f; e.XpValue = 50; e.Scale = 2.5f;
+                e.Color = new Color(0.3f, 0.45f, 0.5f); e.Emission = new Color(0.05f, 0.25f, 0.35f); e.IsElite = true; e.GoldChance = 1f;
+            });
+        }
+
+        static BossAttackDef Atk(BossAttack a, float weight, float cooldown, float damage, float telegraph, float size) =>
+            new BossAttackDef { Attack = a, Weight = weight, Cooldown = cooldown, Damage = damage, Telegraph = telegraph, Size = size };
+
+        /// <summary>The three stage biomes and the final arena, with their bosses. Created once.</summary>
+        public static void Biomes(GameAssets assets, ContentLibrary library)
+        {
+            var warden = AssetDatabase.LoadAssetAtPath<BossDefinition>(BossesDir + "/StoneWarden.asset");
+            var stag = LoadOrCreate<BossDefinition>(BossesDir + "/AshStag.asset", b =>
+            {
+                b.Id = "boss.ash_stag"; b.DisplayName = "The Ash Stag"; b.Epithet = "The forest burned, and it did not";
+                b.MaxHealth = 3200f; b.MoveSpeed = 4.5f; b.Scale = 2.6f; b.Radius = 1.4f; b.ContactDamage = 16f; b.Rest = 1.1f;
+                b.MinionId = "enemy.ashling"; b.Model = BossModel.Stag;
+                b.Color = new Color(0.3f, 0.27f, 0.25f); b.Accent = new Color(2f, 0.6f, 0.15f);
+                b.Attacks = new List<BossAttackDef>
+                {
+                    Atk(BossAttack.Charge, 3f, 4f, 24f, 0.8f, 22f), Atk(BossAttack.Volley, 2f, 6f, 20f, 1.2f, 3.5f),
+                    Atk(BossAttack.Shockwave, 2f, 8f, 20f, 0.7f, 24f), Atk(BossAttack.Summon, 1f, 12f, 0f, 0.8f, 10f),
+                };
+            });
+            var mother = LoadOrCreate<BossDefinition>(BossesDir + "/TideMother.asset", b =>
+            {
+                b.Id = "boss.tide_mother"; b.DisplayName = "The Tide Mother"; b.Epithet = "Everything the sea took, she kept";
+                b.MaxHealth = 3400f; b.MoveSpeed = 2.2f; b.Scale = 3.4f; b.Radius = 1.7f; b.ContactDamage = 18f; b.Rest = 1.2f;
+                b.MinionId = "enemy.drowned"; b.Model = BossModel.Mother;
+                b.Color = new Color(0.35f, 0.5f, 0.52f); b.Accent = new Color(0.3f, 1.4f, 1.8f);
+                b.Attacks = new List<BossAttackDef>
+                {
+                    Atk(BossAttack.Volley, 3f, 5f, 26f, 1.2f, 4f), Atk(BossAttack.Summon, 2f, 10f, 0f, 0.8f, 10f),
+                    Atk(BossAttack.Slam, 2f, 5f, 30f, 1.2f, 5.5f), Atk(BossAttack.Shockwave, 1f, 10f, 24f, 0.8f, 26f),
+                };
+            });
+            var construct = LoadOrCreate<BossDefinition>(BossesDir + "/LastTest.asset", b =>
+            {
+                b.Id = "boss.last_test"; b.DisplayName = "The Last Test"; b.Epithet = "It was made to keep the throne empty";
+                b.MaxHealth = 4000f; b.MoveSpeed = 3f; b.Scale = 3.6f; b.Radius = 1.8f; b.ContactDamage = 20f; b.Rest = 0.9f;
+                b.MinionId = "enemy.ghost"; b.Model = BossModel.Construct; b.EnrageAt = 0.5f;
+                b.Color = new Color(0.82f, 0.8f, 0.76f); b.Accent = new Color(2.2f, 1.9f, 1.1f);
+                b.Attacks = new List<BossAttackDef>
+                {
+                    Atk(BossAttack.Slam, 2f, 4f, 30f, 1f, 5f), Atk(BossAttack.Charge, 2f, 6f, 28f, 0.8f, 24f),
+                    Atk(BossAttack.Shockwave, 2f, 7f, 26f, 0.7f, 28f), Atk(BossAttack.Volley, 2f, 6f, 26f, 1.1f, 4f),
+                    Atk(BossAttack.Summon, 1f, 12f, 0f, 0.8f, 12f),
+                };
+            });
+            foreach (var boss in new[] { warden, stag, mother, construct })
+                if (boss != null && !library.Bosses.Contains(boss)) library.Bosses.Add(boss);
+
+            var steppe = LoadOrCreate<BiomeDefinition>(BiomesDir + "/GreySteppe.asset", b =>
+            {
+                b.Id = "biome.grey_steppe"; b.DisplayName = "The Grey Steppe";
+                b.Terrain = new TerrainProfile { HillHeight = 14f, HillScale = 70f, CliffStep = 3f, CliffAmount = 0.15f };
+                b.Palette = new GroundPalette { Low = new Color(0.45f, 0.52f, 0.33f), High = new Color(0.62f, 0.6f, 0.42f), Cliff = new Color(0.5f, 0.48f, 0.45f), Rim = new Color(0.4f, 0.38f, 0.36f) };
+                b.Timeline = DefaultTimelines.Standard("enemy.husk", "enemy.runner", "enemy.brute", "enemy.champion");
+                b.Boss = warden;
+                b.RockCount = 110; b.TreeCount = 15; b.RockColor = new Color(0.58f, 0.56f, 0.54f);
+            });
+            var wood = LoadOrCreate<BiomeDefinition>(BiomesDir + "/AshWood.asset", b =>
+            {
+                b.Id = "biome.ash_wood"; b.DisplayName = "The Ash Wood";
+                b.Terrain = new TerrainProfile { HillHeight = 22f, HillScale = 40f, CliffStep = 3.5f, CliffAmount = 0.4f };
+                b.Palette = new GroundPalette { Low = new Color(0.25f, 0.23f, 0.22f), High = new Color(0.38f, 0.33f, 0.3f), Cliff = new Color(0.3f, 0.26f, 0.24f), Rim = new Color(0.18f, 0.16f, 0.15f) };
+                b.Timeline = DefaultTimelines.Standard("enemy.cinder", "enemy.ashling", "enemy.hulk", "enemy.ash_champion");
+                b.Boss = stag;
+                b.Sun = new Color(1f, 0.62f, 0.42f); b.SunIntensity = 1.1f; b.SunEuler = new Vector3(25f, -60f, 0f);
+                b.AmbientSky = new Color(0.55f, 0.45f, 0.4f); b.AmbientEquator = new Color(0.45f, 0.35f, 0.3f); b.AmbientGround = new Color(0.2f, 0.15f, 0.12f);
+                b.Fog = new Color(0.45f, 0.35f, 0.3f); b.FogStart = 30f; b.FogEnd = 140f;
+                b.RockCount = 40; b.RockColor = new Color(0.3f, 0.28f, 0.27f); b.TreeCount = 140; b.TreeColor = new Color(0.2f, 0.18f, 0.17f);
+            });
+            var coast = LoadOrCreate<BiomeDefinition>(BiomesDir + "/DrownedCoast.asset", b =>
+            {
+                b.Id = "biome.drowned_coast"; b.DisplayName = "The Drowned Coast";
+                b.Terrain = new TerrainProfile { HillHeight = 16f, HillScale = 60f, CliffStep = 4f, CliffAmount = 0.45f, WaterLevel = 6.5f };
+                b.Palette = new GroundPalette { Low = new Color(0.6f, 0.55f, 0.42f), High = new Color(0.72f, 0.69f, 0.58f), Cliff = new Color(0.42f, 0.44f, 0.46f), Rim = new Color(0.35f, 0.37f, 0.4f) };
+                b.Timeline = DefaultTimelines.Standard("enemy.drowned", "enemy.brine_runner", "enemy.shell_brute", "enemy.tide_champion");
+                b.Boss = mother;
+                b.Sun = new Color(0.9f, 0.95f, 1f); b.SunIntensity = 1.2f; b.SunEuler = new Vector3(40f, 20f, 0f);
+                b.AmbientSky = new Color(0.55f, 0.65f, 0.75f); b.AmbientEquator = new Color(0.45f, 0.52f, 0.55f); b.AmbientGround = new Color(0.22f, 0.25f, 0.27f);
+                b.Fog = new Color(0.55f, 0.65f, 0.72f); b.FogStart = 50f; b.FogEnd = 190f;
+                b.RockCount = 80; b.RockColor = new Color(0.45f, 0.47f, 0.5f); b.TreeCount = 10; b.TreeColor = new Color(0.3f, 0.4f, 0.32f);
+                b.WaterColor = new Color(0.2f, 0.45f, 0.55f, 0.6f);
+            });
+            var arena = LoadOrCreate<BiomeDefinition>(BiomesDir + "/LastTestArena.asset", b =>
+            {
+                b.Id = "biome.last_test"; b.DisplayName = "The Last Test";
+                b.Terrain = new TerrainProfile { Cells = 64, CellSize = 2f, HillHeight = 2f, HillScale = 40f, SpawnFlatRadius = 30f, RimHeight = 20f, RimWidth = 14f };
+                b.Palette = new GroundPalette { Low = new Color(0.75f, 0.73f, 0.7f), High = new Color(0.8f, 0.78f, 0.74f), Cliff = new Color(0.6f, 0.58f, 0.55f), Rim = new Color(0.3f, 0.28f, 0.27f) };
+                b.Timeline = DefaultTimelines.FinalArena();
+                b.Boss = construct;
+                b.Sun = new Color(1f, 0.85f, 0.6f); b.SunIntensity = 1.3f; b.SunEuler = new Vector3(20f, 160f, 0f);
+                b.AmbientSky = new Color(0.6f, 0.55f, 0.5f); b.Fog = new Color(0.6f, 0.55f, 0.5f); b.FogStart = 50f; b.FogEnd = 160f;
+                b.RockCount = 0; b.TreeCount = 0;
+            });
+            if (assets.Stages.Count == 0) assets.Stages.AddRange(new[] { steppe, wood, coast });
+            if (assets.FinalArena == null) assets.FinalArena = arena;
         }
 
         public static BiomeDefinition GreyboxBiome()

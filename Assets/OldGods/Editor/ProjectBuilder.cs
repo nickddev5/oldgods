@@ -126,6 +126,8 @@ namespace OldGods.Editor
             assets.UnlitFade = fade;
             assets.Content = content;
             if (assets.GreyboxBiome == null) assets.GreyboxBiome = ContentAuthoring.GreyboxBiome();
+            ContentAuthoring.Biomes(assets, content);
+            EditorUtility.SetDirty(content);
             EditorUtility.SetDirty(assets);
             AssetDatabase.SaveAssets();
             return assets;

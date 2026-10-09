@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a581bf6de37c8a47accf7d6f546ae11, type: 3}
+  m_Name: LastTest
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.BossDefinition
+  Id: boss.last_test
+  DisplayName: The Last Test
+  Epithet: It was made to keep the throne empty
+  MaxHealth: 4000
+  MoveSpeed: 3
+  Scale: 3.6
+  Radius: 1.8
+  ContactDamage: 20
+  Rest: 0.9
+  MinionId: enemy.ghost
+  EnrageAt: 0.5
+  Attacks:
+  - Attack: 0
+    Weight: 2
+    Cooldown: 4
+    Damage: 30
+    Telegraph: 1
+    Size: 5
+  - Attack: 1
+    Weight: 2
+    Cooldown: 6
+    Damage: 28
+    Telegraph: 0.8
+    Size: 24
+  - Attack: 2
+    Weight: 2
+    Cooldown: 7
+    Damage: 26
+    Telegraph: 0.7
+    Size: 28
+  - Attack: 4
+    Weight: 2
+    Cooldown: 6
+    Damage: 26
+    Telegraph: 1.1
+    Size: 4
+  - Attack: 3
+    Weight: 1
+    Cooldown: 12
+    Damage: 0
+    Telegraph: 0.8
+    Size: 12
+  Model: 3
+  Color: {r: 0.82, g: 0.8, b: 0.76, a: 1}
+  Accent: {r: 2.2, g: 1.9, b: 1.1, a: 1}

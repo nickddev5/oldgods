@@ -24,11 +24,13 @@
 
 ## Biomes
 
-1. **Grey Steppe:** rolling grassland, scattered standing stones. Boss: the Stone Warden.
-2. **Ash Wood:** burnt forest, ridges and ravines. Boss: the Ash Stag.
-3. **Drowned Coast:** cliffs over shallow water. Boss: the Tide Mother.
+1. **The Grey Steppe:** rolling grassland (hills 14 m, few cliffs), 110 standing stones, cool light. Enemies: husk, runner, brute; champion: Husk Champion. Boss: the Stone Warden.
+2. **The Ash Wood:** burnt forest on ridges and ravines (hills 22 m, many cliffs), 140 dead trees, low red sun, warm haze. Enemies: cinder husk, ashling, charred hulk; champion: Ash Champion. Boss: the Ash Stag.
+3. **The Drowned Coast:** sand and wet rock with cliffs over shallow water (water at 6.5 m). Enemies: drowned, brine runner, shell brute; champion: Tide Champion. Boss: the Tide Mother.
 
-Final arena: **The Last Test**, a construct guarding the throne.
+Final arena: **The Last Test**, a flat marble arena (128 m) with the throne and six stone gods; the construct guards it.
+
+All three stages use the standard ten-minute timeline with the biome's own basic, fast, tank and champion enemies.
 
 ## Weapons (milestone 2)
 
@@ -77,9 +79,25 @@ Per Common level: Swiftness +8% move speed, Iron Skin +1 armour, Regeneration +0
 | Brute | 55 | 2.6 | 9 | 4 |
 | Husk Champion (miniboss) | 600 | 3.2 | 14 | 30 |
 | Ghost (final swarm) | 20 | 5.0 | 8 | 2 |
+| Ashling | 6 | 6.2 | 3 | 1 |
+| Cinder Husk | 14 | 3.6 | 6 | 2 |
+| Charred Hulk | 60 | 2.4 | 12 | 6 |
+| Drowned | 16 | 3.0 | 7 | 2 |
+| Brine Runner | 9 | 6.0 | 5 | 2 |
+| Shell Brute | 75 | 2.2 | 15 | 8 |
+| Ash Champion (miniboss) | 700 | 3.6 | 16 | 40 |
+| Tide Champion (miniboss) | 800 | 3.0 | 18 | 50 |
+
+Health is multiplied by 1 + 1.1 x stage index, so the same numbers mean more in later biomes.
 
 ## Bosses
 
 **The Stone Warden** (greybox stage): 3000 health (x 1 + 1.4 x stage), slam (24, 4.5 m circle, 1.1 s warning), charge (20, 16 m line, 0.9 s warning), shockwave (18, ring to 22 m, jump it), summon (8 husks). Enrages under 35% health and rests half as long. The boss gate is a stone arch; the boss rises beside it.
+
+**The Ash Stag** (Ash Wood): 3200 base health, fast; charge (24, 22 m), volley (20, five 3.5 m circles), shockwave (20), summons ashlings.
+
+**The Tide Mother** (Drowned Coast): 3400 base health, slow; volley (26), summons drowned, slam (30, 5.5 m), shockwave (24).
+
+**The Last Test** (final arena): 4000 base health (x 5.2 for its place after stage 3), every attack, rests 0.9 s, enrages under 50%. Boss health is multiplied by 1 + 1.4 x stage index.
 
 Content assets live in `Assets/OldGods/Content/` and are the source of truth once created; `Old Gods > Build > Everything` only adds missing ones.

@@ -19,8 +19,12 @@ MonoBehaviour:
   UnlitFade: {fileID: 2100000, guid: e89ccecbab4773b479050690a6962f82, type: 2}
   Content: {fileID: 11400000, guid: 56e4d215655c9eb4a8ddcd2611cb14e7, type: 2}
   StartingWeapon: weapon.spear_volley
-  Stages: []
+  Stages:
+  - {fileID: 11400000, guid: 7e9a590d12bfd354baedede1cac4528c, type: 2}
+  - {fileID: 11400000, guid: cf8c0db0c8bab034c9902a1bc6c28fc3, type: 2}
+  - {fileID: 11400000, guid: a9d524dec9e6ffb478c62dbd9a701900, type: 2}
   GreyboxBiome: {fileID: 11400000, guid: 266d2d67e531faa488ed1175ca305560, type: 2}
+  FinalArena: {fileID: 11400000, guid: 65795348b9c41ab44b169f8341a280a1, type: 2}
   Motor:
     RunSpeed: 8
     GroundAccel: 60
@@ -50,6 +54,7 @@ MonoBehaviour:
     SpawnFlatRadius: 12
     RimHeight: 14
     RimWidth: 16
+    WaterLevel: -1000
   GreyboxPalette:
     Low: {r: 0.36, g: 0.45, b: 0.3, a: 1}
     High: {r: 0.55, g: 0.58, b: 0.4, a: 1}

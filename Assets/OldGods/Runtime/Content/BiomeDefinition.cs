@@ -24,6 +24,7 @@ namespace OldGods.Runtime
         public Color Fog = new Color(0.66f, 0.70f, 0.74f);
         public float FogStart = 40f;
         public float FogEnd = 170f;
+        public Color WaterColor = new Color(0.25f, 0.45f, 0.55f, 0.55f);
 
         [Header("Props")]
         public Color RockColor = new Color(0.55f, 0.53f, 0.5f);

@@ -23,6 +23,8 @@ namespace OldGods.Rules
         /// <summary>Height of the raised rim that keeps the player on the map.</summary>
         public float RimHeight = 14f;
         public float RimWidth = 16f;
+        /// <summary>Height of shallow water over low ground; below -100 means no water.</summary>
+        public float WaterLevel = -1000f;
     }
 
     public static class TerrainGenerator

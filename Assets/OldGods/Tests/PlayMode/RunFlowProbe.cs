@@ -15,7 +15,9 @@ namespace OldGods.Tests.PlayMode
         public void SetUp()
         {
             SaveStore.FolderOverride = Path.Combine(Application.temporaryCachePath, "playmode-save");
+            SaveStore.Forget();
             DamageNumbers.Enabled = true;
+            RunSetup.GodId = null;
         }
 
         [TearDown]
@@ -98,6 +100,71 @@ namespace OldGods.Tests.PlayMode
             finally
             {
                 LevelUpScreen.AutoPick = false;
+            }
+        }
+
+        static IEnumerator KillBossesAndLeave(RunController run, bool viaGate)
+        {
+            if (viaGate)
+            {
+                var gate = Object.FindAnyObjectByType<BossGate>();
+                Assert.IsNotNull(gate, $"stage {run.StageIndex + 1} has a gate");
+                gate.Use(run.Combat);
+            }
+            yield return WaitFor(() => BossController.Active != null, 10f, "boss spawn");
+            while (BossController.Active != null)
+            {
+                var b = BossController.Active;
+                run.Horde.Damage(b.Slot, b.MaxHealth * 2f);
+                yield return null;
+            }
+        }
+
+        [UnityTest, Timeout(240000)]
+        public IEnumerator FullRunAsEliasTakesTheThrone() => FullRun("god.elias", true);
+
+        [UnityTest, Timeout(240000)]
+        public IEnumerator FullRunAsAnotherGodIsRefused() => FullRun("god.storm", false);
+
+        IEnumerator FullRun(string god, bool takesThrone)
+        {
+            RunSetup.GodId = god;
+            LevelUpScreen.AutoPick = true;
+            try
+            {
+                SceneManager.LoadScene("Run");
+                yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Combat != null, 20f, "run start");
+                var run = RunController.Instance;
+                run.PlayerHealth.Invincible = true;
+                var biomes = new System.Collections.Generic.List<string>();
+                for (int stage = 0; stage < run.StageCount; stage++)
+                {
+                    Assert.AreEqual(stage, run.StageIndex);
+                    biomes.Add(run.Biome.Id);
+                    yield return KillBossesAndLeave(run, true);
+                    yield return WaitFor(() => run.BossDefeated, 5f, "boss defeat");
+                    Object.FindAnyObjectByType<NextPortal>().Use(run.Combat);
+                    yield return null;
+                }
+                Assert.AreEqual(3, new System.Collections.Generic.HashSet<string>(biomes).Count, "three different biomes");
+                Assert.IsTrue(run.IsFinal, "reached The Last Test");
+                Assert.IsNotNull(FinalArena.Instance);
+
+                yield return KillBossesAndLeave(run, false);
+                yield return WaitFor(() => run.IsOver, 60f, "ending");
+                Assert.IsTrue(run.Won);
+                Assert.AreEqual(takesThrone, OldGods.Rules.LastTest.TakesTheThrone(run.GodId));
+                Assert.AreEqual(3, run.Summary.StagesCleared);
+                Assert.AreEqual(4, run.Summary.BossesKilled);
+                Assert.Greater(run.EmbersEarned, 0);
+                Assert.IsNotNull(Object.FindAnyObjectByType<ResultsScreen>(), "results shown");
+                if (takesThrone)
+                    foreach (var statue in FinalArena.Instance.Statues) Assert.IsFalse(statue.gameObject.activeSelf, "the old gods are gone");
+            }
+            finally
+            {
+                LevelUpScreen.AutoPick = false;
+                RunSetup.GodId = null;
             }
         }
 

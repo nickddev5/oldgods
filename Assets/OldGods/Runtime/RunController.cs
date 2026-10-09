@@ -44,6 +44,11 @@ namespace OldGods.Runtime
         public bool BossActive => BossController.Active != null;
         public bool BossDefeated { get; private set; }
         public bool IsLastStage => StageIndex >= StageCount - 1;
+        /// <summary>True in The Last Test's arena, after the last stage.</summary>
+        public bool IsFinal { get; private set; }
+        public string GodId { get; private set; }
+        public RunSummary Summary { get; } = new RunSummary();
+        public int EmbersEarned { get; private set; }
         /// <summary>Boss Curse shrines taken this stage: each makes the boss stronger.</summary>
         public int BossCurses { get; set; }
 
@@ -74,6 +79,9 @@ namespace OldGods.Runtime
             string seedText = CommandLine.Value("-seed") ?? FixedSeed;
             Seed = RunSeed.TryParse(seedText, out var s) ? s : RunSeed.FromEntropy(DateTime.UtcNow.Ticks, Environment.TickCount);
             Debug.Log($"OldGods: run seed {Seed}");
+            GodId = RunSetup.GodId;
+            Summary.Seed = Seed.ToString();
+            Summary.GodId = GodId ?? "";
             BuildPersistent();
             BuildStage(0);
         }
@@ -126,10 +134,11 @@ namespace OldGods.Runtime
         }
 
         /// <summary>Builds stage n's world and puts the player at its start.</summary>
-        public void BuildStage(int stage)
+        public void BuildStage(int stage, bool final = false)
         {
             StageIndex = stage;
-            Biome = BiomeFor(stage);
+            IsFinal = final;
+            Biome = final && Assets.FinalArena != null ? Assets.FinalArena : BiomeFor(stage);
             BossDefeated = false;
             BossCurses = 0;
             if (worldRoot != null) Destroy(worldRoot.gameObject);
@@ -145,21 +154,47 @@ namespace OldGods.Runtime
             var field = TerrainGenerator.Generate(profile, Seed.Stream(RunSeed.Map, stage));
             Ground.Set(field, profile.RimWidth);
             TerrainMesh.Build(field, WorldBuilder.Tinted(Assets.LowPoly, Color.white), Biome.Palette, profile.HillHeight, worldRoot);
-            ScatterProps(field, Seed.Stream(RunSeed.Map, 100 + stage));
+            if (!final) ScatterProps(field, Seed.Stream(RunSeed.Map, 100 + stage));
+            if (profile.WaterLevel > -100f) BuildWater(field, profile.WaterLevel);
 
             sun.color = Biome.Sun;
             sun.intensity = Biome.SunIntensity;
             sun.transform.rotation = Quaternion.Euler(Biome.SunEuler);
             WorldBuilder.SetAtmosphere(Biome.AmbientSky, Biome.AmbientEquator, Biome.AmbientGround, Biome.Fog, Biome.FogStart, Biome.FogEnd);
 
-            PlaceFeatures(field, Seed.Stream(RunSeed.Map, 200 + stage));
+            if (final) FinalArena.Build(this, worldRoot);
+            else PlaceFeatures(field, Seed.Stream(RunSeed.Map, 200 + stage));
 
             Player.Teleport(Ground.Snap(Vector3.zero) + Vector3.up * 0.3f);
             Camera.SnapBehind();
             Director.Begin(Biome.Timeline, stage, Horde, Seed.Stream(RunSeed.Spawns, stage));
             Minimap.SetGround(field, Biome.Palette, profile.HillHeight);
             StageStarted?.Invoke(stage);
-            Announce($"{Biome.DisplayName}", $"Stage {stage + 1} of {StageCount}");
+            if (final)
+            {
+                Announce(Biome.DisplayName, "The throne waits");
+                StartCoroutine(WakeTheLastTest());
+            }
+            else Announce($"{Biome.DisplayName}", $"Stage {stage + 1} of {StageCount}");
+        }
+
+        System.Collections.IEnumerator WakeTheLastTest()
+        {
+            yield return new WaitForSeconds(4f);
+            var arena = FinalArena.Instance;
+            if (arena != null && !IsOver) StartBoss(Ground.Snap(arena.Throne.position + arena.Throne.forward * 16f));
+        }
+
+        void BuildWater(HeightField field, float level)
+        {
+            var go = new GameObject("Water");
+            go.transform.SetParent(worldRoot, false);
+            go.transform.position = new Vector3(0f, level, 0f);
+            go.transform.localScale = new Vector3(field.Size * 0.5f, 1f, field.Size * 0.5f);
+            go.AddComponent<MeshFilter>().sharedMesh = Fx.Disc(48);
+            var mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = Fx.Fade(Biome.WaterColor);
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
         /// <summary>Feature kinds for this milestone; later milestones extend the list.</summary>
@@ -246,7 +281,14 @@ namespace OldGods.Runtime
 
         void OnBossDefeated(BossController boss)
         {
+            Summary.BossesKilled++;
             Vector3 at = boss.transform.position;
+            if (IsFinal)
+            {
+                BossDefeated = true;
+                StartCoroutine(Ending());
+                return;
+            }
             Features.DropFreeChest(this, at + Vector3.right * 4f, worldRoot);
             if (BossController.All.Count > 0) return; // more cursed guardians still stand
             BossDefeated = true;
@@ -263,21 +305,43 @@ namespace OldGods.Runtime
         /// <summary>Hook for later milestones (boss chest, quests).</summary>
         public static event Action<BossController, Vector3, Transform> BossFell;
 
-        /// <summary>Through the portal: the next stage, or the end of the road.</summary>
+        /// <summary>Through the portal: the next stage, or The Last Test after the last one.</summary>
         public void LeaveStage()
         {
-            if (IsOver) return;
+            if (IsOver || IsFinal) return;
+            NoteSwarm();
+            if (BossDefeated) Summary.StagesCleared++;
             if (IsLastStage)
             {
-                if (ReachedThrone != null) ReachedThrone(this);
-                else EndRun(true);
+                Summary.ReachedThrone = true;
+                BuildStage(StageCount, final: true);
                 return;
             }
             BuildStage(StageIndex + 1);
         }
 
-        /// <summary>Set by milestone 5: what happens after the last stage (The Last Test).</summary>
-        public static Action<RunController> ReachedThrone;
+        void NoteSwarm()
+        {
+            if (Director != null && Director.Timeline != null && !IsFinal)
+                Summary.BestSwarmSeconds = Mathf.Max(Summary.BestSwarmSeconds, Director.SwarmSeconds);
+        }
+
+        /// <summary>Lines for the endings; milestone 8 replaces these with the story text.</summary>
+        public static Func<bool, IList<string>> EndingLines = takesThrone => takesThrone
+            ? new[] { "Elias climbs to the empty throne and sits.", "The power of the old gods passes into him.", "They are gone. The age of the throne begins." }
+            : new[] { "The Last Test is broken.", "The throne does not answer you.", "It waits for another." };
+
+        System.Collections.IEnumerator Ending()
+        {
+            Director.Paused = true;
+            Horde.KillAll(false);
+            PlayerHealth.Invincible = true;
+            bool takes = LastTest.TakesTheThrone(GodId);
+            var arena = FinalArena.Instance;
+            if (arena != null)
+                yield return takes ? arena.EliasEnding(this, EndingLines(true)) : arena.RefusedEnding(this, EndingLines(false));
+            EndRun(true);
+        }
 
         void OnEnemyKilled(Vector3 at, EnemyDef def, bool byPlayer)
         {
@@ -302,7 +366,6 @@ namespace OldGods.Runtime
         void Update()
         {
             if (!IsOver && Time.timeScale > 0f) Elapsed += Time.deltaTime;
-            if (IsOver && (GameInput.Pressed(GameInput.Jump) || GameInput.Pressed(GameInput.Interact))) Restart();
             if (Debug.isDebugBuild || Application.isEditor) DebugKeys();
         }
 
@@ -335,8 +398,21 @@ namespace OldGods.Runtime
             Player.InputEnabled = false;
             Director.Paused = true;
             GameInput.SetCursorLocked(false);
+            NoteSwarm();
+            Summary.Won = won;
+            Summary.Kills = Kills;
+            Summary.Level = Combat.Xp.Level;
+            Summary.Seconds = Elapsed;
+            Summary.ChestsOpened = Economy.ChestsOpened;
+            Summary.ShrinesUsed = Economy.ShrinesUsed;
+            Summary.GoldEarned = Economy.Wallet.Earned;
+            EmbersEarned = RunRewards.Embers(Summary);
+            Paid?.Invoke(this);
             RunOver?.Invoke();
         }
+
+        /// <summary>Milestone 7 pays the run into the save here, before results show.</summary>
+        public static event Action<RunController> Paid;
 
         public void Restart()
         {

@@ -130,7 +130,8 @@ namespace OldGods.Runtime
             }
 
             var d = run.Director;
-            if (d != null && d.Timeline != null)
+            if (run.IsFinal) timerText.text = "";
+            else if (d != null && d.Timeline != null)
             {
                 if (d.InFinalSwarm)
                 {
@@ -182,9 +183,9 @@ namespace OldGods.Runtime
 
         void OnRunOver()
         {
-            centerText.text = run.Won
-                ? "The road is walked\n<size=24>Press Jump to begin again</size>"
-                : "You have fallen\n<size=24>Press Jump to rise again</size>";
+            centerText.text = "";
+            prompt.gameObject.SetActive(false);
+            ResultsScreen.Show(run);
         }
     }
 }
