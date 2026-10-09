@@ -10,7 +10,7 @@ All shipped art is built in code, so it is ours and licence-safe:
 |---|---|
 | Gods (7 dressed figures, plus stone statues) | `Runtime/Art/GodModels.cs` |
 | Enemies (10 types, 3 champions) | `Runtime/Art/EnemyModels.cs` |
-| Bosses and The Last Test | `Runtime/Art/BossModels.cs` |
+| Bosses and The Last Test (dressed: the Stone Warden, Ash Stag, Tide Mother and the Last Test) | `Runtime/Art/BossModels.cs` |
 | Biome props (standing stones, boulders, sea stacks, pines, dead trees, driftwood) | `Runtime/Art/PropModels.cs` |
 | Ground | `Runtime/Ground.cs` (height field, flat-shaded, coloured by height and slope) |
 | Effects | `Runtime/Combat/Effects.cs`, `Runtime/Fx.cs` |

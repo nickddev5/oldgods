@@ -71,8 +71,20 @@ namespace OldGods.Runtime
             Directory.CreateDirectory(Folder);
             string tmp = SavePath + ".tmp";
             File.WriteAllText(tmp, JsonUtility.ToJson(data, true));
-            if (File.Exists(SavePath)) File.Replace(tmp, SavePath, null);
-            else File.Move(tmp, SavePath);
+            // Windows can briefly lock the old file (indexing, antivirus); try again before giving up.
+            for (int attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    if (File.Exists(SavePath)) File.Replace(tmp, SavePath, null);
+                    else File.Move(tmp, SavePath);
+                    return;
+                }
+                catch (IOException) when (attempt < 4)
+                {
+                    System.Threading.Thread.Sleep(25 * (attempt + 1));
+                }
+            }
         }
 
         /// <summary>Deletes the save and starts a new one (the "new game" option).</summary>

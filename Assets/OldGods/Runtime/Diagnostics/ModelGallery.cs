@@ -78,10 +78,17 @@ namespace OldGods.Runtime
             Destroy(enemies.gameObject);
 
             var bosses = new GameObject("Bosses").transform;
-            var stone = WorldBuilder.Tinted(assets.LowPoly, new Color(0.65f, 0.63f, 0.6f));
             for (int i = 0; i < 4; i++)
-                WorldBuilder.CreateProp($"Boss {(BossModel)i}", BossModels.Get((BossModel)i), stone, new Vector3((i - 1.5f) * 2.4f, 0f, 0f), Quaternion.Euler(0f, 160f, 0f), Vector3.one, bosses, false);
+                WorldBuilder.CreateProp($"Boss {(BossModel)i}", BossModels.Get((BossModel)i), white, new Vector3((i - 1.5f) * 2.4f, 0f, 0f), Quaternion.Euler(0f, 160f, 0f), Vector3.one, bosses, false);
             yield return Shoot(cam, new Vector3(0f, 1.6f, -11f), new Vector3(0f, 1f, 0f), "bosses");
+            foreach (Transform t in bosses) t.rotation = Quaternion.Euler(0f, 215f, 0f);
+            yield return Shoot(cam, new Vector3(0f, 1.6f, -11f), new Vector3(0f, 1f, 0f), "bosses_turned");
+            for (int i = 0; i < 4; i++)
+            {
+                foreach (Transform t in bosses) t.rotation = Quaternion.Euler(0f, 155f, 0f);
+                var x = (i - 1.5f) * 2.4f;
+                yield return Shoot(cam, new Vector3(x + 0.5f, 1.4f, -4.6f), new Vector3(x, 1.05f, 0f), $"boss_{(BossModel)i}");
+            }
 
             yield return new WaitForSecondsRealtime(0.5f);
             Application.Quit(0);

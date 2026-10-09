@@ -90,7 +90,8 @@ namespace OldGods.Runtime
                 m.transform.localScale = Vector3.one * Def.Scale;
                 m.AddComponent<MeshFilter>().sharedMesh = BossModels.Get(asset.Model);
                 modelRenderer = m.AddComponent<MeshRenderer>();
-                modelRenderer.sharedMaterial = WorldBuilder.Tinted(assets.LowPoly, asset.Color);
+                // Built-in models carry their colours in the mesh.
+                modelRenderer.sharedMaterial = WorldBuilder.Tinted(assets.LowPoly, Color.white);
                 var walk = m.AddComponent<WalkAnimator>();
                 walk.Tracked = transform;
                 walk.RunSpeed = Mathf.Max(0.5f, Def.MoveSpeed * 1.8f / Mathf.Max(0.1f, Def.Scale));

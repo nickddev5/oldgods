@@ -24,6 +24,7 @@ namespace OldGods.Runtime
         [Range(0f, 1f)] public float EnrageAt = 0.35f;
         public List<BossAttackDef> Attacks = new List<BossAttackDef>();
         public BossModel Model;
+        [Tooltip("Not used by the built-in models, which carry their colours in the mesh.")]
         public Color Color = new Color(0.5f, 0.5f, 0.55f);
         [ColorUsage(false, true)] public Color Accent = new Color(1.5f, 0.6f, 0.2f);
         [Header("Imported model (optional)")]
