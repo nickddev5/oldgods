@@ -5,8 +5,8 @@
   "batchMode": true,
   "screen": "640x480",
   "results": [
-    { "count": 250, "avgMs": 0.58, "onePercentLowMs": 0.89, "avgFps": 1721.7, "hordeCpuMs": 0.114 },
-    { "count": 500, "avgMs": 0.73, "onePercentLowMs": 0.95, "avgFps": 1362.4, "hordeCpuMs": 0.256 },
-    { "count": 1000, "avgMs": 1.22, "onePercentLowMs": 1.53, "avgFps": 822.6, "hordeCpuMs": 0.644 }
+    { "count": 250, "avgMs": 0.68, "onePercentLowMs": 0.93, "avgFps": 1476.7, "hordeCpuMs": 0.155 },
+    { "count": 500, "avgMs": 0.77, "onePercentLowMs": 0.93, "avgFps": 1296.8, "hordeCpuMs": 0.316 },
+    { "count": 1000, "avgMs": 1.33, "onePercentLowMs": 3.86, "avgFps": 754.1, "hordeCpuMs": 0.793 }
   ]
 }

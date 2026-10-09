@@ -28,9 +28,11 @@ Lore lines (PLACEHOLDER): Storm, "The sky's anger, patient until it is not." For
 
 ## Biomes
 
-1. **The Grey Steppe:** rolling grassland (hills 14 m, few cliffs), 110 standing stones, cool light. Enemies: husk, runner, brute; champion: Husk Champion. Boss: the Stone Warden.
-2. **The Ash Wood:** burnt forest on ridges and ravines (hills 22 m, many cliffs), 140 dead trees, low red sun, warm haze. Enemies: cinder husk, ashling, charred hulk; champion: Ash Champion. Boss: the Ash Stag.
-3. **The Drowned Coast:** sand and wet rock with cliffs over shallow water (water at 6.5 m). Enemies: drowned, brine runner, shell brute; champion: Tide Champion. Boss: the Tide Mother.
+1. **The Grey Steppe:** rolling grassland on long ridges (hills 18 m, ridges 9 m, few cliffs), 45 standing stones, cool light, tufts and pale flowers. *The first road, and the wall that guards it:* an old paved road runs from the start to the boss gate, and a long broken wall crosses it at a gate arch. Landmarks: 2 hill forts (cliff-sided plateaus with two ramps, a ring wall and a chest on top), a fallen god (a toppled colossus: head, torso, hand and staff), a colonnade temple, 2 stone circles (shrine in the middle), 3 barrows (chest on top), 3 ruined houses and 4 rock shelves. Enemies: husk, runner, brute; champion: Husk Champion. Boss: the Stone Warden.
+2. **The Ash Wood:** burnt forest on ridges and ravines (hills 22 m, ridges 8 m, some cliffs), 170 dead trees that the horde must thread, low red sun, warm haze. *It burned, and it has not stopped burning:* glowing embers in the ground and fire in the ruins. Landmarks: 2 ridges (long plateaus with a ramp at each end), 3 ravines (trenches open only at their sloped ends, a chest at the bottom), 2 ember hollows, 3 great stumps, a charred colonnade, 2 ruined houses and 4 rock shelves. Enemies: cinder husk, ashling, charred hulk; champion: Ash Champion. Boss: the Ash Stag.
+3. **The Drowned Coast:** sand and wet rock with cliffs over shallow water (water at 6.5 m), sea stacks, dune grass and shells. *The sea takes, and keeps:* a raised causeway runs over the shallows to the boss gate. Landmarks: 2 sea towers (headland plateaus with a broken tower and a chest), a drowned fallen god, 2 colonnades half in the water, 2 wrecks, 2 ruined houses and 5 rock shelves. Enemies: drowned, brine runner, shell brute; champion: Tide Champion. Boss: the Tide Mother.
+
+Landmarks are placed on clear ground at random each run; chests and shrines take their detour spots first and the rest are scattered. High ground is reached by ramps; rock shelves (about 2 m) can be jumped onto, and the horde scrambles up them slowly. All numbers and counts are PLACEHOLDER. See [ADR 0004](../docs/adr/0004-levels-are-dressed-and-the-horde-uses-a-flow-field.md).
 
 Final arena: **The Last Test**, a flat marble arena (128 m) with the throne and six stone gods; the construct guards it.
 

@@ -173,6 +173,8 @@ namespace OldGods.Runtime
         void Move(Vector3 delta)
         {
             Vector3 p = Ground.ClampToPlayable(transform.position + delta, 2f);
+            // Bosses shoulder along walls and columns rather than walking through them.
+            if (Ground.Obstacles != null) Ground.Obstacles.PushOut(ref p.x, ref p.z, Def.Radius * 0.8f);
             transform.position = Ground.Snap(p);
         }
 

@@ -16,4 +16,4 @@ If the milestone 1 probe shows the loop over budget, the hot loop moves to `IJob
 
 - Enemies have no physics colliders; weapon hits query the spatial hash instead.
 - Enemy animation is baked to textures by an Editor tool, so enemy rigs need a bake step.
-- Pathing is direct steering with separation, not NavMesh. Maps are generated without traps that would strand enemies.
+- Pathing is direct steering with separation, not NavMesh. Maps are generated without traps that would strand enemies. (Amended by [ADR 0004](0004-levels-are-dressed-and-the-horde-uses-a-flow-field.md): around walls and cliffs the horde follows a flow field.)
