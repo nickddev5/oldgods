@@ -292,7 +292,9 @@ namespace OldGods.Tests.PlayMode
             var s = SaveStore.Current.settings;
             s.cameraSensitivity = 2.5f;
             s.invertY = true;
+            s.verticalSensitivity = 0.5f;
             SettingsPanel.Apply(s);
+            Assert.AreEqual(0.5f, run.Camera.VerticalSensitivity);
             Assert.AreEqual(2.5f, run.Camera.Sensitivity);
             Assert.IsTrue(run.Camera.InvertY);
         }
@@ -319,6 +321,54 @@ namespace OldGods.Tests.PlayMode
             MenuController.StartRun(null);
             yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Combat != null, 20f, "run from menu");
             Assert.AreEqual("god.storm", RunController.Instance.GodId, "the first god by default");
+        }
+
+        [UnityTest]
+        public IEnumerator PlayerCannotLeaveTheMap()
+        {
+            SceneManager.LoadScene("Run");
+            yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Player != null && Ground.Field != null, 20f, "run start");
+            var run = RunController.Instance;
+            run.PlayerHealth.Invincible = true;
+            run.Director.Paused = true;
+            var f = Ground.Field;
+            float limit = f.MaxX - Ground.RimWidth * 0.45f + 0.05f;
+
+            // Run, then jump, at the east edge for a few seconds.
+            run.Player.Teleport(Ground.Snap(new Vector3(f.MaxX - Ground.RimWidth - 4f, 0f, 0f)) + Vector3.up);
+            var east = new GameObject("East").transform;
+            east.rotation = Quaternion.Euler(0f, 90f, 0f);
+            run.Player.ViewYaw = east; // "forward" now runs at the edge
+            GameInput.MoveOverride = Vector2.up;
+            float until = Time.realtimeSinceStartup + 4f;
+            while (Time.realtimeSinceStartup < until)
+            {
+                Assert.Less(run.Player.transform.position.x, limit, "player stays inside the rim");
+                yield return null;
+            }
+            GameInput.MoveOverride = null;
+            Assert.Greater(run.Player.transform.position.y, Ground.Height(run.Player.transform.position.x, 0f) - 2f, "player is on the ground, not under it");
+        }
+
+        [UnityTest]
+        public IEnumerator ChestPromptShowsWhenGoldIsShort()
+        {
+            SceneManager.LoadScene("Run");
+            yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Economy != null && Object.FindAnyObjectByType<Chest>() != null, 20f, "run start");
+            var run = RunController.Instance;
+            run.PlayerHealth.Invincible = true;
+            run.Director.Paused = true;
+            var chest = Object.FindObjectsByType<Chest>(FindObjectsSortMode.None)[0];
+            var driver = run.Player.GetComponent<InteractionDriver>();
+            run.Player.Teleport(Ground.Snap(chest.transform.position + Vector3.right * 1.5f) + Vector3.up * 0.5f);
+            yield return null;
+            yield return null;
+            Assert.AreEqual(chest, driver.Current, "an unaffordable chest still gets the prompt");
+            Assert.IsFalse(chest.CanUse);
+            StringAssert.Contains("gold", chest.Prompt);
+
+            run.Economy.Wallet.Add(run.Economy.ChestPrice);
+            Assert.IsTrue(chest.CanUse, "enough gold opens it");
         }
 
         [UnityTest]

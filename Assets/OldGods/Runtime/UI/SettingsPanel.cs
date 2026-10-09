@@ -20,6 +20,7 @@ namespace OldGods.Runtime
             if (run != null && run.Camera != null)
             {
                 run.Camera.Sensitivity = s.cameraSensitivity;
+                run.Camera.VerticalSensitivity = s.verticalSensitivity > 0f ? s.verticalSensitivity : 1f;
                 run.Camera.InvertY = s.invertY;
             }
             CameraShake.Strength = s.screenShake;
@@ -29,13 +30,13 @@ namespace OldGods.Runtime
         {
             var s = SaveStore.Current.settings;
             var panel = UiKit.Panel(parent, "Settings", new Color(0.08f, 0.07f, 0.07f, 0.92f));
-            UiKit.Anchor(panel, anchor, offset, new Vector2(820f, 640f));
+            UiKit.Anchor(panel, anchor, offset, new Vector2(820f, 690f));
             var title = UiKit.Text(panel, "Settings", 44, TextAlignmentOptions.Top);
             UiKit.Anchor(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(700f, 60f));
 
             var col = new GameObject("Rows", typeof(RectTransform)).GetComponent<RectTransform>();
             col.SetParent(panel, false);
-            UiKit.Anchor(col, new Vector2(0.5f, 1f), new Vector2(0f, -100f), new Vector2(720f, 430f));
+            UiKit.Anchor(col, new Vector2(0.5f, 1f), new Vector2(0f, -100f), new Vector2(720f, 480f));
             var layout = col.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.spacing = 10f;
             layout.childControlWidth = layout.childControlHeight = true;
@@ -46,6 +47,7 @@ namespace OldGods.Runtime
             UiKit.Slider(col, "Music", 0f, 1f, s.musicVolume, v => { s.musicVolume = v; Apply(s); });
             UiKit.Slider(col, "Effects", 0f, 1f, s.sfxVolume, v => { s.sfxVolume = v; Apply(s); });
             UiKit.Slider(col, "Camera sensitivity", 0.2f, 3f, s.cameraSensitivity, v => { s.cameraSensitivity = v; Apply(s); });
+            UiKit.Slider(col, "Vertical look", 0.2f, 2f, s.verticalSensitivity > 0f ? s.verticalSensitivity : 1f, v => { s.verticalSensitivity = v; Apply(s); });
             UiKit.Slider(col, "Screen shake", 0f, 1.5f, s.screenShake, v => { s.screenShake = v; Apply(s); });
             UiKit.Toggle(col, "Invert camera Y", s.invertY, v => { s.invertY = v; Apply(s); });
             UiKit.Toggle(col, "Fullscreen", Screen.fullScreen, v => Screen.fullScreen = v);

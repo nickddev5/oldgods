@@ -144,8 +144,10 @@ namespace OldGods.Runtime
         public bool Free;
         bool opened;
 
-        public override string Prompt => Free ? "Open chest" : $"Open chest ({RunEconomy.Instance.ChestPrice} gold)";
-        public override bool CanUse => !opened && (Free || RunEconomy.Instance.Wallet.Gold >= RunEconomy.Instance.ChestPrice);
+        int Price => RunEconomy.Instance.ChestPrice;
+        public override string Prompt => Free ? "Open chest" : CanUse ? $"Open chest ({Price} gold)" : $"Chest: {Price} gold (you have {RunEconomy.Instance.Wallet.Gold})";
+        public override bool CanUse => !opened && (Free || RunEconomy.Instance.Wallet.Gold >= Price);
+        public override bool Shown => !opened;
         public override string MapLabel => opened ? null : "Chest";
         public override Color MapColor => new Color(1f, 0.85f, 0.4f);
 
@@ -174,8 +176,9 @@ namespace OldGods.Runtime
         public void Stock(ItemDef i) => item = i;
 
         int Price => EconomyRules.MerchantPrice(item.Rarity, RunEconomy.Instance.PaidChestsOpened, RunController.Instance.StageIndex);
-        public override string Prompt => item == null ? "Sold out" : $"Buy {item.Name}, {item.Rarity} ({Price} gold)";
+        public override string Prompt => item == null ? "Sold out" : CanUse ? $"Buy {item.Name}, {item.Rarity} ({Price} gold)" : $"{item.Name}, {item.Rarity}: {Price} gold (you have {RunEconomy.Instance.Wallet.Gold})";
         public override bool CanUse => !sold && item != null && RunEconomy.Instance.Wallet.Gold >= Price;
+        public override bool Shown => !sold && item != null;
         public override string MapLabel => "Merchant";
         public override Color MapColor => new Color(0.5f, 1f, 0.5f);
 
@@ -199,8 +202,9 @@ namespace OldGods.Runtime
         int Price => EconomyRules.DuplicatorPrice(RunEconomy.Instance.PaidChestsOpened, RunController.Instance.StageIndex);
         ItemDef Target => RunController.Instance.Combat.Items.Find(RunController.Instance.Combat.Items.LastAdded);
 
-        public override string Prompt => Target == null ? "Duplicate (no item yet)" : $"Duplicate {Target.Name} ({Price} gold)";
+        public override string Prompt => Target == null ? "Duplicate (no item yet)" : CanUse ? $"Duplicate {Target.Name} ({Price} gold)" : $"Duplicate {Target.Name}: {Price} gold (you have {RunEconomy.Instance.Wallet.Gold})";
         public override bool CanUse => !used && Target != null && RunEconomy.Instance.Wallet.Gold >= Price;
+        public override bool Shown => !used;
         public override string MapLabel => "Duplicator";
         public override Color MapColor => new Color(0.8f, 0.8f, 1f);
 

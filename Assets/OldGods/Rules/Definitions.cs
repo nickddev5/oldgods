@@ -15,7 +15,7 @@ namespace OldGods.Rules
         public int XpValue = 1;
         public float Scale = 1f;
         /// <summary>Chance to drop gold on death.</summary>
-        public float GoldChance = 0.02f;
+        public float GoldChance = 0.25f;
         public bool IsElite;
     }
 

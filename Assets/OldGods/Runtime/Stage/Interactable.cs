@@ -17,6 +17,8 @@ namespace OldGods.Runtime
 
         public abstract string Prompt { get; }
         public virtual bool CanUse => true;
+        /// <summary>Whether the prompt shows. Paid things show while unaffordable, so the price is visible.</summary>
+        public virtual bool Shown => CanUse;
         /// <summary>Label shown on the minimap once discovered; null for none.</summary>
         public virtual string MapLabel => null;
         public virtual Color MapColor => Color.white;
@@ -54,7 +56,7 @@ namespace OldGods.Runtime
                 if (it == null) continue;
                 float d = it.DistanceTo(p);
                 if (d < DiscoverRadius) it.Discovered = true;
-                if (!it.CanUse || d > it.Range || d >= bestD) continue;
+                if (!it.Shown || d > it.Range || d >= bestD) continue;
                 best = it;
                 bestD = d;
             }
@@ -62,7 +64,7 @@ namespace OldGods.Runtime
             Current = best;
             if (Current == null) return;
 
-            if (GameInput.Held(GameInput.Interact))
+            if (Current.CanUse && GameInput.Held(GameInput.Interact))
             {
                 HoldProgress += Time.deltaTime / Mathf.Max(0.01f, Current.HoldSeconds);
                 if (HoldProgress >= 1f)

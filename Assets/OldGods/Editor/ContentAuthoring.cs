@@ -84,7 +84,7 @@ namespace OldGods.Editor
             {
                 e.Id = "enemy.brute"; e.DisplayName = "Brute";
                 e.MaxHealth = 55f; e.MoveSpeed = 2.6f; e.Radius = 0.5f; e.ContactDamage = 9f; e.XpValue = 4; e.Scale = 1.5f;
-                e.Color = new Color(0.32f, 0.3f, 0.36f); e.GoldChance = 0.1f;
+                e.Color = new Color(0.32f, 0.3f, 0.36f); e.GoldChance = 0.5f;
             });
             Enemy(library, "Champion", e =>
             {
@@ -118,7 +118,7 @@ namespace OldGods.Editor
             {
                 e.Id = "enemy.hulk"; e.DisplayName = "Charred Hulk";
                 e.MaxHealth = 60f; e.MoveSpeed = 2.4f; e.Radius = 0.55f; e.ContactDamage = 12f; e.XpValue = 6; e.Scale = 1.7f;
-                e.Color = new Color(0.18f, 0.16f, 0.15f); e.Emission = new Color(0.12f, 0.03f, 0f); e.GoldChance = 0.15f;
+                e.Color = new Color(0.18f, 0.16f, 0.15f); e.Emission = new Color(0.12f, 0.03f, 0f); e.GoldChance = 0.6f;
             });
             Enemy(library, "Drowned", e =>
             {
@@ -136,7 +136,7 @@ namespace OldGods.Editor
             {
                 e.Id = "enemy.shell_brute"; e.DisplayName = "Shell Brute";
                 e.MaxHealth = 75f; e.MoveSpeed = 2.2f; e.Radius = 0.6f; e.ContactDamage = 15f; e.XpValue = 8; e.Scale = 1.8f;
-                e.Color = new Color(0.55f, 0.45f, 0.4f); e.GoldChance = 0.2f;
+                e.Color = new Color(0.55f, 0.45f, 0.4f); e.GoldChance = 0.6f;
             });
             Enemy(library, "AshChampion", e =>
             {
@@ -403,6 +403,18 @@ namespace OldGods.Editor
                     EditorUtility.SetDirty(b);
                 }
                 assets.ContentVersion = 2;
+                EditorUtility.SetDirty(assets);
+            }
+            if (assets.ContentVersion < 3)
+            {
+                // Play-test 2026-10-09: gold was too rare to ever open a chest.
+                foreach (var e in l.Enemies)
+                {
+                    if (e == null || e.IsElite || e.GoldChance <= 0f) continue;
+                    e.GoldChance = e.Id == "enemy.brute" ? 0.5f : e.Id == "enemy.hulk" || e.Id == "enemy.shell_brute" ? 0.6f : 0.25f;
+                    EditorUtility.SetDirty(e);
+                }
+                assets.ContentVersion = 3;
                 EditorUtility.SetDirty(assets);
             }
         }

@@ -167,7 +167,7 @@ namespace OldGods.Runtime
             prompt.gameObject.SetActive(current != null && !run.IsOver && Time.timeScale > 0f);
             if (current != null)
             {
-                promptText.text = $"<color=#ffd27a>[E]</color> {current.Prompt}";
+                promptText.text = current.CanUse ? $"<color=#ffd27a>[E]</color> {current.Prompt}" : $"<color=#9a9a9a>{current.Prompt}</color>";
                 promptFill.fillAmount = interaction.HoldProgress;
             }
 

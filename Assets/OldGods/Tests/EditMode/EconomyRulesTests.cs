@@ -19,7 +19,7 @@ namespace OldGods.Tests.EditMode
         [Test]
         public void ChestPriceRisesWithChestsAndStage()
         {
-            Assert.AreEqual(15, EconomyRules.ChestPrice(0, 0));
+            Assert.AreEqual(12, EconomyRules.ChestPrice(0, 0));
             for (int n = 0; n < 30; n++) Assert.Greater(EconomyRules.ChestPrice(n + 1, 0), EconomyRules.ChestPrice(n, 0));
             Assert.Greater(EconomyRules.ChestPrice(3, 2), EconomyRules.ChestPrice(3, 0));
             Assert.Greater(EconomyRules.MerchantPrice(Rarity.Rare, 2, 0), EconomyRules.MerchantPrice(Rarity.Common, 2, 0));

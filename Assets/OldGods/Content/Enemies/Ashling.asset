@@ -20,7 +20,7 @@ MonoBehaviour:
   ContactDamage: 3
   XpValue: 1
   Scale: 0.7
-  GoldChance: 0.02
+  GoldChance: 0.25
   IsElite: 0
   Color: {r: 0.3, g: 0.28, b: 0.27, a: 1}
   Emission: {r: 0.18, g: 0.05, b: 0, a: 1}

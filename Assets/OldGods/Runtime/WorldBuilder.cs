@@ -141,9 +141,14 @@ namespace OldGods.Runtime
             vcam.Lens = new LensSettings { FieldOfView = 60f, NearClipPlane = 0.2f, FarClipPlane = 400f };
 
             // Follow and look at a point at chest height.
+            // The anchor is not parented to the player: it follows x and z exactly and smooths
+            // height, so jumps, steps and slopes do not bounce the view.
             var anchor = new GameObject("Camera Anchor");
-            anchor.transform.SetParent(player.transform, false);
-            anchor.transform.localPosition = new Vector3(0f, 1.3f, 0f);
+            anchor.transform.SetParent(parent, false);
+            var follow = anchor.AddComponent<CameraAnchor>();
+            follow.Target = player.transform;
+            follow.Height = 1.3f;
+            follow.Snap();
             vcam.Follow = anchor.transform;
             vcam.LookAt = anchor.transform;
 
@@ -152,14 +157,14 @@ namespace OldGods.Runtime
             orbit.Radius = 9f;
             var tracker = orbit.TrackerSettings;
             tracker.BindingMode = Unity.Cinemachine.TargetTracking.BindingMode.WorldSpace;
-            tracker.PositionDamping = new Vector3(0.15f, 0.25f, 0.15f);
+            tracker.PositionDamping = Vector3.zero;
             orbit.TrackerSettings = tracker;
             orbit.HorizontalAxis.Range = new Vector2(-180f, 180f);
             orbit.HorizontalAxis.Wrap = true;
             orbit.HorizontalAxis.Value = 0f;
-            orbit.VerticalAxis.Range = new Vector2(2f, 50f);
-            orbit.VerticalAxis.Center = 26f;
-            orbit.VerticalAxis.Value = 26f;
+            orbit.VerticalAxis.Range = new Vector2(2f, 80f);
+            orbit.VerticalAxis.Center = 24f;
+            orbit.VerticalAxis.Value = 24f;
             orbit.RadialAxis.Range = new Vector2(1f, 1f);
             orbit.RadialAxis.Value = 1f;
 
@@ -168,7 +173,7 @@ namespace OldGods.Runtime
             // The player sits low and centred in frame.
             comp.ScreenPosition = new Vector2(0f, -0.12f);
             composer.Composition = comp;
-            composer.Damping = new Vector2(0.3f, 0.3f);
+            composer.Damping = Vector2.zero;
 
             var deoccluder = rig.AddComponent<CinemachineDeoccluder>();
             deoccluder.CollideAgainst = 1 << Layers.Ground;
@@ -184,6 +189,7 @@ namespace OldGods.Runtime
             var chase = rig.AddComponent<ChaseCamera>();
             chase.Orbit = orbit;
             chase.Player = player;
+            chase.Anchor = follow;
             player.ViewYaw = camGo.transform;
             rig.AddComponent<CinemachineCameraOffset>();
             CameraShake.Attach(rig);

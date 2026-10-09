@@ -68,6 +68,7 @@ namespace OldGods.Rules
         public float musicVolume = 0.6f;
         public float sfxVolume = 0.8f;
         public float cameraSensitivity = 1f;
+        public float verticalSensitivity = 1f;
         public float screenShake = 1f;
         public bool invertY;
     }

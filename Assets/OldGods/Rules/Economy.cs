@@ -60,7 +60,7 @@ namespace OldGods.Rules
     {
         /// <summary>Price of the next chest after n paid chests this run.</summary>
         public static int ChestPrice(int paidChestsOpened, int stageIndex) =>
-            (int)Math.Round((15.0 + 12.0 * Math.Pow(paidChestsOpened, 1.35)) * (1.0 + stageIndex * 0.25));
+            (int)Math.Round((12.0 + 12.0 * Math.Pow(paidChestsOpened, 1.35)) * (1.0 + stageIndex * 0.25));
 
         public static int MerchantPrice(Rarity rarity, int paidChestsOpened, int stageIndex) =>
             (int)Math.Round(ChestPrice(paidChestsOpened, stageIndex) * (1.2 + (int)rarity * 0.45));

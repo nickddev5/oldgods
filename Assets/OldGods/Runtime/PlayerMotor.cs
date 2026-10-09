@@ -144,9 +144,21 @@ namespace OldGods.Runtime
             if ((flags & CollisionFlags.Above) != 0 && verticalSpeed > 0f) verticalSpeed = 0f;
             wasGrounded = nowGrounded;
 
-            // Out of the world: put the player back on the ground at the same x/z.
+            // The map edge: the rim slopes up, and a wall partway up it stops the player.
+            // Walking, sliding or jumping into it stops the outward part of the motion.
+            var pos = transform.position;
+            var inside = Ground.ClampToPlayable(pos, -Ground.RimWidth * 0.55f);
+            if ((inside - pos).sqrMagnitude > 1e-6f)
+            {
+                cc.Move(new Vector3(inside.x - pos.x, 0f, inside.z - pos.z));
+                if (Mathf.Abs(inside.x - pos.x) > 1e-4f) horizontal.X = 0f;
+                if (Mathf.Abs(inside.z - pos.z) > 1e-4f) horizontal.Z = 0f;
+                if (IsSliding) EndSlide();
+            }
+
+            // Out of the world: put the player back on the ground inside the map.
             if (transform.position.y < Ground.Height(transform.position.x, transform.position.z) - 10f)
-                Teleport(Ground.Snap(transform.position) + Vector3.up * 1.5f);
+                Teleport(Ground.Snap(Ground.ClampToPlayable(transform.position, 2f)) + Vector3.up * 1.5f);
 
             if (horizontal.SqrMagnitude > 0.25f)
                 Facing = new Vector3(horizontal.X, 0f, horizontal.Z).normalized;

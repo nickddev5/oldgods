@@ -15,7 +15,7 @@ namespace OldGods.Runtime
         public float ContactDamage = 5f;
         public int XpValue = 1;
         public float Scale = 1f;
-        [Range(0f, 1f)] public float GoldChance = 0.02f;
+        [Range(0f, 1f)] public float GoldChance = 0.25f;
         public bool IsElite;
         public Color Color = new Color(0.6f, 0.25f, 0.2f);
         [ColorUsage(false, true)] public Color Emission = Color.black;
