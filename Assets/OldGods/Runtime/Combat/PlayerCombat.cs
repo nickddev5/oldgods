@@ -18,6 +18,7 @@ namespace OldGods.Runtime
         public readonly Loadout Loadout = new Loadout();
         public readonly DraftCharges Charges = new DraftCharges();
         public readonly XpTracker Xp = new XpTracker();
+        public readonly Inventory Items = new Inventory();
         public readonly StatBlock Stats = StatBlock.Default();
         /// <summary>Stat changes from outside the draft: the god's kit, shrines, meta powerups.</summary>
         public readonly List<StatMod> ExternalMods = new List<StatMod>();
@@ -88,6 +89,7 @@ namespace OldGods.Runtime
             Stats.Clear();
             Stats.ApplyAll(ExternalMods);
             Stats.ApplyAll(Loadout.PassiveMods());
+            Stats.ApplyAll(Items.Mods());
             if (motor != null)
             {
                 motor.SpeedMultiplier = Stats.Value(StatId.MoveSpeed);

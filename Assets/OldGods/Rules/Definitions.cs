@@ -25,6 +25,7 @@ namespace OldGods.Rules
         public readonly Dictionary<string, EnemyDef> Enemies = new Dictionary<string, EnemyDef>();
         public readonly List<WeaponDef> Weapons = new List<WeaponDef>();
         public readonly List<PassiveDef> Passives = new List<PassiveDef>();
+        public readonly List<ItemDef> Items = new List<ItemDef>();
 
         public WeaponDef Weapon(string id) => Weapons.Find(w => w.Id == id) ?? throw new KeyNotFoundException($"No weapon with id '{id}'");
         public PassiveDef Passive(string id) => Passives.Find(p => p.Id == id) ?? throw new KeyNotFoundException($"No passive with id '{id}'");

@@ -44,3 +44,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 10d251f88d32d4d4aabaa00246cb73ee, type: 2}
   - {fileID: 11400000, guid: 631fc34b7cd5cb844b8f11e0928de336, type: 2}
   - {fileID: 11400000, guid: 8ceaa6cb0e8f6aa4bbe47d82898bb1ba, type: 2}
+  Items:
+  - {fileID: 11400000, guid: 0fe879376ed8f034d9817ea2015d3a57, type: 2}
+  - {fileID: 11400000, guid: ca36629f5394e1c4fade9a5768464eec, type: 2}
+  - {fileID: 11400000, guid: 9db186da1a45517438c67cbe39239c6a, type: 2}
+  - {fileID: 11400000, guid: b4714a2e7368a8f4bb4af4999467f5fd, type: 2}
+  - {fileID: 11400000, guid: 42efe1855164e264f839c3ecbdf44cfb, type: 2}
+  - {fileID: 11400000, guid: 1be770552782f384880c50a8fc28d92a, type: 2}
+  - {fileID: 11400000, guid: fa9ed9fcbbb0c0545b68e9ba5882c891, type: 2}
+  - {fileID: 11400000, guid: 16e1bf7093b5ff4438b9d623513fddc8, type: 2}
+  - {fileID: 11400000, guid: 51224477a2adf2c4f869ebef51c07f3d, type: 2}
+  - {fileID: 11400000, guid: 760af48e104e888499e51f56b23a950d, type: 2}
+  - {fileID: 11400000, guid: 6979fdfcd0da0a44285710d883aead6b, type: 2}
+  - {fileID: 11400000, guid: 6ff251fd456bbff45b857a9be422578a, type: 2}
+  Bosses: []

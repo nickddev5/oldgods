@@ -13,7 +13,19 @@
   - When nothing can be dealt, a single Restore card heals 30% of max health.
   - Charges per run: 2 Refresh (reroll all three, never dealing the same three again), 2 Skip (take nothing, gain 20% of the level's XP), 1 Banish (remove one card's item from the rest of the run and deal a replacement).
   - Controls: click, 1-3, or gamepad to pick; R / Y to refresh, Q / LB to skip, X / RB then a card to banish.
-- **Gold:** dropped by elites, bosses and some enemies; spent on chests, the merchant and shrines.
+- **Gold:** dropped by some enemies (each type has a gold chance; brutes 10%, champions always), 1 gold per drop times (stage + 1), 12 from elites, times Gold Gain. Spent on chests, the merchant and the duplicator. Gold is never kept between runs.
+- **Chests:** about 10 per map. The nth paid chest costs round((15 + 12 x n^1.35) x (1 + 0.25 x stage)). Bosses, cursed bosses and champions drop free chests. A chest gives one item.
+- **Items:** stack without slots; rarity weights 55/28/12/4/1 shifted by Luck. Twelve PLACEHOLDER items, all stat changes except Bloodstone (8% chance per kill to heal 2).
+- **Merchant:** one per map, sells one item (Uncommon or better) for 1.2 + 0.45 x rarity tier times the chest price.
+- **Duplicator:** one per map, copies the last item found for the chest price, once.
+- **Drops:** common enemies drop a healing morsel (20 health) 0.6% of the time and a magnet that pulls every gem 0.15% of the time.
+- **Shrines (8 per map, each kind at least once):**
+  - Charge: stand in its 5 m ring for 5 seconds (it drains slowly when you leave), then pick one of three stat boosts with rolled rarity.
+  - Gifts (Item): costs 20% of max health, gives an item of Uncommon or better.
+  - Greed: this stage's foes +15% density and health, gold +25%. Stacks.
+  - Curse (Boss Curse): one more boss wakes at the gate, and each boss drops a chest.
+  - Challenge: calls a champion now; champions drop a chest.
+  - Drawing (Magnet): pulls every gem and coin on the map to you.
 
 ## Between runs
 

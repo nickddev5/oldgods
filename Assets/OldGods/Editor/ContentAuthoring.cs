@@ -16,6 +16,7 @@ namespace OldGods.Editor
         public const string WeaponsDir = ProjectBuilder.Root + "/Content/Weapons";
         public const string PassivesDir = ProjectBuilder.Root + "/Content/Passives";
         public const string BossesDir = ProjectBuilder.Root + "/Content/Bosses";
+        public const string ItemsDir = ProjectBuilder.Root + "/Content/Items";
         public const string BiomesDir = ProjectBuilder.Root + "/Content/Biomes";
 
         public static void Populate(ContentLibrary library)
@@ -23,9 +24,11 @@ namespace OldGods.Editor
             library.Enemies.RemoveAll(e => e == null);
             library.Weapons.RemoveAll(e => e == null);
             library.Passives.RemoveAll(e => e == null);
+            library.Items.RemoveAll(e => e == null);
             Enemies(library);
             Weapons(library);
             Passives(library);
+            Items(library);
         }
 
         static void Enemies(ContentLibrary library)
@@ -166,6 +169,35 @@ namespace OldGods.Editor
             Passive(l, "Multitude", "passive.multitude", "Multitude", StatId.ProjectileCount, 1f, new Color(0.8f, 0.6f, 1f));
             Passive(l, "Magnetism", "passive.magnetism", "Magnetism", StatId.PickupRange, 1f, new Color(0.5f, 0.8f, 1f));
             Passive(l, "Fortune", "passive.fortune", "Fortune", StatId.Luck, 0.08f, new Color(0.4f, 1f, 0.5f));
+        }
+
+        static void Items(ContentLibrary l)
+        {
+            Item(l, "Whetstone", "item.whetstone", "Whetstone", Rarity.Common, "A stone that remembers every edge.", new StatMod(StatId.Damage, 0.06f));
+            Item(l, "RunnersSandals", "item.runners_sandals", "Runner's Sandals", Rarity.Common, "Worn thin on long roads.", new StatMod(StatId.MoveSpeed, 0.06f));
+            Item(l, "HeartOfOak", "item.heart_of_oak", "Heart of Oak", Rarity.Common, "Slow to fall.", new StatMod(StatId.MaxHealth, 15f));
+            Item(l, "LodeStone", "item.lodestone", "Lodestone", Rarity.Common, "Small things drift toward it.", new StatMod(StatId.PickupRange, 1.2f));
+            Item(l, "WarDrum", "item.war_drum", "War Drum", Rarity.Uncommon, "Every beat a little faster.", new StatMod(StatId.AttackSpeed, 0.08f));
+            Item(l, "GoldenThread", "item.golden_thread", "Golden Thread", Rarity.Uncommon, "Fortune follows it.", new StatMod(StatId.Luck, 0.08f), new StatMod(StatId.GoldGain, 0.1f));
+            Item(l, "WideHorn", "item.wide_horn", "Wide Horn", Rarity.Uncommon, "Its call carries far.", new StatMod(StatId.Area, 0.1f));
+            Item(l, "IronCollar", "item.iron_collar", "Iron Collar", Rarity.Rare, "Heavy, and worth it.", new StatMod(StatId.Armor, 2f), new StatMod(StatId.MaxHealth, 10f));
+            Item(l, "Hourglass", "item.hourglass", "Hourglass", Rarity.Rare, "Sand that falls slowly.", new StatMod(StatId.Duration, 0.15f), new StatMod(StatId.XpGain, 0.06f));
+            Item(l, "Bloodstone", "item.bloodstone", "Bloodstone", Rarity.Epic, "Each fallen foe may mend you.", "heal_on_kill", 0.08f, new StatMod(StatId.Regen, 0.2f));
+            Item(l, "QuiverOfDawn", "item.quiver_of_dawn", "Quiver of Dawn", Rarity.Epic, "One more, always one more.", new StatMod(StatId.ProjectileCount, 1f));
+            Item(l, "WingedCrown", "item.winged_crown", "Winged Crown", Rarity.Legendary, "Lighter than air.", new StatMod(StatId.ExtraJumps, 1f), new StatMod(StatId.MoveSpeed, 0.08f), new StatMod(StatId.CritChance, 0.06f));
+        }
+
+        static void Item(ContentLibrary library, string file, string id, string name, Rarity rarity, string description, params StatMod[] mods) =>
+            Item(library, file, id, name, rarity, description, null, 0f, mods);
+
+        static void Item(ContentLibrary library, string file, string id, string name, Rarity rarity, string description, string special, float specialValue, params StatMod[] mods)
+        {
+            var asset = LoadOrCreate<ItemDefinition>($"{ItemsDir}/{file}.asset", it =>
+            {
+                it.Id = id; it.DisplayName = name; it.Rarity = rarity; it.Description = description;
+                it.Mods = new List<StatMod>(mods); it.Special = special ?? ""; it.SpecialValue = specialValue;
+            });
+            if (!library.Items.Contains(asset)) library.Items.Add(asset);
         }
 
         static EnemyDefinition Enemy(ContentLibrary library, string file, System.Action<EnemyDefinition> init)

@@ -11,7 +11,10 @@ namespace OldGods.Runtime
     /// </summary>
     public sealed class BossController : MonoBehaviour
     {
-        public static BossController Active { get; private set; }
+        /// <summary>Every boss alive now (a Boss Curse can wake several).</summary>
+        public static readonly System.Collections.Generic.List<BossController> All = new System.Collections.Generic.List<BossController>();
+        /// <summary>The boss the HUD and camera follow: the first one alive.</summary>
+        public static BossController Active => All.Count > 0 ? All[0] : null;
 
         public BossDefinition Asset { get; private set; }
         public BossDef Def { get; private set; }
@@ -83,7 +86,7 @@ namespace OldGods.Runtime
             modelRenderer = m.AddComponent<MeshRenderer>();
             modelRenderer.sharedMaterial = WorldBuilder.Tinted(assets.LowPoly, asset.Color);
             model = m.transform;
-            Active = this;
+            All.Add(this);
 
             // Rise out of the ground.
             StartCoroutine(Rise());
@@ -108,7 +111,7 @@ namespace OldGods.Runtime
         void OnDestroy()
         {
             if (horde != null) horde.SlotKilled -= OnSlotKilled;
-            if (Active == this) Active = null;
+            All.Remove(this);
         }
 
         void OnSlotKilled(int slot)
@@ -119,8 +122,8 @@ namespace OldGods.Runtime
             Vector3 at = transform.position;
             Effects.Burst(Fx.Column(), at, Quaternion.identity, new Vector3(2f, 1f, 2f), new Vector3(Def.Scale * 2f, 25f, Def.Scale * 2f), accent, 1.2f);
             Effects.Burst(Fx.Ring(0.6f, 48), at + Vector3.up * 0.3f, Quaternion.identity, Vector3.one, Vector3.one * 20f, accent, 1f);
+            All.Remove(this);
             Defeated?.Invoke(this);
-            if (Active == this) Active = null;
             Destroy(gameObject, 0.05f);
         }
 

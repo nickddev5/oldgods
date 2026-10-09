@@ -51,6 +51,23 @@ Final arena: **The Last Test**, a construct guarding the throne.
 
 Per Common level: Swiftness +8% move speed, Iron Skin +1 armour, Regeneration +0.3 health/s, Keen Eye +5% crit, Fury +8% damage, Bulwark +15 max health, Resolve +8% XP, Haste +8% attack speed, Reach +10% area, Multitude +1 projectile, Magnetism +1 m pickup range, Fortune +8% luck.
 
+## Items (milestone 4)
+
+| Item | Rarity | Effect per copy |
+|---|---|---|
+| Whetstone | Common | +6% damage |
+| Runner's Sandals | Common | +6% move speed |
+| Heart of Oak | Common | +15 max health |
+| Lodestone | Common | +1.2 m pickup range |
+| War Drum | Uncommon | +8% attack speed |
+| Golden Thread | Uncommon | +8% luck, +10% gold |
+| Wide Horn | Uncommon | +10% area |
+| Iron Collar | Rare | +2 armour, +10 max health |
+| Hourglass | Rare | +15% duration, +6% XP |
+| Bloodstone | Epic | 8% chance per kill to heal 2, +0.2 regeneration |
+| Quiver of Dawn | Epic | +1 projectile |
+| Winged Crown | Legendary | +1 jump, +8% move speed, +6% crit |
+
 ## Enemies
 
 | Enemy | Health | Speed | Contact damage | XP |

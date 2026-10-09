@@ -14,6 +14,8 @@ namespace OldGods.Runtime
         public List<EnemyDefinition> Enemies = new List<EnemyDefinition>();
         public List<WeaponDefinition> Weapons = new List<WeaponDefinition>();
         public List<PassiveDefinition> Passives = new List<PassiveDefinition>();
+        public List<ItemDefinition> Items = new List<ItemDefinition>();
+        public List<BossDefinition> Bosses = new List<BossDefinition>();
 
         public ContentSet Set { get; private set; }
         readonly Dictionary<string, EnemyDefinition> enemyAssets = new Dictionary<string, EnemyDefinition>();
@@ -44,6 +46,8 @@ namespace OldGods.Runtime
                 set.Passives.Add(p.ToDef());
                 passiveAssets[p.Id] = p;
             }
+            foreach (var it in Items)
+                if (it != null) set.Items.Add(it.ToDef());
             foreach (var problem in set.Validate()) Debug.LogWarning($"OldGods content: {problem}");
             Set = set;
             return set;

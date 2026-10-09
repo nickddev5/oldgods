@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OldGods.Rules;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -31,6 +32,8 @@ namespace OldGods.Runtime
         public ContentSet Content { get; private set; }
         public Minimap Minimap { get; private set; }
         public Hud Hud { get; private set; }
+        public RunEconomy Economy { get; private set; }
+        public Transform WorldRoot => worldRoot;
 
         public int StageIndex { get; private set; }
         public BiomeDefinition Biome { get; private set; }
@@ -97,12 +100,14 @@ namespace OldGods.Runtime
             systems.AddComponent<Effects>();
             Director = systems.AddComponent<StageDirector>();
             Director.Announce += Announce;
+            Economy = systems.AddComponent<RunEconomy>();
             Horde.EnemyKilled += OnEnemyKilled;
             Pickups.Collected += OnPickup;
 
             Combat = Player.gameObject.AddComponent<PlayerCombat>();
             Combat.Init(Assets.Content, Content, Seed);
             if (!string.IsNullOrEmpty(Assets.StartingWeapon)) Combat.GiveWeapon(Assets.StartingWeapon);
+            Economy.Init(this);
             var interaction = Player.gameObject.AddComponent<InteractionDriver>();
             interaction.Player = Combat;
 
@@ -128,7 +133,8 @@ namespace OldGods.Runtime
             BossDefeated = false;
             BossCurses = 0;
             if (worldRoot != null) Destroy(worldRoot.gameObject);
-            if (BossController.Active != null) Destroy(BossController.Active.gameObject);
+            foreach (var b in BossController.All.ToArray()) Destroy(b.gameObject);
+            BossController.All.Clear();
             worldRoot = new GameObject($"World {stage + 1}").transform;
 
             Horde.Clear();
@@ -160,6 +166,10 @@ namespace OldGods.Runtime
         public static readonly List<FeatureRequest> FeatureRequests = new List<FeatureRequest>
         {
             new FeatureRequest(FeatureKind.BossGate, 1, 0f),
+            new FeatureRequest(FeatureKind.Merchant, 1, 0f),
+            new FeatureRequest(FeatureKind.Duplicator, 1, 0f),
+            new FeatureRequest(FeatureKind.Shrine, 8, 24f),
+            new FeatureRequest(FeatureKind.Chest, 10, 22f),
         };
 
         /// <summary>Hook for later milestones to build chests, shrines and the merchant.</summary>
@@ -176,6 +186,7 @@ namespace OldGods.Runtime
                     float yaw = Mathf.Atan2(-p.X, -p.Z) * Mathf.Rad2Deg;
                     BossGate.Create(at, yaw, Assets, Biome.Boss != null ? Biome.Boss.Accent : Color.white, worldRoot);
                 }
+                else Features.Build(this, p, worldRoot);
                 FeaturePlaced?.Invoke(this, p, worldRoot);
             }
             if (!placed.Exists(p => p.Kind == FeatureKind.BossGate))
@@ -223,15 +234,22 @@ namespace OldGods.Runtime
         public void StartBoss(Vector3 at)
         {
             if (BossActive || Biome.Boss == null) return;
-            var boss = BossController.Spawn(Biome.Boss, at, StageIndex, BossCurses, Assets, Horde, Player, Seed.Stream("boss", StageIndex));
-            boss.Defeated += OnBossDefeated;
-            Announce(Biome.Boss.DisplayName, Biome.Boss.Epithet);
+            int count = ShrineRules.BossesForCurses(BossCurses);
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 offset = i == 0 ? Vector3.zero : Quaternion.Euler(0f, i * 360f / count, 0f) * Vector3.forward * 10f;
+                var boss = BossController.Spawn(Biome.Boss, at + offset, StageIndex, BossCurses, Assets, Horde, Player, Seed.Stream("boss", StageIndex * 10 + i));
+                boss.Defeated += OnBossDefeated;
+            }
+            Announce(Biome.Boss.DisplayName, count > 1 ? $"{count} of them wake" : Biome.Boss.Epithet);
         }
 
         void OnBossDefeated(BossController boss)
         {
-            BossDefeated = true;
             Vector3 at = boss.transform.position;
+            Features.DropFreeChest(this, at + Vector3.right * 4f, worldRoot);
+            if (BossController.All.Count > 0) return; // more cursed guardians still stand
+            BossDefeated = true;
             for (int i = 0; i < 12; i++)
             {
                 float a = i * Mathf.PI / 6f;

@@ -82,7 +82,12 @@ namespace OldGods.Runtime
 
             foreach (var it in Interactable.All)
             {
-                if (it == null || !it.Discovered || it.MapLabel == null) continue;
+                if (it == null || !it.Discovered) continue;
+                if (it.MapLabel == null)
+                {
+                    if (markers.TryGetValue(it, out var gone) && gone != null) gone.gameObject.SetActive(false);
+                    continue;
+                }
                 if (!markers.TryGetValue(it, out var dot) || dot == null)
                 {
                     dot = UiKit.Panel(frame, it.MapLabel, it.MapColor).GetComponent<Image>();

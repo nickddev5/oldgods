@@ -102,6 +102,66 @@ namespace OldGods.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator EveryEconomyFeatureWorks()
+        {
+            LevelUpScreen.AutoPick = true;
+            try
+            {
+                SceneManager.LoadScene("Run");
+                yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Economy != null && Object.FindAnyObjectByType<Chest>() != null, 20f, "run start");
+                var run = RunController.Instance;
+                var eco = run.Economy;
+                run.PlayerHealth.Invincible = true;
+                run.Director.Paused = true;
+
+                // Gold pickups land in the wallet with Gold Gain applied.
+                run.Pickups.Spawn(PickupKind.Gold, run.Player.transform.position, 500f);
+                yield return WaitFor(() => eco.Wallet.Gold > 0, 5f, "gold pickup");
+                eco.Wallet.Add(5000);
+                int gold = eco.Wallet.Gold;
+
+                var chest = Object.FindObjectsByType<Chest>(FindObjectsSortMode.None)[0];
+                int price = eco.ChestPrice;
+                chest.Use(run.Combat);
+                Assert.AreEqual(gold - price, eco.Wallet.Gold, "chest cost its price");
+                Assert.AreEqual(1, run.Combat.Items.Total, "chest gave an item");
+                Assert.Greater(eco.ChestPrice, price, "next chest costs more");
+
+                var merchant = Object.FindAnyObjectByType<Merchant>();
+                Assert.IsNotNull(merchant);
+                merchant.Use(run.Combat);
+                Assert.AreEqual(2, run.Combat.Items.Total, "merchant sold an item");
+
+                var dup = Object.FindAnyObjectByType<Duplicator>();
+                Assert.IsNotNull(dup);
+                dup.Use(run.Combat);
+                Assert.AreEqual(3, run.Combat.Items.Total, "duplicator copied an item");
+
+                var shrines = Object.FindObjectsByType<Shrine>(FindObjectsSortMode.None);
+                var kinds = new System.Collections.Generic.HashSet<OldGods.Rules.ShrineKind>();
+                foreach (var s in shrines) kinds.Add(s.Kind);
+                Assert.AreEqual(6, kinds.Count, "every shrine kind is on the map");
+
+                foreach (var s in shrines)
+                    if (s.Kind != OldGods.Rules.ShrineKind.Charge && s.CanUse) s.Use(run.Combat);
+                Assert.Greater(run.Director.DifficultyBonus, 0f, "greed raised difficulty");
+                Assert.AreEqual(1, run.BossCurses, "curse taken");
+
+                // Charge: stand in the ring until it fills.
+                Shrine charge = null;
+                foreach (var s in shrines) if (s.Kind == OldGods.Rules.ShrineKind.Charge) { charge = s; break; }
+                run.Player.Teleport(charge.transform.position + Vector3.right * 2f + Vector3.up);
+                int modsBefore = run.Combat.ExternalMods.Count;
+                yield return WaitFor(() => run.Combat.ExternalMods.Count > modsBefore, 10f, "charge shrine boost");
+                Assert.AreEqual(6, eco.ShrineKindsUsed.Count, "every shrine kind used");
+            }
+            finally
+            {
+                LevelUpScreen.AutoPick = false;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator FinalSwarmStartsWhenTheClockRunsOut()
         {
             SceneManager.LoadScene("Run");
