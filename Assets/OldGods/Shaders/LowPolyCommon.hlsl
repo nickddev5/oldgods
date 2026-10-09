@@ -3,6 +3,8 @@
 
 // Shared passes for the Old Gods low-poly look: vertex colour times base colour,
 // flat normals from the mesh, main light with shadows, ambient from light probes, fog.
+// Characters get a dark outline (an inverted hull, _OutlineWidth in pixels); everything else
+// gets chunky surface noise (_SurfaceNoise) so wide ground and stone faces are not flat colour.
 // Define OG_HORDE before including to draw from the horde instance buffer.
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -17,6 +19,8 @@ CBUFFER_START(UnityPerMaterial)
     float _AnimPhase;
     half _AirPose;
     half _SlidePose;
+    half _OutlineWidth;
+    half _SurfaceNoise;
 CBUFFER_END
 
 struct Attributes
@@ -41,6 +45,7 @@ struct Varyings
     half4  color      : COLOR;
     half   fogFactor  : TEXCOORD2;
     half   flash      : TEXCOORD3;
+    float3 restOS     : TEXCOORD4; // rest-pose object position, scaled to metres: surface noise sticks to the surface
 };
 
 #ifdef OG_HORDE
@@ -159,11 +164,51 @@ void OGTransform(Attributes IN, out float3 positionWS, out float3 normalWS, out 
 #endif
 }
 
+// Object-space position in metres (object scale applied), for noise that does not swim.
+float3 RestPosition(Attributes IN)
+{
+#ifdef OG_HORDE
+    return IN.positionOS.xyz;
+#else
+    float3x3 m = (float3x3)GetObjectToWorldMatrix();
+    return IN.positionOS.xyz * float3(length(m._m00_m10_m20), length(m._m01_m11_m21), length(m._m02_m12_m22));
+#endif
+}
+
+float OGHash(float2 p)
+{
+    p = frac(p * float2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return frac(p.x * p.y);
+}
+
+// Smooth value noise in 0..1, for broad patches.
+float OGValueNoise(float2 p)
+{
+    float2 i = floor(p), f = frac(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = OGHash(i), b = OGHash(i + float2(1, 0)), c = OGHash(i + float2(0, 1)), d = OGHash(i + float2(1, 1));
+    return lerp(lerp(a, b, f.x), lerp(c, d, f.x), f.y);
+}
+
+// Noise in about -0.5..0.5 on the plane the face mostly lies in: small hard-edged cells like
+// coarse texels over soft patches like worn ground. The cells fade out with distance so they
+// do not shimmer.
+half SurfaceNoise(float3 p, float3 n, float dist)
+{
+    float3 an = abs(n);
+    float2 uv = an.y >= max(an.x, an.z) ? p.xz : (an.x >= an.z ? p.zy : p.xy);
+    half fine = OGHash(floor(uv / 0.5)) - 0.5;
+    half coarse = OGValueNoise(uv / 4.0 + 17.0) - 0.5;
+    return fine * saturate(1.0 - dist / 60.0) + coarse * 0.9;
+}
+
 Varyings LitVert(Attributes IN)
 {
     Varyings OUT;
     half flash, tint;
     OGTransform(IN, OUT.positionWS, OUT.normalWS, flash, tint);
+    OUT.restOS = RestPosition(IN);
     OUT.positionCS = TransformWorldToHClip(OUT.positionWS);
     OUT.color = half4(IN.color.rgb * tint, IN.color.a);
     OUT.fogFactor = ComputeFogFactor(OUT.positionCS.z);
@@ -175,6 +220,14 @@ half4 LitFrag(Varyings IN) : SV_Target
 {
     float3 n = normalize(IN.normalWS);
     half3 albedo = IN.color.rgb * _BaseColor.rgb;
+#ifndef OG_HORDE
+    // Outlined models are characters: they keep clean colour blocks.
+    if (_SurfaceNoise > 0 && _OutlineWidth <= 0)
+    {
+        float dist = distance(IN.positionWS, GetCameraPositionWS());
+        albedo *= 1.0 + _SurfaceNoise * SurfaceNoise(IN.restOS, n, dist) * lerp(0.6, 1.0, saturate(n.y));
+    }
+#endif
     float4 shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
     Light mainLight = GetMainLight(shadowCoord);
     half ndl = saturate(dot(n, mainLight.direction));
@@ -186,6 +239,39 @@ half4 LitFrag(Varyings IN) : SV_Target
     color = lerp(color, half3(1, 1, 1), saturate(IN.flash));
     color = MixFog(color, IN.fogFactor);
     return half4(color, 1);
+}
+
+// Outline: the back faces, pushed out along the normal by a fixed number of pixels (thinner
+// far away so a distant crowd does not turn to ink), in a dark shade of the surface colour.
+struct OutlineVaryings
+{
+    float4 positionCS : SV_POSITION;
+    half4  color      : COLOR;
+    half   fogFactor  : TEXCOORD0;
+};
+
+OutlineVaryings OutlineVert(Attributes IN)
+{
+    OutlineVaryings OUT;
+    float3 positionWS, normalWS;
+    half flash, tint;
+    OGTransform(IN, positionWS, normalWS, flash, tint);
+    float4 positionCS = TransformWorldToHClip(positionWS);
+    float3 normalCS = mul((float3x3)GetWorldToHClipMatrix(), normalWS);
+    float2 dir = normalCS.xy;
+    dir = dot(dir, dir) > 1e-8 ? normalize(dir) : float2(0, 0);
+    float width = _OutlineWidth * lerp(1.0, 0.45, saturate((positionCS.w - 20.0) / 60.0));
+    positionCS.xy += dir * width * 2.0 / _ScreenParams.xy * positionCS.w;
+    // Width 0 turns the pass off: every vertex lands outside the clip volume.
+    OUT.positionCS = _OutlineWidth > 0 ? positionCS : float4(2, 2, 2, 1);
+    OUT.color = half4(IN.color.rgb * _BaseColor.rgb * tint * 0.16, 1);
+    OUT.fogFactor = ComputeFogFactor(positionCS.z);
+    return OUT;
+}
+
+half4 OutlineFrag(OutlineVaryings IN) : SV_Target
+{
+    return half4(MixFog(IN.color.rgb, IN.fogFactor), 1);
 }
 
 // Shadow caster

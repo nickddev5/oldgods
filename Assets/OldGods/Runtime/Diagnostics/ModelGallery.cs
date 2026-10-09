@@ -34,7 +34,7 @@ namespace OldGods.Runtime
             yield return null;
             var assets = GameAssets.Load();
             Fx.Init(assets);
-            var white = WorldBuilder.Tinted(assets.LowPoly, Color.white);
+            var white = WorldBuilder.Outlined(WorldBuilder.Tinted(assets.LowPoly, Color.white));
             var floorMat = WorldBuilder.Tinted(assets.LowPoly, new Color(0.42f, 0.42f, 0.44f));
 
             var camGo = new GameObject("Gallery Camera");

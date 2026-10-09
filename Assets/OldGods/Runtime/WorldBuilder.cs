@@ -38,7 +38,9 @@ namespace OldGods.Runtime
             {
                 cam.clearFlags = CameraClearFlags.SolidColor;
                 cam.backgroundColor = fog;
+                SkyDome.For(cam)?.SetColors(sky, fog, ground);
             }
+            SceneLook.Ensure();
         }
 
         public static Material Tinted(Material baseMat, Color color, Color emission = default)
@@ -48,6 +50,19 @@ namespace OldGods.Runtime
             if (emission != default) m.SetColor("_EmissionColor", emission);
             return m;
         }
+
+        /// <summary>
+        /// The same material with a dark outline, for characters: the player, gods, bosses.
+        /// Outlined surfaces also skip the ground's surface noise, so they stay clean colour blocks.
+        /// </summary>
+        public static Material Outlined(Material m, float pixels = CharacterOutline)
+        {
+            m.SetFloat("_OutlineWidth", pixels);
+            return m;
+        }
+
+        /// <summary>Outline width of the player, gods and bosses, in pixels at 1080p-ish sizes.</summary>
+        public const float CharacterOutline = 3f;
 
         public static GameObject CreateProp(string name, Mesh mesh, Material mat, Vector3 position, Quaternion rotation, Vector3 scale, Transform parent, bool collider)
         {
@@ -104,7 +119,7 @@ namespace OldGods.Runtime
             visual.AddComponent<MeshFilter>().sharedMesh = body != null ? body : GodModels.Get(GodLook.Storm);
             var mr = visual.AddComponent<MeshRenderer>();
             // Built-in god models carry their own colours; an untinted material shows them as authored.
-            mr.sharedMaterial = Tinted(assets.LowPoly, body != null ? Color.white : robe);
+            mr.sharedMaterial = Outlined(Tinted(assets.LowPoly, body != null ? Color.white : robe));
             var walk = visual.AddComponent<WalkAnimator>();
             walk.Tracked = go.transform;
             walk.Motor = motor;

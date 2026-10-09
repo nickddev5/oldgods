@@ -24,3 +24,5 @@ Third-person chase camera behind and slightly above the player, shallow downward
 ## Art direction
 
 Low-poly 3D, flat shaded, a strong palette per biome. Enemy silhouettes read at distance. Effects are bright and short.
+
+Each biome has one dominant mood colour that the fog, the sky horizon and the far hills share, so distance melts into it (PLACEHOLDER values in the biome assets). Characters, enemies and bosses carry a thin dark outline so a crowd reads against any ground; ground and stone carry a coarse texel-like noise instead, so wide areas are not flat colour. A light bloom, colour grade and vignette sit over everything. Notes on what this borrows from Megabonk, and what it does not: [docs/art/megabonk-look.md](../docs/art/megabonk-look.md).

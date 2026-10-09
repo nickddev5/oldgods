@@ -15,6 +15,7 @@ namespace OldGods.Runtime
         public Material Glow;
         public Material UnlitGlow;
         public Material UnlitFade;
+        public Material Sky;
         public ContentLibrary Content;
         public StoryText Story;
         [Tooltip("Weapon the greybox run starts with until gods pick their own.")]

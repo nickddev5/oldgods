@@ -131,7 +131,7 @@ namespace OldGods.Runtime
                 return;
             }
             previewMesh.sharedMesh = GodModels.Get(g.Look);
-            previewRenderer.sharedMaterial = WorldBuilder.Tinted(Assets.LowPoly, Color.white);
+            previewRenderer.sharedMaterial = WorldBuilder.Outlined(WorldBuilder.Tinted(Assets.LowPoly, Color.white));
         }
 
         RectTransform Page(string name)

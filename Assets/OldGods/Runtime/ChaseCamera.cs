@@ -37,6 +37,13 @@ namespace OldGods.Runtime
         float pitch = -1f;
         float bossBlend;
 
+        void Awake()
+        {
+            // -cameraPitch N starts the camera at N degrees, for screenshots of the horizon.
+            if (float.TryParse(CommandLine.Value("-cameraPitch"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float p))
+                DefaultPitch = Mathf.Clamp(p, MinPitch, MaxPitch);
+        }
+
         void Update()
         {
             if (Orbit == null) return;

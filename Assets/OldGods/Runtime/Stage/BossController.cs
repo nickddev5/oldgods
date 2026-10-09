@@ -91,7 +91,7 @@ namespace OldGods.Runtime
                 m.AddComponent<MeshFilter>().sharedMesh = BossModels.Get(asset.Model);
                 modelRenderer = m.AddComponent<MeshRenderer>();
                 // Built-in models carry their colours in the mesh.
-                modelRenderer.sharedMaterial = WorldBuilder.Tinted(assets.LowPoly, Color.white);
+                modelRenderer.sharedMaterial = WorldBuilder.Outlined(WorldBuilder.Tinted(assets.LowPoly, Color.white), 3.5f);
                 var walk = m.AddComponent<WalkAnimator>();
                 walk.Tracked = transform;
                 walk.RunSpeed = Mathf.Max(0.5f, Def.MoveSpeed * 1.8f / Mathf.Max(0.1f, Def.Scale));
