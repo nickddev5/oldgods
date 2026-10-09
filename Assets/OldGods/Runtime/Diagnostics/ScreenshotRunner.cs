@@ -64,6 +64,13 @@ namespace OldGods.Runtime
             else if (int.TryParse(stage, out int n)) run.BuildStage(n);
         }
 
+        IEnumerator OpenSelect()
+        {
+            while (MenuController.Instance == null) yield return null;
+            yield return new WaitForSeconds(2f);
+            MenuController.Instance.ShowSelect();
+        }
+
         IEnumerator Start()
         {
             Directory.CreateDirectory(dir);
@@ -71,6 +78,7 @@ namespace OldGods.Runtime
             float start = Time.realtimeSinceStartup;
             bool hold = CommandLine.Has("-shotHold");
             if (CommandLine.Has("-shotBoss")) StartCoroutine(WakeBoss());
+            if (CommandLine.Has("-shotMenu")) StartCoroutine(OpenSelect());
             string stage = CommandLine.Value("-shotStage");
             if (!string.IsNullOrEmpty(stage)) StartCoroutine(JumpTo(stage));
             for (int i = 0; i < times.Length; i++)

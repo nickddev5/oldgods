@@ -25,11 +25,45 @@ namespace OldGods.Editor
             library.Weapons.RemoveAll(e => e == null);
             library.Passives.RemoveAll(e => e == null);
             library.Items.RemoveAll(e => e == null);
+            library.Gods.RemoveAll(e => e == null);
             Enemies(library);
             MoreEnemies(library);
             Weapons(library);
             Passives(library);
             Items(library);
+            Gods(library);
+        }
+
+        public const string GodsDir = ProjectBuilder.Root + "/Content/Gods";
+
+        static void Gods(ContentLibrary l)
+        {
+            GodAsset(l, "Storm", "god.storm", "Storm", "The sky's anger, patient until it is not.", "weapon.chain_lightning", "passive.swiftness",
+                0, 0, GodLook.Storm, new Color(0.62f, 0.72f, 0.9f), new Color(0.8f, 1.2f, 2.2f), new StatMod(StatId.MoveSpeed, 0.05f));
+            GodAsset(l, "Forge", "god.forge", "Forge", "Every blade began in his fire.", "weapon.hammer_orbit", "passive.iron_skin",
+                1, 150, GodLook.Forge, new Color(0.72f, 0.52f, 0.35f), new Color(2.2f, 1.2f, 0.4f), new StatMod(StatId.Armor, 1f), new StatMod(StatId.MaxHealth, 10f));
+            GodAsset(l, "Tide", "god.tide", "Tide", "What the tide takes, it returns changed.", "weapon.tidal_wave", "passive.regeneration",
+                2, 300, GodLook.Tide, new Color(0.38f, 0.62f, 0.62f), new Color(0.3f, 1.4f, 1.8f), new StatMod(StatId.Regen, 0.2f));
+            GodAsset(l, "Hunt", "god.hunt", "Hunt", "She has never once missed what she meant to hit.", "weapon.spear_volley", "passive.keen_eye",
+                3, 500, GodLook.Hunt, new Color(0.45f, 0.55f, 0.35f), new Color(1.2f, 1.8f, 0.6f), new StatMod(StatId.CritChance, 0.05f));
+            GodAsset(l, "Ember", "god.ember", "Ember", "A small fire that refused to go out.", "weapon.flame_aura", "passive.fury",
+                4, 750, GodLook.Ember, new Color(0.8f, 0.38f, 0.28f), new Color(2.4f, 0.8f, 0.2f), new StatMod(StatId.Damage, 0.05f));
+            GodAsset(l, "Earth", "god.earth", "Earth", "The ground remembers every step.", "weapon.quake", "passive.bulwark",
+                5, 1000, GodLook.Earth, new Color(0.65f, 0.55f, 0.38f), new Color(1.6f, 1.2f, 0.5f), new StatMod(StatId.MaxHealth, 25f), new StatMod(StatId.MoveSpeed, -0.05f));
+            GodAsset(l, "Elias", "god.elias", "Elias", "The last to come, and the one who ends it.", "weapon.crown_light", "passive.resolve",
+                6, 1500, GodLook.Elias, new Color(0.92f, 0.9f, 0.84f), new Color(2.4f, 2.1f, 1.2f), new StatMod(StatId.XpGain, 0.1f));
+        }
+
+        static void GodAsset(ContentLibrary library, string file, string id, string name, string lore, string weapon, string passive,
+            int order, int cost, GodLook look, Color robe, Color mark, params StatMod[] kit)
+        {
+            var asset = LoadOrCreate<GodDefinition>($"{GodsDir}/{file}.asset", g =>
+            {
+                g.Id = id; g.DisplayName = name; g.Lore = lore; g.StartingWeapon = weapon; g.StartingPassive = passive;
+                g.Order = order; g.Cost = cost; g.IsLast = id == LastTest.EliasId; g.Look = look; g.Robe = robe; g.Mark = mark;
+                g.Kit = new List<StatMod>(kit);
+            });
+            if (!library.Gods.Contains(asset)) library.Gods.Add(asset);
         }
 
         static void Enemies(ContentLibrary library)

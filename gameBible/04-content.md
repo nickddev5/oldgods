@@ -18,6 +18,10 @@
 | 6 | Earth | Quake | Bulwark |
 | 7 | Elias (last unlock) | Crown Light | Resolve |
 
+Kits (PLACEHOLDER): Storm +5% move speed; Forge +1 armour, +10 health; Tide +0.2 regeneration; Hunt +5% crit; Ember +5% damage; Earth +25 health, -5% move speed; Elias +10% XP. Unlock costs in Embers, in order: Forge 150, Tide 300, Hunt 500, Ember 750, Earth 1000, then Elias 1500 once all six are unlocked. Storm is free.
+
+Lore lines (PLACEHOLDER): Storm, "The sky's anger, patient until it is not." Forge, "Every blade began in his fire." Tide, "What the tide takes, it returns changed." Hunt, "She has never once missed what she meant to hit." Ember, "A small fire that refused to go out." Earth, "The ground remembers every step." Elias, "The last to come, and the one who ends it."
+
 ## Weapon shapes
 
 `Projectile` (fires at the nearest enemy), `Aura` (damages around the player), `Area` (strikes a spot), `Orbit` (circles the player), `Pull` (drags enemies in). Each weapon is data: shape, cooldown, damage, count, size, pierce, and a per-level upgrade table.

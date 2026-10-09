@@ -61,7 +61,7 @@ namespace OldGods.Runtime
             return go;
         }
 
-        public static PlayerMotor CreatePlayer(GameAssets assets, Vector3 position, Color robe, Transform parent)
+        public static PlayerMotor CreatePlayer(GameAssets assets, Vector3 position, Color robe, Transform parent, Mesh body = null, Color mark = default)
         {
             var go = new GameObject("Player");
             go.transform.SetParent(parent, false);
@@ -82,10 +82,19 @@ namespace OldGods.Runtime
             var visual = new GameObject("Visual");
             visual.transform.SetParent(go.transform, false);
             visual.layer = Layers.Player;
-            visual.AddComponent<MeshFilter>().sharedMesh = PlaceholderMeshes.God();
+            visual.AddComponent<MeshFilter>().sharedMesh = body != null ? body : PlaceholderMeshes.God();
             var mr = visual.AddComponent<MeshRenderer>();
             mr.sharedMaterial = Tinted(assets.LowPoly, robe);
             motor.Visual = visual.transform;
+            if (mark != default)
+            {
+                var gem = new GameObject("Mark");
+                gem.transform.SetParent(visual.transform, false);
+                gem.transform.localPosition = new Vector3(0f, 1.28f, 0.2f);
+                gem.transform.localScale = Vector3.one * 0.35f;
+                gem.AddComponent<MeshFilter>().sharedMesh = PlaceholderMeshes.XpGem();
+                gem.AddComponent<MeshRenderer>().sharedMaterial = Fx.Glow(mark);
+            }
             return motor;
         }
 

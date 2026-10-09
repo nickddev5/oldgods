@@ -149,6 +149,63 @@ namespace OldGods.Runtime
             return k.Build("GodPlaceholder");
         });
 
+        /// <summary>The robed god figure with a head piece that tells the gods apart.</summary>
+        public static Mesh God(GodLook look) => Cached("god" + look, () =>
+        {
+            var k = new MeshKit();
+            var robe = new Color(0.9f, 0.9f, 0.9f);
+            var trim = new Color(0.7f, 0.7f, 0.7f);
+            var pale = new Color(1f, 1f, 1f);
+            float tall = look == GodLook.Elias ? 1.08f : 1f;
+            k.Prism(Vector3.zero, 0.42f, 1.15f * tall, 7, robe, 0.55f);
+            k.Box(new Vector3(0f, 1.3f * tall, 0f), new Vector3(0.5f, 0.35f, 0.32f), trim, 0.8f);
+            float hy = 1.66f * tall;
+            k.Gem(new Vector3(0f, hy, 0.02f), new Vector3(0.17f, 0.2f, 0.17f), pale);
+            k.Box(new Vector3(0f, hy, 0.17f), new Vector3(0.18f, 0.12f, 0.04f), new Color(1f, 0.85f, 0.4f));
+            switch (look)
+            {
+                case GodLook.Storm:
+                    for (int i = -1; i <= 1; i++)
+                        k.Box(new Vector3(i * 0.12f, hy + 0.28f, 0f), new Vector3(0.05f, 0.32f, 0.05f), pale, 0.2f, Quaternion.Euler(0f, 0f, i * -22f));
+                    break;
+                case GodLook.Forge:
+                    k.Box(new Vector3(-0.36f, 1.42f, 0f), new Vector3(0.3f, 0.18f, 0.36f), trim, 0.8f);
+                    k.Box(new Vector3(0.36f, 1.42f, 0f), new Vector3(0.3f, 0.18f, 0.36f), trim, 0.8f);
+                    k.Box(new Vector3(0f, 1.05f, -0.32f), new Vector3(0.08f, 0.9f, 0.08f), trim, 1f, Quaternion.Euler(0f, 0f, 30f));
+                    k.Box(new Vector3(0.24f, 1.44f, -0.32f), new Vector3(0.32f, 0.2f, 0.2f), pale, 1f, Quaternion.Euler(0f, 0f, 30f));
+                    break;
+                case GodLook.Tide:
+                    k.Box(new Vector3(0f, hy + 0.05f, -0.06f), new Vector3(0.34f, 0.5f, 0.34f), robe, 0.5f);
+                    k.Box(new Vector3(0f, hy + 0.3f, -0.16f), new Vector3(0.05f, 0.35f, 0.3f), pale, 0.4f, Quaternion.Euler(-25f, 0f, 0f));
+                    break;
+                case GodLook.Hunt:
+                    k.Box(new Vector3(-0.14f, hy + 0.3f, 0f), new Vector3(0.04f, 0.38f, 0.04f), pale, 1f, Quaternion.Euler(0f, 0f, 25f));
+                    k.Box(new Vector3(0.14f, hy + 0.3f, 0f), new Vector3(0.04f, 0.38f, 0.04f), pale, 1f, Quaternion.Euler(0f, 0f, -25f));
+                    k.Box(new Vector3(0.18f, 1.1f, -0.33f), new Vector3(0.14f, 0.7f, 0.14f), trim, 1f, Quaternion.Euler(0f, 0f, -15f));
+                    break;
+                case GodLook.Ember:
+                    for (int i = 0; i < 5; i++)
+                    {
+                        float a = i * Mathf.PI * 2f / 5f;
+                        k.Gem(new Vector3(Mathf.Cos(a) * 0.14f, hy + 0.24f, Mathf.Sin(a) * 0.14f), new Vector3(0.05f, 0.14f, 0.05f), new Color(1f, 0.7f, 0.4f));
+                    }
+                    break;
+                case GodLook.Earth:
+                    k.Box(new Vector3(0f, 1.38f, 0f), new Vector3(0.8f, 0.2f, 0.48f), trim, 0.85f);
+                    k.Box(new Vector3(-0.16f, hy + 0.12f, 0.05f), new Vector3(0.06f, 0.24f, 0.06f), pale, 0.3f, Quaternion.Euler(0f, 0f, 60f));
+                    k.Box(new Vector3(0.16f, hy + 0.12f, 0.05f), new Vector3(0.06f, 0.24f, 0.06f), pale, 0.3f, Quaternion.Euler(0f, 0f, -60f));
+                    break;
+                case GodLook.Elias:
+                    for (int i = 0; i < 7; i++)
+                    {
+                        float a = i * Mathf.PI * 2f / 7f;
+                        k.Box(new Vector3(Mathf.Cos(a) * 0.15f, hy + 0.2f, Mathf.Sin(a) * 0.15f), new Vector3(0.04f, 0.12f, 0.04f), new Color(1f, 0.85f, 0.45f), 0.3f);
+                    }
+                    break;
+            }
+            return k.Build("God" + look);
+        });
+
         public static Mesh XpGem() => Cached("xpgem", () =>
         {
             var k = new MeshKit();

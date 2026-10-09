@@ -26,6 +26,9 @@ namespace OldGods.Rules
         public readonly List<WeaponDef> Weapons = new List<WeaponDef>();
         public readonly List<PassiveDef> Passives = new List<PassiveDef>();
         public readonly List<ItemDef> Items = new List<ItemDef>();
+        public readonly List<GodDef> Gods = new List<GodDef>();
+
+        public GodDef God(string id) => Gods.Find(g => g.Id == id);
 
         public WeaponDef Weapon(string id) => Weapons.Find(w => w.Id == id) ?? throw new KeyNotFoundException($"No weapon with id '{id}'");
         public PassiveDef Passive(string id) => Passives.Find(p => p.Id == id) ?? throw new KeyNotFoundException($"No passive with id '{id}'");

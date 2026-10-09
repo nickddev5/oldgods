@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1534fe77fdfb66047bfba60e2dda17a4, type: 3}
+  m_Name: Forge
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.GodDefinition
+  Id: god.forge
+  DisplayName: Forge
+  Lore: Every blade began in his fire.
+  StartingWeapon: weapon.hammer_orbit
+  StartingPassive: passive.iron_skin
+  Kit:
+  - Stat: 2
+    Add: 1
+    Percent: 0
+  - Stat: 0
+    Add: 10
+    Percent: 0
+  Order: 1
+  Cost: 150
+  IsLast: 0
+  Look: 1
+  Robe: {r: 0.72, g: 0.52, b: 0.35, a: 1}
+  Mark: {r: 2.2, g: 1.2, b: 0.4, a: 1}

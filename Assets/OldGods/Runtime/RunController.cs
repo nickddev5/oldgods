@@ -47,6 +47,7 @@ namespace OldGods.Runtime
         /// <summary>True in The Last Test's arena, after the last stage.</summary>
         public bool IsFinal { get; private set; }
         public string GodId { get; private set; }
+        public GodDef God { get; private set; }
         public RunSummary Summary { get; } = new RunSummary();
         public int EmbersEarned { get; private set; }
         /// <summary>Boss Curse shrines taken this stage: each makes the boss stronger.</summary>
@@ -79,9 +80,16 @@ namespace OldGods.Runtime
             string seedText = CommandLine.Value("-seed") ?? FixedSeed;
             Seed = RunSeed.TryParse(seedText, out var s) ? s : RunSeed.FromEntropy(DateTime.UtcNow.Ticks, Environment.TickCount);
             Debug.Log($"OldGods: run seed {Seed}");
-            GodId = RunSetup.GodId;
+            Content = Assets.Content.Load();
+            var save = SaveStore.Current;
+            var god = RunSetup.GodId != null ? Content.God(RunSetup.GodId) : null;
+            if (god == null || !GodRules.IsUnlocked(god, save.IsUnlocked)) god = GodRules.Default(Content.Gods, save.IsUnlocked);
+            God = god;
+            GodId = god != null ? god.Id : RunSetup.GodId;
             Summary.Seed = Seed.ToString();
             Summary.GodId = GodId ?? "";
+            if (Application.CanStreamedLevelBeLoaded(MenuController.MenuScene))
+                ResultsScreen.ToMenu = () => SceneManager.LoadScene(MenuController.MenuScene);
             BuildPersistent();
             BuildStage(0);
         }
@@ -89,7 +97,10 @@ namespace OldGods.Runtime
         /// <summary>Things that live for the whole run: player, camera, horde, combat, UI.</summary>
         void BuildPersistent()
         {
-            Player = WorldBuilder.CreatePlayer(Assets, Vector3.up * 50f, new Color(0.85f, 0.82f, 0.7f), null);
+            var godAsset = God != null ? Assets.Content.GodAsset(God.Id) : null;
+            Player = godAsset != null
+                ? WorldBuilder.CreatePlayer(Assets, Vector3.up * 50f, godAsset.Robe, null, PlaceholderMeshes.God(godAsset.Look), godAsset.Mark)
+                : WorldBuilder.CreatePlayer(Assets, Vector3.up * 50f, new Color(0.85f, 0.82f, 0.7f), null);
             PlayerHealth = Player.GetComponent<PlayerHealth>();
             PlayerHealth.Died += OnPlayerDied;
             Camera = WorldBuilder.CreateCamera(Player, null);
@@ -97,7 +108,6 @@ namespace OldGods.Runtime
 
             Horde = WorldBuilder.CreateHorde(Assets, Player, null);
             Horde.SpawnRng = Seed.Stream(RunSeed.Spawns);
-            Content = Assets.Content.Load();
             foreach (var e in Assets.Content.Enemies)
                 if (e != null) Horde.RegisterType(Content.Enemy(e.Id), e.MeshOrPlaceholder, e.Color, e.Emission);
 
@@ -114,7 +124,14 @@ namespace OldGods.Runtime
 
             Combat = Player.gameObject.AddComponent<PlayerCombat>();
             Combat.Init(Assets.Content, Content, Seed);
-            if (!string.IsNullOrEmpty(Assets.StartingWeapon)) Combat.GiveWeapon(Assets.StartingWeapon);
+            if (God != null)
+            {
+                Combat.ExternalMods.AddRange(God.Kit);
+                if (!string.IsNullOrEmpty(God.StartingWeapon)) Combat.GiveWeapon(God.StartingWeapon);
+                if (!string.IsNullOrEmpty(God.StartingPassive)) Combat.GivePassive(God.StartingPassive);
+                Combat.RecomputeStats();
+            }
+            else if (!string.IsNullOrEmpty(Assets.StartingWeapon)) Combat.GiveWeapon(Assets.StartingWeapon);
             Economy.Init(this);
             var interaction = Player.gameObject.AddComponent<InteractionDriver>();
             interaction.Player = Combat;

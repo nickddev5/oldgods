@@ -70,3 +70,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b0033786960edd74ca380e1c35783b2c, type: 2}
   - {fileID: 11400000, guid: 0893036d53b512b44999ff3fcc86d1e9, type: 2}
   - {fileID: 11400000, guid: 7829910b4670fde48a359d74bf6f55cd, type: 2}
+  Gods:
+  - {fileID: 11400000, guid: 9bef13973e957ca4c8ce7820a1011c99, type: 2}
+  - {fileID: 11400000, guid: 4456c4b8d030b7d49916820bf452741f, type: 2}
+  - {fileID: 11400000, guid: b0e8a3bae4968344a97732f646c097f3, type: 2}
+  - {fileID: 11400000, guid: 33a863f0827bff848acc2a3dbb53702f, type: 2}
+  - {fileID: 11400000, guid: 607944f20d956e14abd36348d1add0fb, type: 2}
+  - {fileID: 11400000, guid: ae9bf892516346847941106de6cadca1, type: 2}
+  - {fileID: 11400000, guid: a9e8232c246c71c4da0b0736fb81dca9, type: 2}

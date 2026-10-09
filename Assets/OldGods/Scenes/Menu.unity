@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 1796551349}
   - component: {fileID: 1796551348}
   m_Layer: 0
-  m_Name: Run
+  m_Name: Menu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -145,12 +145,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1796551347}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b93bc95a4858d3946bb688a4725ff36f, type: 3}
+  m_Script: {fileID: 11500000, guid: 3f9d692a1698c714e88c97106e1a0255, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.RunController
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.MenuController
   Assets: {fileID: 11400000, guid: 421f299c30669d54c848c388b17dcc15, type: 2}
-  FixedSeed: 
-  StageCount: 3
 --- !u!4 &1796551349
 Transform:
   m_ObjectHideFlags: 0

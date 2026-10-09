@@ -56,6 +56,12 @@ namespace OldGods.Runtime
             yield return SmokeFlow.Begin(this);
             if (failed) yield break;
 
+            if (MenuController.Instance != null)
+            {
+                Step("ok: menu loaded");
+                MenuController.StartRun(null);
+            }
+
             yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Player != null, "run started", 30f);
             if (failed) yield break;
             var first = RunController.Instance;
@@ -72,6 +78,17 @@ namespace OldGods.Runtime
 
             yield return SmokeFlow.AfterRestart(this);
             if (failed) yield break;
+
+            if (ResultsScreen.ToMenu != null)
+            {
+                var second = RunController.Instance;
+                second.PlayerHealth.Kill();
+                yield return WaitFor(() => second.IsOver, "second run ended", 5f);
+                if (failed) yield break;
+                ResultsScreen.ToMenu();
+                yield return WaitFor(() => MenuController.Instance != null, "back at the menu", 20f);
+                if (failed) yield break;
+            }
 
             Finish(0);
         }

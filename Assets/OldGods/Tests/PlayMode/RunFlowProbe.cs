@@ -129,6 +129,7 @@ namespace OldGods.Tests.PlayMode
         IEnumerator FullRun(string god, bool takesThrone)
         {
             RunSetup.GodId = god;
+            SaveStore.Current.Unlock(god);
             LevelUpScreen.AutoPick = true;
             try
             {
@@ -166,6 +167,38 @@ namespace OldGods.Tests.PlayMode
                 LevelUpScreen.AutoPick = false;
                 RunSetup.GodId = null;
             }
+        }
+
+        [UnityTest, Timeout(180000)]
+        public IEnumerator EachGodStartsWithTheirKit()
+        {
+            var content = GameAssets.Load().Content.Load();
+            Assert.AreEqual(7, content.Gods.Count, "seven gods");
+            foreach (var g in content.Gods) SaveStore.Current.Unlock(OldGods.Rules.GodRules.UnlockId(g));
+            var weapons = new System.Collections.Generic.HashSet<string>();
+            foreach (var g in OldGods.Rules.GodRules.Ordered(content.Gods))
+            {
+                RunSetup.GodId = g.Id;
+                SceneManager.LoadScene("Run");
+                yield return null;
+                yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Combat != null && RunController.Instance.GodId == g.Id, 20f, "run as " + g.Id);
+                var combat = RunController.Instance.Combat;
+                Assert.AreEqual(g.StartingWeapon, combat.Loadout.Weapons[0].Def.Id, g.Id + " weapon");
+                Assert.AreEqual(g.StartingPassive, combat.Loadout.Passives[0].Def.Id, g.Id + " passive");
+                weapons.Add(g.StartingWeapon);
+            }
+            Assert.AreEqual(7, weapons.Count, "every god has a different weapon");
+        }
+
+        [UnityTest]
+        public IEnumerator MenuStartsARunWithTheChosenGod()
+        {
+            SceneManager.LoadScene("Menu");
+            yield return WaitFor(() => MenuController.Instance != null, 10f, "menu");
+            yield return null;
+            MenuController.StartRun(null);
+            yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Combat != null, 20f, "run from menu");
+            Assert.AreEqual("god.storm", RunController.Instance.GodId, "the first god by default");
         }
 
         [UnityTest]

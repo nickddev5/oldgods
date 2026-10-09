@@ -10,7 +10,7 @@ First milestone: a complete game. A fresh save can unlock every god, beat The La
 | 3 | The stage | Start to boss to next-stage portal playable; timeline tested | Built; awaiting Nick's pacing play-test |
 | 4 | Map economy | Economy and shrine rules tested; every shrine used in a play-test | Built; awaiting Nick's play-test |
 | 5 | Full run | A run can be won; Nick plays three stages | Built; awaiting Nick's three-stage play |
-| 6 | Characters | 7 gods selectable in order with distinct kits | |
+| 6 | Characters | 7 gods selectable in order with distinct kits | Built; awaiting Nick's play-test |
 | 7 | Meta-progression and saving | Save/load tested; a fresh save can reach Elias | |
 | 8 | Story | Premise, god lines and ending text in place | |
 | 9 | Art and audio | Placeholders replaced; horde probe still meets target | |
