@@ -13,14 +13,30 @@ namespace OldGods.Runtime
     {
         public static HeightField Field { get; private set; }
         public static float RimWidth { get; private set; }
+        /// <summary>The map's set pieces; null on the final arena.</summary>
+        public static LevelLayout Layout { get; private set; }
+        /// <summary>Solid dressing the horde walks around; null when there is none.</summary>
+        public static Obstacles Obstacles { get; private set; }
+        /// <summary>The horde's paths to the player over this map.</summary>
+        public static FlowField Flow { get; private set; }
 
-        public static void Set(HeightField field, float rimWidth)
+        /// <summary>Sets the current map. Call after the layout's obstacles are complete; the flow field is built from them.</summary>
+        public static void Set(HeightField field, float rimWidth, LevelLayout layout = null)
         {
             Field = field;
             RimWidth = rimWidth;
+            Layout = layout;
+            Obstacles = layout?.Obstacles;
+            Flow = field != null ? FlowField.FromTerrain(field, Obstacles, rimWidth) : null;
         }
 
-        public static void Clear() => Field = null;
+        public static void Clear()
+        {
+            Field = null;
+            Layout = null;
+            Obstacles = null;
+            Flow = null;
+        }
 
         public static float Height(float x, float z) => Field != null ? Field.Sample(x, z) : 0f;
 
@@ -52,6 +68,21 @@ namespace OldGods.Runtime
         public Color High = new Color(0.55f, 0.58f, 0.40f);
         public Color Cliff = new Color(0.45f, 0.42f, 0.38f);
         public Color Rim = new Color(0.32f, 0.30f, 0.28f);
+        /// <summary>The old road's worn paving.</summary>
+        public Color Road = new Color(0.56f, 0.53f, 0.48f);
+        /// <summary>Temple floors and fort tops.</summary>
+        public Color Stone = new Color(0.6f, 0.58f, 0.54f);
+        /// <summary>The biome's own mark: meadow in a stone circle, embers, weed.</summary>
+        public Color Accent = new Color(0.52f, 0.56f, 0.34f);
+        /// <summary>Broad patches mixed into open ground (dry grass, bare earth) so it is not one flat colour.</summary>
+        public Color Patch = new Color(0.55f, 0.52f, 0.36f);
+        public float PatchAmount = 0.5f;
+        [Header("Clutter")]
+        [Tooltip("Tufts, flowers and pebbles per 100 square metres of open ground.")]
+        public float ClutterDensity = 6f;
+        public Color Tuft = new Color(0.42f, 0.55f, 0.3f);
+        public Color Flower = new Color(0.85f, 0.8f, 0.55f);
+        public Color Pebble = new Color(0.62f, 0.6f, 0.56f);
         public float CliffSlope = 38f;
     }
 
@@ -60,16 +91,17 @@ namespace OldGods.Runtime
     {
         public const int ChunkCells = 32;
 
-        public static GameObject Build(HeightField f, Material material, GroundPalette palette, float hillHeight, Transform parent)
+        public static GameObject Build(HeightField f, Material material, GroundPalette palette, float hillHeight, Transform parent, LevelLayout layout = null, float waterLevel = -1000f)
         {
             var root = new GameObject("Ground");
             root.transform.SetParent(parent, false);
             root.layer = Layers.Ground;
             var noise = new System.Random(1);
+            patches = new Noise2D(new Rng(77));
             for (int cz = 0; cz < f.Cells; cz += ChunkCells)
                 for (int cx = 0; cx < f.Cells; cx += ChunkCells)
                 {
-                    var mesh = BuildChunk(f, cx, cz, Mathf.Min(ChunkCells, f.Cells - cx), Mathf.Min(ChunkCells, f.Cells - cz), palette, hillHeight, noise);
+                    var mesh = BuildChunk(f, cx, cz, Mathf.Min(ChunkCells, f.Cells - cx), Mathf.Min(ChunkCells, f.Cells - cz), palette, hillHeight, noise, layout);
                     var go = new GameObject($"Chunk_{cx}_{cz}");
                     go.layer = Layers.Ground;
                     go.transform.SetParent(root.transform, false);
@@ -78,11 +110,75 @@ namespace OldGods.Runtime
                     mr.sharedMaterial = material;
                     mr.shadowCastingMode = ShadowCastingMode.On;
                     go.AddComponent<MeshCollider>().sharedMesh = mesh;
+
+                    var clutter = BuildClutter(f, cx, cz, Mathf.Min(ChunkCells, f.Cells - cx), Mathf.Min(ChunkCells, f.Cells - cz), palette, layout, waterLevel);
+                    if (clutter != null)
+                    {
+                        var cgo = new GameObject("Clutter");
+                        cgo.transform.SetParent(go.transform, false);
+                        cgo.AddComponent<MeshFilter>().sharedMesh = clutter;
+                        var cr = cgo.AddComponent<MeshRenderer>();
+                        cr.sharedMaterial = material;
+                        cr.shadowCastingMode = ShadowCastingMode.Off;
+                    }
                 }
             return root;
         }
 
-        static Mesh BuildChunk(HeightField f, int x0, int z0, int w, int h, GroundPalette pal, float hillHeight, System.Random noise)
+        static Noise2D patches;
+
+        /// <summary>
+        /// Small detail merged into one mesh per chunk, with no collider: grass tufts, a few
+        /// flowers and pebbles on open, gentle ground. Seeded per chunk so it is the same every visit.
+        /// </summary>
+        static Mesh BuildClutter(HeightField f, int x0, int z0, int w, int h, GroundPalette pal, LevelLayout layout, float waterLevel)
+        {
+            if (pal.ClutterDensity <= 0f) return null;
+            var rnd = new System.Random(x0 * 7919 + z0 * 104729 + 13);
+            float area = w * h * f.CellSize * f.CellSize;
+            int count = Mathf.RoundToInt(area / 100f * pal.ClutterDensity);
+            var k = new MeshKit { Smooth = false };
+            float R(float a, float b) => a + (float)rnd.NextDouble() * (b - a);
+            for (int i = 0; i < count; i++)
+            {
+                float x = f.OriginX + (x0 + R(0f, w)) * f.CellSize, z = f.OriginZ + (z0 + R(0f, h)) * f.CellSize;
+                if (!TerrainGenerator.InPlayableArea(f, x, z, Ground.RimWidth)) continue;
+                if (f.SlopeDegrees(x, z) > 28f) continue;
+                float y = f.Sample(x, z);
+                if (y < waterLevel + 0.2f) continue;
+                var paint = layout != null ? layout.PaintAt(x, z) : GroundPaint.None;
+                if (paint == GroundPaint.Road || paint == GroundPaint.Stone) continue;
+                if (layout != null && layout.Obstacles.Overlaps(x, z, 0.3f)) continue;
+                var at = new Vector3(x, y - 0.02f, z);
+                float roll = R(0f, 1f);
+                if (roll < 0.72f)
+                {
+                    // A tuft: a fan of thin blades.
+                    int blades = 3 + rnd.Next(3);
+                    float tall = R(0.25f, 0.55f);
+                    Color c = pal.Tuft * R(0.85f, 1.15f);
+                    for (int b = 0; b < blades; b++)
+                    {
+                        float a = R(0f, Mathf.PI * 2f);
+                        var dir = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
+                        var side = new Vector3(-dir.z, 0f, dir.x) * 0.06f;
+                        var tip = at + dir * R(0.08f, 0.2f) + Vector3.up * tall * R(0.7f, 1.1f);
+                        k.Triangle(at - side, tip, at + side, c);
+                        k.Triangle(at + side, tip, at - side, c * 0.85f);
+                    }
+                    if (roll < 0.1f)
+                        k.Gem(at + Vector3.up * tall * 0.9f, new Vector3(0.07f, 0.06f, 0.07f), pal.Flower * R(0.9f, 1.1f));
+                }
+                else
+                {
+                    float s = R(0.08f, 0.22f);
+                    k.Gem(at + Vector3.up * s * 0.25f, new Vector3(s, s * 0.45f, s * R(0.7f, 1f)), pal.Pebble * R(0.85f, 1.1f));
+                }
+            }
+            return k.VertexCount > 0 ? k.Build("Clutter") : null;
+        }
+
+        static Mesh BuildChunk(HeightField f, int x0, int z0, int w, int h, GroundPalette pal, float hillHeight, System.Random noise, LevelLayout layout)
         {
             int tris = w * h * 2;
             var verts = new List<Vector3>(tris * 3);
@@ -101,7 +197,19 @@ namespace OldGods.Runtime
                 Color col;
                 if (!TerrainGenerator.InPlayableArea(f, cx, cz, Ground.RimWidth * 0.7f)) col = pal.Rim;
                 else if (slope > pal.CliffSlope) col = pal.Cliff;
-                else col = Color.Lerp(pal.Low, pal.High, Mathf.Clamp01(cy / Mathf.Max(1f, hillHeight)));
+                else
+                {
+                    var paint = layout != null ? layout.PaintAt(cx, cz) : GroundPaint.None;
+                    col = paint == GroundPaint.Road ? pal.Road
+                        : paint == GroundPaint.Stone ? pal.Stone
+                        : paint == GroundPaint.Accent ? pal.Accent
+                        : Color.Lerp(pal.Low, pal.High, Mathf.Clamp01(cy / Mathf.Max(1f, hillHeight)));
+                    if (paint == GroundPaint.None && pal.PatchAmount > 0f)
+                    {
+                        float pn = patches.Fbm(cx / 28f, cz / 28f, 2) * 1.6f;
+                        col = Color.Lerp(col, pal.Patch, Mathf.Clamp01(pn) * pal.PatchAmount);
+                    }
+                }
                 float jitter = 0.94f + (float)noise.NextDouble() * 0.08f;
                 col = new Color(col.r * jitter, col.g * jitter, col.b * jitter, 1f).linear;
                 int i = verts.Count;

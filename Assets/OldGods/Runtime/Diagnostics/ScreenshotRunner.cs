@@ -8,6 +8,7 @@ namespace OldGods.Runtime
     /// Started by -shots DIR. Steers the player in a slow circle and saves screenshots
     /// at fixed times, then quits. Lets an agent see a build without a person at the screen.
     /// -shotTimes "2,6,12" overrides the times; -shotHold keeps the player still.
+    /// -shotTour frames the map from above for the first shot, then one landmark per shot.
     /// </summary>
     public sealed class ScreenshotRunner : MonoBehaviour
     {
@@ -68,6 +69,44 @@ namespace OldGods.Runtime
             else if (int.TryParse(stage, out int n)) run.BuildStage(n);
         }
 
+        Camera tourCam;
+        bool? fogWas;
+
+        /// <summary>Shot 0 looks down on the whole map; later shots each frame one landmark.</summary>
+        void Tour(int shot)
+        {
+            var layout = Ground.Layout;
+            if (layout == null || Ground.Field == null) return;
+            if (tourCam == null)
+            {
+                var go = new GameObject("Tour Camera");
+                tourCam = go.AddComponent<Camera>();
+                tourCam.depth = 50f;
+                tourCam.fieldOfView = 55f;
+                tourCam.farClipPlane = 900f;
+                go.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>().renderPostProcessing = true;
+                fogWas = RenderSettings.fog;
+            }
+            var t = tourCam.transform;
+            if (shot == 0)
+            {
+                RenderSettings.fog = false;
+                float size = Ground.Field.Size;
+                t.position = new Vector3(0f, size * 0.95f, -size * 0.62f);
+                t.LookAt(new Vector3(0f, 0f, size * 0.04f));
+                return;
+            }
+            RenderSettings.fog = fogWas ?? true;
+            if (layout.Landmarks.Count == 0) return;
+            var l = layout.Landmarks[(shot - 1) % layout.Landmarks.Count];
+            var toward = new Vector3(-l.X, 0f, -l.Z);
+            toward = toward.sqrMagnitude > 1f ? toward.normalized : Vector3.back;
+            var focus = new Vector3(l.X, Ground.Height(l.X, l.Z) + 2f, l.Z);
+            t.position = focus + toward * (l.Radius + 12f) + Vector3.up * (8f + l.Radius * 0.35f);
+            t.LookAt(focus);
+            Debug.Log($"OldGods: tour shot {shot} {l}");
+        }
+
         IEnumerator OpenSelect()
         {
             while (MenuController.Instance == null) yield return null;
@@ -98,6 +137,8 @@ namespace OldGods.Runtime
                     }
                     yield return null;
                 }
+                if (CommandLine.Has("-shotTour")) Tour(i);
+                yield return null;
                 yield return new WaitForEndOfFrame();
                 string path = Path.Combine(dir, $"shot_{i:00}_{times[i]:0}s.png");
                 ScreenCapture.CaptureScreenshot(path);

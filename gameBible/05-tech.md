@@ -12,6 +12,8 @@ Scenes are thin: `Run.unity` holds one `RunController` that points at `Resources
 
 The ground is a height field in `OldGods.Rules` turned into flat-shaded mesh chunks with colliders, not a Unity `Terrain`: it gives the low-poly faceted look, and enemies read the exact rendered height from the field without raycasts.
 
+Each stage map is then dressed by `LayoutGenerator` (Rules): the boss gate's site, the old road and wall, and the biome's landmarks, each stamping its shape into the height field and listing its ruin pieces, solid capsules, ground marks and detour spots. `Dressing` draws the pieces as one mesh and collider per landmark; grass tufts, flowers and pebbles are merged into one mesh per ground chunk. See [ADR 0004](../docs/adr/0004-levels-are-dressed-and-the-horde-uses-a-flow-field.md).
+
 ## Shaders
 
 Hand-written URP HLSL, not Shader Graph, so they are diffable and authored as text: `OldGods/LowPoly` (vertex colour times base colour, main light with shadows, ambient, fog) and `OldGods/HordeInstanced` (the same look, drawn from a structured buffer with `Graphics.RenderMeshPrimitives`, one call per enemy type). Characters are animated procedurally in the vertex shader from tags baked into each mesh: the body part, the joint it swings around, and the knee or elbow height where it bends. Legs stride and bend at the knee, arms counter-swing with bent elbows, the body leans and bobs. The player also blends in a jump pose and a slide pose, and the model leans into turns and squashes on landing. Vertex colours are authored in sRGB and stored linear.
@@ -19,6 +21,8 @@ Hand-written URP HLSL, not Shader Graph, so they are diffable and authored as te
 ## Horde runtime
 
 One `HordeManager` owns struct arrays (position, velocity, hp, type, animation phase). Each frame it steers enemies to the player, separates them through a spatial hash, snaps them to terrain height, resolves weapon hits and writes instance matrices. Rendering uses `Graphics.RenderMeshInstanced`. No Rigidbody, NavMesh agent or Animator per enemy. See [ADR 0001](../docs/adr/0001-horde-runtime-is-array-based.md).
+
+Around walls and cliffs the horde follows a flow field (shortest paths to the player over the height-field cells, re-solved when the player changes cell); in the open it still runs straight at the player. Enemies are pushed out of the dressing's capsules, cannot step onto cliffs and climb steep ground at half speed. See [ADR 0004](../docs/adr/0004-levels-are-dressed-and-the-horde-uses-a-flow-field.md).
 
 ## Performance budget
 
@@ -33,6 +37,8 @@ Release player, 1600x900 windowed, Ryzen 7 9800X3D / Radeon RX 9070 XT, 2026-10-
 | 1000 | 1.07 | 1.41 | 933 | 0.44 |
 
 After the milestone 9 art pass (13 enemy models, props, effects, sound): 1000 enemies at 801 fps, 1% low 1.53 ms, horde CPU 0.61 ms.
+
+After the level pass (landmarks, flow field, ground clutter), seed 1111 stage 1: 1000 enemies at 548 fps, 1% low 3.25 ms, horde CPU 0.73 ms including path solves.
 
 **Decision (2026-10-09):** the single-threaded C# loop is far inside budget (0.44 ms for 1000 enemies), so the hot loop stays on the main thread; Jobs and Burst are not used. Re-run the probe after real enemy art and weapons land (milestones 2 and 9); revisit if horde CPU passes 4 ms at 1000.
 

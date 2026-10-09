@@ -192,9 +192,15 @@ namespace OldGods.Runtime
 
             var profile = Biome.Terrain;
             var field = TerrainGenerator.Generate(profile, Seed.Stream(RunSeed.Map, stage));
-            Ground.Set(field, profile.RimWidth);
-            TerrainMesh.Build(field, WorldBuilder.Tinted(Assets.LowPoly, Color.white), Biome.Palette, profile.HillHeight, worldRoot);
-            if (!final) ScatterProps(field, Seed.Stream(RunSeed.Map, 100 + stage));
+            // Landmarks reshape the ground, so they come before the mesh. Props add obstacles,
+            // so the horde's paths are built last, by Ground.Set.
+            // -noDressing builds the bare terrain, to compare bot runs with and without the level dressing.
+            var layout = final || CommandLine.Has("-noDressing") ? null : LayoutGenerator.Build(field, profile.RimWidth, Biome.Layout, Seed.Stream(RunSeed.Map, 300 + stage));
+            var white = WorldBuilder.Tinted(Assets.LowPoly, Color.white);
+            TerrainMesh.Build(field, white, Biome.Palette, profile.HillHeight + profile.RidgeHeight, worldRoot, layout, profile.WaterLevel);
+            if (layout != null) Dressing.Build(field, layout, Biome.Colors(), white, Biome.DressingGlow, worldRoot);
+            if (!final) ScatterProps(field, Seed.Stream(RunSeed.Map, 100 + stage), layout);
+            Ground.Set(field, profile.RimWidth, layout);
             if (profile.WaterLevel > -100f) BuildWater(field, profile.WaterLevel);
 
             Audio.Music(Biome.Id);
@@ -204,7 +210,7 @@ namespace OldGods.Runtime
             WorldBuilder.SetAtmosphere(Biome.AmbientSky, Biome.AmbientEquator, Biome.AmbientGround, Biome.Fog, Biome.FogStart, Biome.FogEnd);
 
             if (final) FinalArena.Build(this, worldRoot);
-            else PlaceFeatures(field, Seed.Stream(RunSeed.Map, 200 + stage));
+            else PlaceFeatures(field, Seed.Stream(RunSeed.Map, 200 + stage), layout);
 
             Player.Teleport(Ground.Snap(Vector3.zero) + Vector3.up * 0.3f);
             Camera.SnapBehind();
@@ -267,9 +273,9 @@ namespace OldGods.Runtime
         /// <summary>Hook for later milestones to build chests, shrines and the merchant.</summary>
         public static event Action<RunController, Placement, Transform> FeaturePlaced;
 
-        void PlaceFeatures(HeightField field, Rng rng)
+        void PlaceFeatures(HeightField field, Rng rng, LevelLayout layout)
         {
-            var placed = MapPlacement.Place(field, Biome.Terrain.RimWidth, new PlacementRules(), FeatureRequests, rng);
+            var placed = MapPlacement.Place(field, Biome.Terrain.RimWidth, new PlacementRules(), FeatureRequests, rng, layout);
             foreach (var p in placed)
             {
                 var at = new Vector3(p.X, 0f, p.Z);
@@ -291,7 +297,11 @@ namespace OldGods.Runtime
             }
         }
 
-        void ScatterProps(HeightField field, Rng rng)
+        /// <summary>
+        /// Rocks and trees on open ground, clear of the landmarks and the road. Built-in props
+        /// are solid to the horde too, so the Ash Wood's trees make a real thicket.
+        /// </summary>
+        void ScatterProps(HeightField field, Rng rng, LevelLayout layout)
         {
             var rockMat = WorldBuilder.Tinted(Assets.LowPoly, Biome.RockColor);
             var rock = PropModels.Get(Biome.RockModel);
@@ -303,8 +313,14 @@ namespace OldGods.Runtime
                 float s = rng.Range(0.8f, 2.6f);
                 var pos = new Vector3(x, field.Sample(x, z) - 0.3f, z);
                 var rot = Quaternion.Euler(0f, rng.Range(0f, 360f), rng.Range(-8f, 8f));
+                float sy = rng.Range(0.8f, 1.6f);
+                if (layout != null && !layout.IsClear(x, z, 2f)) continue;
                 if (Biome.RockPrefabs.Count > 0) PlacePrefab(Biome.RockPrefabs[rng.Range(0, Biome.RockPrefabs.Count)], pos, rot, s);
-                else WorldBuilder.CreateProp("Rock", rock, rockMat, pos, rot, new Vector3(s, s * rng.Range(0.8f, 1.6f), s), worldRoot, true);
+                else
+                {
+                    WorldBuilder.CreateProp("Rock", rock, rockMat, pos, rot, new Vector3(s, s * sy, s), worldRoot, true);
+                    layout?.Obstacles.Add(Capsule.Circle(x, z, PropRadius(Biome.RockModel) * s));
+                }
             }
             if (Biome.TreeCount > 0)
             {
@@ -318,9 +334,26 @@ namespace OldGods.Runtime
                     float s = rng.Range(0.9f, 1.6f);
                     var at = new Vector3(x, field.Sample(x, z) - 0.2f, z);
                     var rot = Quaternion.Euler(0f, rng.Range(0f, 360f), 0f);
+                    if (layout != null && !layout.IsClear(x, z, 1.5f)) continue;
                     if (Biome.TreePrefabs.Count > 0) PlacePrefab(Biome.TreePrefabs[rng.Range(0, Biome.TreePrefabs.Count)], at, rot, s);
-                    else WorldBuilder.CreateProp("Tree", tree, treeMat, at, rot, Vector3.one * s, worldRoot, true);
+                    else
+                    {
+                        WorldBuilder.CreateProp("Tree", tree, treeMat, at, rot, Vector3.one * s, worldRoot, true);
+                        layout?.Obstacles.Add(Capsule.Circle(x, z, PropRadius(Biome.TreeModel) * s));
+                    }
                 }
+            }
+        }
+
+        /// <summary>Radius of a built-in prop's solid core at scale 1, for the horde.</summary>
+        static float PropRadius(PropModel model)
+        {
+            switch (model)
+            {
+                case PropModel.Boulder: return 0.85f;
+                case PropModel.SeaStack: return 1.1f;
+                case PropModel.StandingStone: return 0.4f;
+                default: return 0.3f; // trunks and driftwood
             }
         }
 

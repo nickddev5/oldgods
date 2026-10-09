@@ -10,6 +10,8 @@ namespace OldGods.Runtime
         public string Id = "biome.new";
         public string DisplayName = "New Biome";
         public TerrainProfile Terrain = new TerrainProfile();
+        [Tooltip("Landmarks, the road and the wall this biome's maps are dressed with.")]
+        public LayoutProfile Layout = new LayoutProfile();
         public GroundPalette Palette = new GroundPalette();
         public StageTimelineDef Timeline = new StageTimelineDef();
         public BossDefinition Boss;
@@ -36,5 +38,20 @@ namespace OldGods.Runtime
         [Tooltip("Imported prefabs used instead of the built-in rocks and trees, picked at random.")]
         public System.Collections.Generic.List<GameObject> RockPrefabs = new System.Collections.Generic.List<GameObject>();
         public System.Collections.Generic.List<GameObject> TreePrefabs = new System.Collections.Generic.List<GameObject>();
+
+        [Header("Ruins")]
+        [Tooltip("Moss on the steppe, char in the wood, weed on the coast.")]
+        public Color DressingGrowth = new Color(0.42f, 0.55f, 0.3f);
+        public Color DressingWood = new Color(0.45f, 0.34f, 0.24f);
+        [Tooltip("Fire on altars and embers in the ground; HDR, so it glows.")]
+        public Color DressingGlow = new Color(2.4f, 1.1f, 0.35f);
+
+        public DressingColors Colors() => new DressingColors
+        {
+            Stone = Color.Lerp(RockColor, Color.white, 0.12f),
+            Growth = DressingGrowth,
+            Wood = DressingWood,
+            Dark = new Color(0.07f, 0.065f, 0.06f),
+        };
     }
 }

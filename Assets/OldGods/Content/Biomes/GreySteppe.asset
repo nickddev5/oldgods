@@ -17,21 +17,54 @@ MonoBehaviour:
   Terrain:
     Cells: 128
     CellSize: 2
-    HillHeight: 14
-    HillScale: 70
+    HillHeight: 18
+    HillScale: 65
     HillOctaves: 4
+    RidgeHeight: 9
+    RidgeScale: 120
     CliffStep: 3
-    CliffAmount: 0.15
+    CliffAmount: 0.1
     CliffScale: 90
     SpawnFlatRadius: 12
     RimHeight: 14
     RimWidth: 16
     WaterLevel: -1000
+  Layout:
+    Road: 1
+    RoadWidth: 6
+    RoadMinHeight: -1000
+    Wall: 1
+    Landmarks:
+    - Kind: 0
+      Count: 2
+    - Kind: 3
+      Count: 1
+    - Kind: 4
+      Count: 1
+    - Kind: 1
+      Count: 2
+    - Kind: 2
+      Count: 3
+    - Kind: 11
+      Count: 3
+    - Kind: 12
+      Count: 4
+    Spacing: 10
+    MinFromSpawn: 26
   Palette:
     Low: {r: 0.45, g: 0.52, b: 0.33, a: 1}
     High: {r: 0.62, g: 0.6, b: 0.42, a: 1}
     Cliff: {r: 0.5, g: 0.48, b: 0.45, a: 1}
     Rim: {r: 0.4, g: 0.38, b: 0.36, a: 1}
+    Road: {r: 0.58, g: 0.55, b: 0.48, a: 1}
+    Stone: {r: 0.6, g: 0.58, b: 0.53, a: 1}
+    Accent: {r: 0.58, g: 0.62, b: 0.36, a: 1}
+    Patch: {r: 0.62, g: 0.6, b: 0.4, a: 1}
+    PatchAmount: 0.55
+    ClutterDensity: 7
+    Tuft: {r: 0.45, g: 0.56, b: 0.3, a: 1}
+    Flower: {r: 0.86, g: 0.82, b: 0.6, a: 1}
+    Pebble: {r: 0.62, g: 0.6, b: 0.56, a: 1}
     CliffSlope: 38
   Timeline:
     Duration: 600
@@ -119,6 +152,11 @@ MonoBehaviour:
   RockModel: 1
   TreeModel: 3
   RockColor: {r: 0.58, g: 0.56, b: 0.54, a: 1}
-  RockCount: 110
+  RockCount: 45
   TreeColor: {r: 0.3, g: 0.42, b: 0.25, a: 1}
-  TreeCount: 15
+  TreeCount: 25
+  RockPrefabs: []
+  TreePrefabs: []
+  DressingGrowth: {r: 0.4, g: 0.52, b: 0.28, a: 1}
+  DressingWood: {r: 0.45, g: 0.34, b: 0.24, a: 1}
+  DressingGlow: {r: 2.4, g: 1.1, b: 0.35, a: 1}

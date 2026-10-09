@@ -425,6 +425,57 @@ namespace OldGods.Editor
                 assets.ContentVersion = 4;
                 EditorUtility.SetDirty(assets);
             }
+            if (assets.ContentVersion < 5)
+            {
+                // Level pass 2026-10-09: every stage gets landmarks, ruins and its own ground marks.
+                foreach (var b in assets.Stages)
+                {
+                    if (b == null) continue;
+                    ApplyLevelDressing(b);
+                    EditorUtility.SetDirty(b);
+                }
+                assets.ContentVersion = 5;
+                EditorUtility.SetDirty(assets);
+            }
+        }
+
+        /// <summary>The landmark sets and ground marks that give each biome its own maps. PLACEHOLDER numbers.</summary>
+        public static void ApplyLevelDressing(BiomeDefinition b)
+        {
+            LayoutProfile L;
+            if (b.Id == "biome.grey_steppe")
+            {
+                L = LayoutPresets.GreySteppe();
+                b.Terrain.HillHeight = 18f; b.Terrain.HillScale = 65f; b.Terrain.CliffAmount = 0.1f;
+                b.Terrain.RidgeHeight = 9f; b.Terrain.RidgeScale = 120f;
+                b.RockCount = 45; b.TreeCount = 25;
+                b.Palette.Patch = new Color(0.62f, 0.6f, 0.4f); b.Palette.PatchAmount = 0.55f; b.Palette.ClutterDensity = 7f;
+                b.Palette.Tuft = new Color(0.45f, 0.56f, 0.3f); b.Palette.Flower = new Color(0.86f, 0.82f, 0.6f); b.Palette.Pebble = new Color(0.62f, 0.6f, 0.56f);
+                b.Palette.Road = new Color(0.58f, 0.55f, 0.48f); b.Palette.Stone = new Color(0.6f, 0.58f, 0.53f); b.Palette.Accent = new Color(0.58f, 0.62f, 0.36f);
+                b.DressingGrowth = new Color(0.4f, 0.52f, 0.28f); b.DressingGlow = new Color(2.4f, 1.1f, 0.35f);
+            }
+            else if (b.Id == "biome.ash_wood")
+            {
+                L = LayoutPresets.AshWood();
+                b.Terrain.CliffAmount = 0.25f;
+                b.Terrain.RidgeHeight = 8f; b.Terrain.RidgeScale = 70f;
+                b.TreeCount = 170;
+                b.Palette.Patch = new Color(0.18f, 0.16f, 0.15f); b.Palette.PatchAmount = 0.6f; b.Palette.ClutterDensity = 5f;
+                b.Palette.Tuft = new Color(0.24f, 0.2f, 0.17f); b.Palette.Flower = new Color(1f, 0.45f, 0.15f); b.Palette.Pebble = new Color(0.2f, 0.19f, 0.18f);
+                b.Palette.Road = new Color(0.3f, 0.27f, 0.25f); b.Palette.Stone = new Color(0.34f, 0.31f, 0.29f); b.Palette.Accent = new Color(0.3f, 0.15f, 0.1f);
+                b.DressingGrowth = new Color(0.12f, 0.1f, 0.09f); b.DressingWood = new Color(0.36f, 0.27f, 0.2f); b.DressingGlow = new Color(3f, 1f, 0.25f);
+            }
+            else if (b.Id == "biome.drowned_coast")
+            {
+                L = LayoutPresets.DrownedCoast(b.Terrain.WaterLevel);
+                b.Terrain.CliffAmount = 0.35f;
+                b.Palette.Patch = new Color(0.68f, 0.64f, 0.52f); b.Palette.PatchAmount = 0.4f; b.Palette.ClutterDensity = 5f;
+                b.Palette.Tuft = new Color(0.55f, 0.6f, 0.42f); b.Palette.Flower = new Color(0.9f, 0.88f, 0.82f); b.Palette.Pebble = new Color(0.55f, 0.57f, 0.6f);
+                b.Palette.Road = new Color(0.55f, 0.53f, 0.48f); b.Palette.Stone = new Color(0.6f, 0.6f, 0.58f); b.Palette.Accent = new Color(0.38f, 0.46f, 0.38f);
+                b.DressingGrowth = new Color(0.22f, 0.36f, 0.28f); b.DressingWood = new Color(0.55f, 0.46f, 0.36f); b.DressingGlow = new Color(2.2f, 1.3f, 0.5f);
+            }
+            else return;
+            b.Layout = L;
         }
 
         static void Items(ContentLibrary l)
