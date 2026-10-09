@@ -24,6 +24,11 @@ namespace OldGods.Runtime
 
         BodyPart part;
         Vector3 pivot;
+        // When set, rounded primitives give each vertex its own normal (smooth shading).
+        System.Func<Vector3, Vector3, Vector3> normalAt;
+
+        /// <summary>Rounded shapes (balls, limbs, lathes) shade smoothly; blocks and boxes stay faceted.</summary>
+        public bool Smooth = true;
 
         public int VertexCount => verts.Count;
         public int TriangleCount => tris.Count / 3;
@@ -44,7 +49,14 @@ namespace OldGods.Runtime
             n.Normalize();
             int i = verts.Count;
             verts.Add(a); verts.Add(b); verts.Add(c);
-            normals.Add(n); normals.Add(n); normals.Add(n);
+            if (normalAt != null)
+            {
+                normals.Add(normalAt(a, n)); normals.Add(normalAt(b, n)); normals.Add(normalAt(c, n));
+            }
+            else
+            {
+                normals.Add(n); normals.Add(n); normals.Add(n);
+            }
             // Vertex colours are not converted by the pipeline; author in sRGB, store linear.
             Color lin = color.linear;
             colors.Add(lin); colors.Add(lin); colors.Add(lin);
@@ -146,8 +158,41 @@ namespace OldGods.Runtime
         /// A stack of rings along y with a radius per ring: robes, tree trunks, vases.
         /// profile is (height, radius) pairs from bottom to top; the last radius may be 0 for a point.
         /// </summary>
-        public void Lathe(Vector3 baseCenter, Vector2[] profile, int sides, Color color, float squashZ = 1f)
+        public void Lathe(Vector3 baseCenter, Vector2[] profile, int sides, Color color, float squashZ = 1f, Quaternion? rotation = null)
         {
+            Quaternion q = rotation ?? Quaternion.identity;
+            Quaternion inv = Quaternion.Inverse(q);
+            Vector3 W(Vector3 local) => baseCenter + q * local;
+            if (Smooth)
+            {
+                // Per profile point: the outward direction in the (radius, height) plane,
+                // averaged over the segments that meet there, so rings share one normal.
+                var bend = new Vector2[profile.Length];
+                for (int k = 0; k < profile.Length; k++)
+                {
+                    Vector2 sum = Vector2.zero;
+                    if (k > 0) sum += Outward(profile[k - 1], profile[k]);
+                    if (k < profile.Length - 1) sum += Outward(profile[k], profile[k + 1]);
+                    bend[k] = sum.sqrMagnitude > 1e-10f ? sum.normalized : new Vector2(1f, 0f);
+                }
+                normalAt = (v, face) =>
+                {
+                    var l = inv * (v - baseCenter);
+                    var radial = new Vector3(l.x, 0f, l.z / Mathf.Max(0.05f, squashZ * squashZ));
+                    if (radial.sqrMagnitude < 1e-8f) return face;
+                    radial.Normalize();
+                    int best = 0;
+                    float bestD = float.MaxValue;
+                    for (int k = 0; k < profile.Length; k++)
+                    {
+                        float d = Mathf.Abs(profile[k].x - l.y);
+                        if (d < bestD) { bestD = d; best = k; }
+                    }
+                    var n = q * (radial * bend[best].x + Vector3.up * bend[best].y).normalized;
+                    return Vector3.Dot(n, face) < 0f ? -n : n;
+                };
+            }
+            Vector3 D(float a, float rad, float y) => W(new Vector3(Mathf.Cos(a) * rad, y, Mathf.Sin(a) * rad * squashZ));
             for (int r = 0; r < profile.Length - 1; r++)
             {
                 float y0 = profile[r].x, y1 = profile[r + 1].x;
@@ -155,30 +200,46 @@ namespace OldGods.Runtime
                 for (int i = 0; i < sides; i++)
                 {
                     float a0 = i * Mathf.PI * 2f / sides, a1 = (i + 1) * Mathf.PI * 2f / sides;
-                    Vector3 D(float a, float rad, float y) => baseCenter + new Vector3(Mathf.Cos(a) * rad, y, Mathf.Sin(a) * rad * squashZ);
-                    var shade = color * (0.9f + 0.1f * Mathf.Cos(a0 + 0.6f));
-                    if (r1 > 1e-4f) Quad(D(a0, r0, y0), D(a0, r1, y1), D(a1, r1, y1), D(a1, r0, y0), shade);
-                    else Triangle(D(a0, r0, y0), baseCenter + Vector3.up * y1, D(a1, r0, y0), shade);
+                    var shade = Smooth ? color : color * (0.9f + 0.1f * Mathf.Cos(a0 + 0.6f));
+                    // Profiles may run downward (capes, brims); flip the winding so faces point out.
+                    if (y1 >= y0)
+                    {
+                        if (r1 > 1e-4f && r0 > 1e-4f) Quad(D(a0, r0, y0), D(a0, r1, y1), D(a1, r1, y1), D(a1, r0, y0), shade);
+                        else if (r1 <= 1e-4f) Triangle(D(a0, r0, y0), W(Vector3.up * y1), D(a1, r0, y0), shade);
+                        else Triangle(W(Vector3.up * y0), D(a0, r1, y1), D(a1, r1, y1), shade);
+                    }
+                    else
+                    {
+                        if (r1 > 1e-4f && r0 > 1e-4f) Quad(D(a1, r0, y0), D(a1, r1, y1), D(a0, r1, y1), D(a0, r0, y0), shade);
+                        else if (r1 <= 1e-4f) Triangle(D(a1, r0, y0), W(Vector3.up * y1), D(a0, r0, y0), shade);
+                        else Triangle(W(Vector3.up * y0), D(a1, r1, y1), D(a0, r1, y1), shade);
+                    }
                 }
             }
+            normalAt = null;
             var first = profile[0];
             if (first.y > 1e-4f)
                 for (int i = 0; i < sides; i++)
                 {
                     float a0 = i * Mathf.PI * 2f / sides, a1 = (i + 1) * Mathf.PI * 2f / sides;
-                    Triangle(baseCenter + Vector3.up * first.x,
-                        baseCenter + new Vector3(Mathf.Cos(a0) * first.y, first.x, Mathf.Sin(a0) * first.y * squashZ),
-                        baseCenter + new Vector3(Mathf.Cos(a1) * first.y, first.x, Mathf.Sin(a1) * first.y * squashZ), color * 0.8f);
+                    Triangle(W(Vector3.up * first.x), D(a0, first.y, first.x), D(a1, first.y, first.x), color * 0.8f);
                 }
             var last = profile[profile.Length - 1];
             if (last.y > 1e-4f)
                 for (int i = 0; i < sides; i++)
                 {
                     float a0 = i * Mathf.PI * 2f / sides, a1 = (i + 1) * Mathf.PI * 2f / sides;
-                    Triangle(baseCenter + Vector3.up * last.x,
-                        baseCenter + new Vector3(Mathf.Cos(a1) * last.y, last.x, Mathf.Sin(a1) * last.y * squashZ),
-                        baseCenter + new Vector3(Mathf.Cos(a0) * last.y, last.x, Mathf.Sin(a0) * last.y * squashZ), color);
+                    Triangle(W(Vector3.up * last.x), D(a1, last.y, last.x), D(a0, last.y, last.x), color);
                 }
+        }
+
+        // Outward normal of a profile segment in (radius, height) space.
+        static Vector2 Outward(Vector2 from, Vector2 to)
+        {
+            var d = new Vector2(to.y - from.y, to.x - from.x); // (dr, dy)
+            var n = new Vector2(d.y, -d.x);                     // rotate: (dy, -dr)
+            if (to.x < from.x) n = -n;                          // downward profiles
+            return n.sqrMagnitude > 1e-12f ? n.normalized : Vector2.zero;
         }
 
         /// <summary>
@@ -189,6 +250,16 @@ namespace OldGods.Runtime
         {
             Quaternion q = rotation ?? Quaternion.identity;
             var rnd = new System.Random(seed);
+            if (Smooth && jitter <= 0f)
+            {
+                var inv = Quaternion.Inverse(q);
+                normalAt = (v, face) =>
+                {
+                    var local = inv * (v - center);
+                    var n = new Vector3(local.x / Mathf.Max(1e-4f, radii.x * radii.x), local.y / Mathf.Max(1e-4f, radii.y * radii.y), local.z / Mathf.Max(1e-4f, radii.z * radii.z));
+                    return n.sqrMagnitude > 1e-10f ? (q * n).normalized : face;
+                };
+            }
             var grid = new Vector3[rings + 1, segments];
             for (int y = 0; y <= rings; y++)
             {
@@ -206,12 +277,13 @@ namespace OldGods.Runtime
                 for (int x = 0; x < segments; x++)
                 {
                     int x1 = (x + 1) % segments;
-                    var shade = color * (0.85f + 0.15f * (y / (float)rings));
+                    var shade = Smooth ? color : color * (0.85f + 0.15f * (y / (float)rings));
                     Vector3 a = grid[y, x], b = grid[y + 1, x], c = grid[y + 1, x1], d = grid[y, x1];
                     if (y == 0) Triangle(a, b, c, shade);
                     else if (y == rings - 1) Triangle(a, b, d, shade);
                     else Quad(a, b, c, d, shade);
                 }
+            normalAt = null;
         }
 
         /// <summary>A tapered limb between two points with flat ends: arms, legs, horns, branches.</summary>
@@ -225,11 +297,21 @@ namespace OldGods.Runtime
             Vector3 up = Vector3.Cross(side, dir);
             for (int i = 0; i < sides; i++)
             {
+                if (Smooth)
+                    normalAt = (v, face) =>
+                    {
+                        var rel = v - from;
+                        var radial = rel - dir * Vector3.Dot(rel, dir);
+                        if (radial.sqrMagnitude < 1e-10f) return face;
+                        float slope = (radiusFrom - radiusTo) / len;
+                        return (radial.normalized + dir * slope).normalized;
+                    };
                 float a0 = i * Mathf.PI * 2f / sides, a1 = (i + 1) * Mathf.PI * 2f / sides;
                 Vector3 o0 = side * Mathf.Cos(a0) + up * Mathf.Sin(a0);
                 Vector3 o1 = side * Mathf.Cos(a1) + up * Mathf.Sin(a1);
-                var shade = color * (0.88f + 0.12f * Mathf.Sin(a0 + 0.8f));
+                var shade = Smooth ? color : color * (0.88f + 0.12f * Mathf.Sin(a0 + 0.8f));
                 Quad(from + o0 * radiusFrom, to + o0 * radiusTo, to + o1 * radiusTo, from + o1 * radiusFrom, shade);
+                normalAt = null;
                 if (radiusTo > 1e-4f) Triangle(to, to + o1 * radiusTo, to + o0 * radiusTo, color);
                 if (radiusFrom > 1e-4f) Triangle(from, from + o0 * radiusFrom, from + o1 * radiusFrom, color * 0.85f);
             }

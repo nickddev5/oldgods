@@ -110,7 +110,7 @@ namespace OldGods.Runtime
             Horde = WorldBuilder.CreateHorde(Assets, Player, null);
             Horde.SpawnRng = Seed.Stream(RunSeed.Spawns);
             foreach (var e in Assets.Content.Enemies)
-                if (e != null) Horde.RegisterType(Content.Enemy(e.Id), e.MeshOrPlaceholder, e.Color, e.Emission, e.WalkSwing);
+                if (e != null) Horde.RegisterType(Content.Enemy(e.Id), e.MeshOrPlaceholder, e.Mesh != null ? e.Color : Color.white, e.Mesh != null ? e.Emission : e.Emission * 0.25f, e.WalkSwing);
 
             var systems = new GameObject("Combat Systems");
             Pickups = systems.AddComponent<Pickups>();

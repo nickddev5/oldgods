@@ -57,7 +57,7 @@ namespace OldGods.Runtime
                 float a = Mathf.Lerp(-70f, 70f, i / 5f) * Mathf.Deg2Rad;
                 var at = Ground.Snap(throne.transform.position + new Vector3(Mathf.Sin(a) * 16f, 0f, Mathf.Cos(a) * 9f + 2f));
                 WorldBuilder.CreateProp("Plinth", Fx.Column(), stone, at, Quaternion.identity, new Vector3(1.4f, 1.2f, 1.4f), go.transform, true);
-                var statue = WorldBuilder.CreateProp($"Old God {i + 1}", GodModels.Get((GodLook)i), stone, at + Vector3.up * 1.2f,
+                var statue = WorldBuilder.CreateProp($"Old God {i + 1}", GodModels.Statue((GodLook)i), stone, at + Vector3.up * 1.2f,
                     Quaternion.LookRotation(throne.transform.position - at), Vector3.one * 2.4f, go.transform, false);
                 arena.statues.Add(statue.transform);
             }

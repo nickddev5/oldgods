@@ -103,7 +103,8 @@ namespace OldGods.Runtime
             }
             visual.AddComponent<MeshFilter>().sharedMesh = body != null ? body : GodModels.Get(GodLook.Storm);
             var mr = visual.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = Tinted(assets.LowPoly, robe);
+            // Built-in god models carry their own colours; an untinted material shows them as authored.
+            mr.sharedMaterial = Tinted(assets.LowPoly, body != null ? Color.white : robe);
             visual.AddComponent<WalkAnimator>().Tracked = go.transform;
             if (mark != default)
             {

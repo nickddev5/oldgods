@@ -4,155 +4,194 @@ using UnityEngine;
 namespace OldGods.Runtime
 {
     /// <summary>
-    /// The seven gods: a robed figure about 1.85 m tall with hands, feet, a masked face and a
-    /// domain-specific crown and gear. The robe is the body; feet and arms are tagged so the
-    /// shader can walk them. Face +z, feet at y = 0.
+    /// The seven gods as dressed figures (about 1.75 m): layered clothes, belts and pouches,
+    /// faces, hands and their domain's gear. Colours are in the mesh, so the material is white.
+    /// Statues use the same shapes in a single stone colour.
     /// </summary>
     public static class GodModels
     {
-        static readonly Dictionary<GodLook, Mesh> cache = new Dictionary<GodLook, Mesh>();
-        static readonly Color Robe = new Color(0.92f, 0.92f, 0.92f);
-        static readonly Color Trim = new Color(0.72f, 0.72f, 0.72f);
-        static readonly Color Skin = new Color(1f, 0.93f, 0.85f);
-        static readonly Color Gold = new Color(1f, 0.82f, 0.45f);
-        static readonly Color Dark = new Color(0.35f, 0.33f, 0.32f);
-        static readonly Color Pale = Color.white;
+        static readonly Dictionary<string, Mesh> cache = new Dictionary<string, Mesh>();
 
-        public static Mesh Get(GodLook look)
+        public static Mesh Get(GodLook look) => Build(look, false);
+        public static Mesh Statue(GodLook look) => Build(look, true);
+
+        static Mesh Build(GodLook look, bool stone)
         {
-            if (cache.TryGetValue(look, out var m) && m != null) return m;
+            string key = look + (stone ? "_stone" : "");
+            if (cache.TryGetValue(key, out var m) && m != null) return m;
             var k = new MeshKit();
-            Build(k, look);
-            m = k.Build("God" + look);
-            cache[look] = m;
+            var p = PaletteFor(look);
+            if (stone)
+            {
+                var g = new Color(0.78f, 0.77f, 0.74f);
+                var d = new Color(0.62f, 0.61f, 0.59f);
+                p = new Palette { Skin = g, SkinShade = d, Cloth = g, Cloth2 = d, Leather = d, Metal = g, Trim = g, Hair = d, Eye = g, Pupil = d, Glow = g };
+            }
+            Dress(new Figure(k, FigureSpec.Human, p).Layout(), look);
+            m = k.Build("God" + key);
+            cache[key] = m;
             return m;
         }
 
-        static void Build(MeshKit k, GodLook look)
+        static Palette PaletteFor(GodLook look)
         {
-            float tall = look == GodLook.Elias ? 1.06f : look == GodLook.Earth ? 0.97f : 1f;
-            float broad = look == GodLook.Forge || look == GodLook.Earth ? 1.18f : look == GodLook.Hunt ? 0.9f : 1f;
-
-            // Feet under the hem, tagged as legs.
-            for (int side = -1; side <= 1; side += 2)
-            {
-                var hip = new Vector3(side * 0.11f, 0.75f, 0f);
-                k.Part(side < 0 ? BodyPart.LeftLeg : BodyPart.RightLeg, hip);
-                k.Limb(new Vector3(side * 0.11f, 0.3f, 0f), new Vector3(side * 0.11f, 0.08f, 0f), 0.06f, 0.05f, Dark, 6);
-                k.Box(new Vector3(side * 0.11f, 0.04f, 0.07f), new Vector3(0.1f, 0.08f, 0.22f), Dark, 0.75f);
-            }
-
-            k.Body();
-            // Robe: flared hem, cinched waist, broad chest.
-            k.Lathe(Vector3.zero, new[]
-            {
-                new Vector2(0.06f, 0.4f * broad), new Vector2(0.3f, 0.34f * broad), new Vector2(0.7f, 0.25f * broad),
-                new Vector2(0.9f * tall, 0.22f * broad), new Vector2(1.2f * tall, 0.27f * broad), new Vector2(1.42f * tall, 0.2f * broad),
-                new Vector2(1.5f * tall, 0.1f),
-            }, 12, Robe, 0.8f);
-            // Belt and a sash down the front.
-            k.Lathe(new Vector3(0f, 0.86f * tall, 0f), new[] { new Vector2(0f, 0.235f * broad), new Vector2(0.08f, 0.235f * broad) }, 12, Gold, 0.8f);
-            k.Box(new Vector3(0f, 0.45f, 0.26f * broad), new Vector3(0.12f, 0.8f, 0.03f), Trim, 1f, Quaternion.Euler(-8f, 0f, 0f));
-            // Mantle over the shoulders.
-            k.Ball(new Vector3(0f, 1.38f * tall, -0.02f), new Vector3(0.36f * broad, 0.12f, 0.24f), Trim, 10, 4);
-
-            // Arms in loose sleeves with hands.
-            for (int side = -1; side <= 1; side += 2)
-            {
-                var shoulder = new Vector3(side * 0.3f * broad, 1.36f * tall, 0f);
-                k.Part(side < 0 ? BodyPart.LeftArm : BodyPart.RightArm, shoulder);
-                var elbow = shoulder + new Vector3(side * 0.06f, -0.32f, 0.04f);
-                var wrist = elbow + new Vector3(0f, -0.26f, 0.12f);
-                k.Limb(shoulder, elbow, 0.08f, 0.09f, Robe, 7);
-                k.Limb(elbow, wrist, 0.09f, 0.11f, Robe, 7);
-                k.Ball(wrist + new Vector3(0f, -0.06f, 0.03f), new Vector3(0.05f, 0.065f, 0.045f), Skin, 6, 3);
-            }
-
-            // Head: face, hair or hood, and a mask.
-            var neck = new Vector3(0f, 1.5f * tall, 0f);
-            k.Part(BodyPart.Head, neck);
-            var head = neck + new Vector3(0f, 0.17f, 0.02f);
-            k.Limb(neck - Vector3.up * 0.04f, head - Vector3.up * 0.08f, 0.06f, 0.055f, Skin, 6);
-            k.Ball(head, new Vector3(0.13f, 0.155f, 0.14f), Skin, 9, 6);
-            k.Ball(head + new Vector3(0f, 0.04f, -0.03f), new Vector3(0.14f, 0.15f, 0.14f), Dark, 9, 5); // hair
-            k.Block(head + new Vector3(0f, 0.01f, 0.12f), new Vector3(0.2f, 0.12f, 0.04f), Gold, 0.4f); // mask
-            k.Ball(head + new Vector3(-0.045f, 0.015f, 0.145f), new Vector3(0.018f, 0.012f, 0.01f), Dark, 4, 2);
-            k.Ball(head + new Vector3(0.045f, 0.015f, 0.145f), new Vector3(0.018f, 0.012f, 0.01f), Dark, 4, 2);
-
+            var p = Palette.Neutral;
             switch (look)
             {
                 case GodLook.Storm:
-                    for (int i = -2; i <= 2; i++)
-                        k.Limb(head + new Vector3(i * 0.06f, 0.12f, -0.01f), head + new Vector3(i * 0.11f, 0.38f - Mathf.Abs(i) * 0.05f, -0.04f), 0.025f, 0f, Pale, 4);
-                    k.Body();
-                    // A furled cloak like a stormcloud.
-                    k.Ball(new Vector3(0f, 1.05f, -0.28f), new Vector3(0.3f, 0.45f, 0.1f), Trim, 8, 5, null, 0.08f, 7);
+                    p.Cloth = new Color(0.22f, 0.42f, 0.72f); p.Cloth2 = new Color(0.25f, 0.27f, 0.32f); p.Trim = new Color(0.85f, 0.88f, 0.95f);
+                    p.Hair = new Color(0.82f, 0.84f, 0.88f); p.Glow = new Color(0.6f, 0.85f, 1f); p.Skin = new Color(0.86f, 0.74f, 0.64f);
                     break;
                 case GodLook.Forge:
-                    k.Lathe(head + Vector3.up * 0.1f, new[] { new Vector2(0f, 0.15f), new Vector2(0.08f, 0.15f) }, 8, Dark);
-                    k.Body();
-                    k.Block(new Vector3(-0.38f, 1.4f, 0f), new Vector3(0.24f, 0.14f, 0.3f), Dark, 0.35f, Quaternion.Euler(0f, 0f, 18f));
-                    k.Block(new Vector3(0.38f, 1.4f, 0f), new Vector3(0.24f, 0.14f, 0.3f), Dark, 0.35f, Quaternion.Euler(0f, 0f, -18f));
-                    // Hammer across the back.
-                    k.Limb(new Vector3(-0.25f, 0.65f, -0.3f), new Vector3(0.3f, 1.45f, -0.3f), 0.03f, 0.03f, Dark, 5);
-                    k.Block(new Vector3(0.32f, 1.48f, -0.3f), new Vector3(0.22f, 0.13f, 0.13f), Trim, 0.25f, Quaternion.Euler(0f, 0f, 35f));
-                    // Leather apron.
-                    k.Block(new Vector3(0f, 0.6f, 0.27f), new Vector3(0.36f, 0.55f, 0.04f), Dark, 0.2f, Quaternion.Euler(-6f, 0f, 0f));
+                    p.Cloth = new Color(0.55f, 0.32f, 0.18f); p.Cloth2 = new Color(0.3f, 0.27f, 0.25f); p.Trim = new Color(0.95f, 0.6f, 0.25f);
+                    p.Hair = new Color(0.45f, 0.2f, 0.1f); p.Skin = new Color(0.76f, 0.56f, 0.42f); p.SkinShade = new Color(0.62f, 0.44f, 0.33f);
                     break;
                 case GodLook.Tide:
-                    k.Ball(head + new Vector3(0f, 0.02f, -0.04f), new Vector3(0.18f, 0.2f, 0.18f), Robe, 9, 5); // hood
-                    k.Limb(head + new Vector3(0f, 0.16f, -0.08f), head + new Vector3(0f, 0.32f, -0.3f), 0.06f, 0f, Pale, 5);
-                    k.Body();
-                    for (int i = 0; i < 4; i++)
-                    {
-                        float a = i * 0.6f - 0.9f;
-                        var root = new Vector3(Mathf.Sin(a) * 0.32f, 0.3f, -Mathf.Cos(a) * 0.26f);
-                        k.Limb(root, root + new Vector3(Mathf.Sin(a) * 0.1f, -0.25f, -0.08f), 0.04f, 0f, Pale, 4);
-                    }
+                    p.Cloth = new Color(0.2f, 0.55f, 0.55f); p.Cloth2 = new Color(0.82f, 0.86f, 0.84f); p.Trim = new Color(0.95f, 0.92f, 0.82f);
+                    p.Hair = new Color(0.12f, 0.25f, 0.28f); p.Skin = new Color(0.8f, 0.72f, 0.66f);
                     break;
                 case GodLook.Hunt:
-                    k.Limb(head + new Vector3(-0.08f, 0.12f, 0f), head + new Vector3(-0.22f, 0.36f, -0.1f), 0.022f, 0f, Pale, 4);
-                    k.Limb(head + new Vector3(0.08f, 0.12f, 0f), head + new Vector3(0.22f, 0.36f, -0.1f), 0.022f, 0f, Pale, 4);
-                    k.Limb(head + new Vector3(-0.15f, 0.25f, -0.05f), head + new Vector3(-0.26f, 0.3f, -0.02f), 0.015f, 0f, Pale, 4);
-                    k.Limb(head + new Vector3(0.15f, 0.25f, -0.05f), head + new Vector3(0.26f, 0.3f, -0.02f), 0.015f, 0f, Pale, 4);
-                    k.Body();
-                    // Quiver of spears.
-                    k.Lathe(new Vector3(0.12f, 0.95f, -0.3f), new[] { new Vector2(0f, 0.06f), new Vector2(0.5f, 0.07f) }, 6, Dark);
-                    for (int i = 0; i < 3; i++)
-                        k.Limb(new Vector3(0.08f + i * 0.04f, 1.4f, -0.3f), new Vector3(0.1f + i * 0.05f, 1.75f, -0.32f), 0.012f, 0f, Pale, 3);
+                    p.Cloth = new Color(0.32f, 0.48f, 0.27f); p.Cloth2 = new Color(0.4f, 0.32f, 0.24f); p.Trim = new Color(0.88f, 0.84f, 0.72f);
+                    p.Hair = new Color(0.62f, 0.38f, 0.18f);
                     break;
                 case GodLook.Ember:
-                    for (int i = 0; i < 7; i++)
-                    {
-                        float a = i * Mathf.PI * 2f / 7f;
-                        var root = head + new Vector3(Mathf.Cos(a) * 0.12f, 0.12f, Mathf.Sin(a) * 0.12f);
-                        k.Limb(root, root + new Vector3(Mathf.Cos(a) * 0.04f, 0.14f + (i % 2) * 0.08f, Mathf.Sin(a) * 0.04f), 0.03f, 0f, Gold, 4);
-                    }
-                    k.Body();
-                    // A brazier at the belt.
-                    k.Lathe(new Vector3(-0.27f, 0.62f, 0.08f), new[] { new Vector2(0f, 0.03f), new Vector2(0.08f, 0.08f), new Vector2(0.1f, 0.07f) }, 7, Gold);
+                    p.Cloth = new Color(0.78f, 0.25f, 0.15f); p.Cloth2 = new Color(0.22f, 0.18f, 0.17f); p.Trim = new Color(1f, 0.7f, 0.25f);
+                    p.Hair = new Color(0.9f, 0.45f, 0.15f); p.Glow = new Color(1f, 0.6f, 0.2f); p.Skin = new Color(0.82f, 0.62f, 0.5f);
                     break;
                 case GodLook.Earth:
-                    k.Limb(head + new Vector3(-0.12f, 0.06f, 0f), head + new Vector3(-0.26f, 0.12f, 0.08f), 0.035f, 0.01f, Pale, 5);
-                    k.Limb(head + new Vector3(0.12f, 0.06f, 0f), head + new Vector3(0.26f, 0.12f, 0.08f), 0.035f, 0.01f, Pale, 5);
-                    k.Body();
-                    // A stone mantle.
-                    k.Ball(new Vector3(0f, 1.42f, -0.05f), new Vector3(0.46f, 0.12f, 0.3f), Trim, 7, 3, null, 0.12f, 11);
-                    for (int i = -1; i <= 1; i++)
-                        k.Block(new Vector3(i * 0.22f, 1.5f, -0.1f), new Vector3(0.14f, 0.12f, 0.14f), Dark, 0.3f, Quaternion.Euler(0f, i * 25f, i * -15f));
+                    p.Cloth = new Color(0.62f, 0.5f, 0.3f); p.Cloth2 = new Color(0.36f, 0.34f, 0.3f); p.Trim = new Color(0.55f, 0.72f, 0.42f);
+                    p.Hair = new Color(0.3f, 0.26f, 0.22f); p.Metal = new Color(0.58f, 0.56f, 0.53f); p.Skin = new Color(0.66f, 0.5f, 0.38f);
                     break;
                 case GodLook.Elias:
-                    for (int i = 0; i < 9; i++)
-                    {
-                        float a = i * Mathf.PI * 2f / 9f;
-                        var root = head + new Vector3(Mathf.Cos(a) * 0.14f, 0.12f, Mathf.Sin(a) * 0.14f);
-                        k.Limb(root, root + new Vector3(0f, 0.08f + (i % 3 == 0 ? 0.06f : 0f), 0f), 0.018f, 0f, Gold, 4);
-                    }
-                    k.Lathe(head + Vector3.up * 0.1f, new[] { new Vector2(0f, 0.15f), new Vector2(0.03f, 0.15f) }, 9, Gold);
-                    k.Body();
-                    // A long cloak that trails the ground.
-                    k.Lathe(new Vector3(0f, 0f, -0.12f), new[] { new Vector2(0.02f, 0.38f), new Vector2(0.9f, 0.3f), new Vector2(1.45f, 0.26f) }, 10, Trim, 0.6f);
+                    p.Cloth = new Color(0.94f, 0.92f, 0.86f); p.Cloth2 = new Color(0.62f, 0.55f, 0.45f); p.Trim = new Color(1f, 0.82f, 0.4f);
+                    p.Hair = new Color(0.32f, 0.24f, 0.18f);
                     break;
+            }
+            return p;
+        }
+
+        static void Dress(Figure f, GodLook look)
+        {
+            var p = f.P;
+            switch (look)
+            {
+                case GodLook.Storm:
+                    // The sky's wanderer: long coat over trousers and boots, wide pointed hat, staff with a stormglass.
+                    f.Body(p.Cloth2, p.Cloth2, p.Cloth).Face();
+                    f.Trousers(p.Cloth2, 1.15f).Boots(p.Leather * 0.7f, 0.36f, p.Leather);
+                    f.Tunic(p.Cloth, 0.42f, 1.55f).Sleeves(p.Cloth, false, p.Trim).Gloves(p.Leather);
+                    f.Belt(p.Leather, p.Trim, 3).Tabard(p.Trim, 0.4f, 0.09f);
+                    f.Mantle(p.Cloth, 0.22f, 1.75f, p.Cloth2);
+                    f.Hair(p.Hair, 0.98f).WizardHat(p.Cloth, p.Cloth2, 0.46f);
+                    f.Weapon("staff", 1.6f, p.Glow, p.Leather).Book(p.Cloth2, p.Trim);
+                    break;
+                case GodLook.Forge:
+                    // The smith: bare forearms, leather apron, heavy gloves, beard, hammer.
+                    f.Body(p.Cloth2, p.Cloth, p.Skin).Face();
+                    f.Trousers(p.Cloth2, 1.2f).Boots(p.Leather * 0.6f, 0.3f, p.Metal);
+                    f.Tunic(p.Cloth, 0.14f, 1.25f).Sleeves(p.Cloth, true, p.Cloth2).Gloves(p.Leather * 0.7f);
+                    f.Tabard(p.Leather, 0.62f, 0.3f).Belt(p.Leather * 0.8f, p.Metal, 4);
+                    f.Pauldrons(p.Metal, 0.1f, p.Trim);
+                    Beard(f, p.Hair);
+                    f.Hair(p.Hair, 0.9f);
+                    f.Weapon("hammer", 0.7f, p.Metal, p.Leather);
+                    break;
+                case GodLook.Tide:
+                    // The tide-keeper: a hooded robe with a pale sash and shell clasps, trident.
+                    f.Body(p.Cloth, p.Cloth, p.Skin).Face();
+                    f.Boots(p.Cloth2 * 0.8f, 0.2f);
+                    f.Robe(p.Cloth, 0.04f, 1.95f).Sleeves(p.Cloth, false, p.Cloth2);
+                    f.Belt(p.Cloth2, p.Trim, 2).Tabard(p.Cloth2, 0.72f, 0.12f);
+                    f.Mantle(p.Cloth2, 0.16f, 1.6f, p.Cloth);
+                    f.Hood(p.Cloth);
+                    f.Weapon("trident", 1.7f, p.Trim, p.Leather);
+                    break;
+                case GodLook.Hunt:
+                    // The huntress: tunic, trousers, tall boots, short cloak, antler circlet, quiver strap, spear.
+                    f.Body(p.Cloth2, p.Cloth, p.Skin).Face();
+                    f.Trousers(p.Cloth2, 1.1f).Boots(p.Leather, 0.42f, p.Leather * 0.8f);
+                    f.Tunic(p.Cloth, 0.2f, 1.35f).Sleeves(p.Cloth, true, p.Leather).Gloves(p.Leather);
+                    f.Belt(p.Leather, p.Trim, 3).Strap(p.Leather);
+                    f.Cloak(p.Cloth * 0.85f, 0.55f, p.Cloth2);
+                    f.Hair(p.Hair, 1.02f).Ears(p.Skin, 0.08f);
+                    Antlers(f, p.Trim);
+                    f.Weapon("spear", 1.75f, p.Metal, p.Leather);
+                    break;
+                case GodLook.Ember:
+                    // The flame: red tunic with a dark sash, gauntlets, a crown of fire, a brazier at the belt.
+                    f.Body(p.Cloth2, p.Cloth, p.Skin).Face();
+                    f.Trousers(p.Cloth2, 1.15f).Boots(p.Cloth2 * 0.7f, 0.34f, p.Trim);
+                    f.Tunic(p.Cloth, 0.3f, 1.45f).Sleeves(p.Cloth, false, p.Trim).Gloves(p.Cloth2);
+                    f.Belt(p.Cloth2, p.Trim, 2).Tabard(p.Trim, 0.36f, 0.1f);
+                    f.Mantle(p.Cloth2, 0.14f, 1.5f, p.Cloth);
+                    f.Hair(p.Hair, 1f);
+                    FlameCrown(f, p.Trim, p.Glow);
+                    break;
+                case GodLook.Earth:
+                    // The mountain: a heavy robe, stone pauldrons and mantle, down-curving horns, a stone staff.
+                    f.Body(p.Cloth2, p.Cloth, p.Skin).Face();
+                    f.Boots(p.Cloth2, 0.25f);
+                    f.Robe(p.Cloth, 0.04f, 2.1f).Sleeves(p.Cloth, false, p.Cloth2).Gloves(p.Leather);
+                    f.Belt(p.Leather, p.Trim, 3);
+                    f.Pauldrons(p.Metal, 0.14f, p.Trim);
+                    f.Hair(p.Hair, 0.95f);
+                    f.Horns(0.18f, 0.035f, p.Cloth2 * 1.4f, 0.75f, -0.6f);
+                    Beard(f, p.Hair);
+                    f.Weapon("staff", 1.5f, p.Metal, p.Leather);
+                    break;
+                case GodLook.Elias:
+                    // The last god: white robe with gold trim, a long cloak, a plain circlet, a book.
+                    f.Body(p.Cloth, p.Cloth, p.Skin).Face();
+                    f.Boots(p.Cloth2, 0.22f);
+                    f.Robe(p.Cloth, 0.03f, 1.85f).Sleeves(p.Cloth, false, p.Trim);
+                    f.Belt(p.Trim, p.Trim, 0).Tabard(p.Trim, 0.75f, 0.1f);
+                    f.Cloak(p.Cloth2, 0.08f, p.Trim);
+                    f.Mantle(p.Cloth, 0.12f, 1.55f, p.Trim);
+                    f.Hair(p.Hair, 0.95f).Crown(p.Trim, 9, 0.045f);
+                    f.Book(p.Trim, p.Cloth);
+                    break;
+            }
+        }
+
+        static void Beard(Figure f, Color hair)
+        {
+            float h = f.Spec.HeadSize;
+            f.Kit.Part(BodyPart.Head, f.NeckBase);
+            f.Kit.Ball(f.Head + new Vector3(0f, -h * 0.62f, h * 0.48f), new Vector3(h * 0.62f, h * 0.5f, h * 0.42f), hair, 12, 6);
+            f.Kit.Ball(f.Head + new Vector3(0f, -h * 1.0f, h * 0.52f), new Vector3(h * 0.42f, h * 0.35f, h * 0.3f), hair, 10, 5);
+            f.Kit.Body();
+        }
+
+        static void Antlers(Figure f, Color color)
+        {
+            float h = f.Spec.HeadSize;
+            var k = f.Kit;
+            k.Part(BodyPart.Head, f.NeckBase);
+            k.Lathe(f.Head + new Vector3(0f, h * 0.55f, 0f), new[] { new Vector2(0f, h * 0.88f), new Vector2(0.025f, h * 0.9f) }, 14, color);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var root = f.Head + new Vector3(side * h * 0.6f, h * 0.7f, -h * 0.1f);
+                var a = root + new Vector3(side * 0.08f, 0.14f, -0.03f);
+                var b = a + new Vector3(side * 0.05f, 0.12f, -0.06f);
+                k.Limb(root, a, 0.016f, 0.013f, color, 6);
+                k.Limb(a, b, 0.013f, 0f, color, 6);
+                k.Limb(a, a + new Vector3(side * 0.09f, 0.04f, 0.04f), 0.01f, 0f, color, 5);
+            }
+            k.Body();
+        }
+
+        static void FlameCrown(Figure f, Color gold, Color flame)
+        {
+            float h = f.Spec.HeadSize;
+            var k = f.Kit;
+            k.Part(BodyPart.Head, f.NeckBase);
+            var b = f.Head + new Vector3(0f, h * 0.68f, -h * 0.02f);
+            k.Lathe(b, new[] { new Vector2(0f, h * 0.8f), new Vector2(0.03f, h * 0.82f) }, 14, gold);
+            for (int i = 0; i < 9; i++)
+            {
+                float a = i * Mathf.PI * 2f / 9f;
+                var root = b + new Vector3(Mathf.Cos(a) * h * 0.78f, 0.03f, Mathf.Sin(a) * h * 0.78f);
+                k.Limb(root, root + new Vector3(Mathf.Cos(a) * 0.015f, 0.07f + (i % 3 == 0 ? 0.06f : 0f), Mathf.Sin(a) * 0.015f), h * 0.12f, 0f, flame, 6);
             }
             k.Body();
         }

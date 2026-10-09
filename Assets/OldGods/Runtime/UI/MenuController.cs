@@ -78,7 +78,7 @@ namespace OldGods.Runtime
             if (first != null) ShowPreview(first.Id);
             ShowMain();
             var save = SaveStore.Current;
-            if (!save.seenPremise && Assets.Story != null && !CommandLine.Has("-smoke") && !CommandLine.Has("-shots"))
+            if (!save.seenPremise && Assets.Story != null && !CommandLine.Has("-smoke") && !CommandLine.Has("-shots") && !CommandLine.Has("-gallery"))
             {
                 save.seenPremise = true;
                 try { SaveStore.Save(save); } catch (System.Exception e) { Debug.LogWarning(e.Message); }
@@ -95,7 +95,12 @@ namespace OldGods.Runtime
             cam.fieldOfView = 45f;
             cam.gameObject.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
             WorldBuilder.CreateSun(null, new Color(1f, 0.9f, 0.75f), 1.4f, new Vector3(35f, -40f, 0f));
-            WorldBuilder.SetAtmosphere(new Color(0.35f, 0.33f, 0.32f), new Color(0.25f, 0.23f, 0.22f), new Color(0.1f, 0.1f, 0.1f),
+            var fill = new GameObject("Fill Light").AddComponent<Light>();
+            fill.type = LightType.Directional;
+            fill.intensity = 0.55f;
+            fill.color = new Color(0.8f, 0.85f, 1f);
+            fill.transform.rotation = Quaternion.Euler(15f, 160f, 0f);
+            WorldBuilder.SetAtmosphere(new Color(0.55f, 0.53f, 0.52f), new Color(0.4f, 0.38f, 0.36f), new Color(0.18f, 0.17f, 0.16f),
                 new Color(0.12f, 0.11f, 0.11f), 10f, 40f);
             var stone = WorldBuilder.Tinted(Assets.LowPoly, new Color(0.55f, 0.53f, 0.5f));
             WorldBuilder.CreateProp("Floor", Fx.Disc(24), stone, Vector3.zero, Quaternion.identity, new Vector3(30f, 1f, 30f), null, false);
@@ -126,7 +131,7 @@ namespace OldGods.Runtime
                 return;
             }
             previewMesh.sharedMesh = GodModels.Get(g.Look);
-            previewRenderer.sharedMaterial = WorldBuilder.Tinted(Assets.LowPoly, g.Robe);
+            previewRenderer.sharedMaterial = WorldBuilder.Tinted(Assets.LowPoly, Color.white);
         }
 
         RectTransform Page(string name)

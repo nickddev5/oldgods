@@ -30,6 +30,8 @@ def player_command(exe: Path, mode: str, out: Path, log: Path, seed: str | None,
         cmd += ["-shots", str(out)]
     elif mode == "autoplay":
         cmd += ["-autoplay", "-autoplayOut", str(out)]
+    elif mode == "gallery":
+        cmd += ["-gallery", str(out)]
     else:
         raise ValueError(f"unknown mode {mode}")
     if seed:
@@ -43,6 +45,7 @@ def main(argv: list[str] | None = None) -> int:
     group.add_argument("--probe", action="store_true")
     group.add_argument("--shots", type=Path)
     group.add_argument("--autoplay", type=Path, help="bot plays stage 1; JSON summary to this path")
+    group.add_argument("--gallery", type=Path, help="screenshots of every built-in model into this folder")
     parser.add_argument("--exe", type=Path, default=DEFAULT_BUILD)
     parser.add_argument("--seed")
     parser.add_argument("--timeout", type=float, default=300.0)
@@ -61,6 +64,8 @@ def main(argv: list[str] | None = None) -> int:
         mode, out = "shots", args.shots
     elif args.autoplay:
         mode, out = "autoplay", args.autoplay
+    elif args.gallery:
+        mode, out = "gallery", args.gallery
     else:
         mode, out = "smoke", RESULTS / "smoke.log"
     log = RESULTS / f"player-{mode}.log"
