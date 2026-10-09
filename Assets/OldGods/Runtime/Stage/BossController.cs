@@ -94,8 +94,7 @@ namespace OldGods.Runtime
                 modelRenderer.sharedMaterial = WorldBuilder.Tinted(assets.LowPoly, Color.white);
                 var walk = m.AddComponent<WalkAnimator>();
                 walk.Tracked = transform;
-                walk.RunSpeed = Mathf.Max(0.5f, Def.MoveSpeed * 1.8f / Mathf.Max(0.1f, Def.Scale));
-                walk.MaxSwing = 0.16f;
+                walk.MaxSwing = 0.22f;
             }
             model = m.transform;
             All.Add(this);
