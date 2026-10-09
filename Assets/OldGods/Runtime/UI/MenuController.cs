@@ -61,6 +61,7 @@ namespace OldGods.Runtime
                 return;
             }
             BuildStage();
+            SettingsPanel.Apply(SaveStore.Current.settings);
             Audio.Music("menu");
             var canvas = UiKit.Canvas("Menu", 10);
             Root = canvas.transform as RectTransform;
@@ -76,7 +77,7 @@ namespace OldGods.Runtime
             if (first != null) ShowPreview(first.Id);
             ShowMain();
             var save = SaveStore.Current;
-            if (!save.seenPremise && Assets.Story != null && !CommandLine.Has("-smoke"))
+            if (!save.seenPremise && Assets.Story != null && !CommandLine.Has("-smoke") && !CommandLine.Has("-shots"))
             {
                 save.seenPremise = true;
                 try { SaveStore.Save(save); } catch (System.Exception e) { Debug.LogWarning(e.Message); }

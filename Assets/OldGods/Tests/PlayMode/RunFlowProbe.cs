@@ -271,6 +271,33 @@ namespace OldGods.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator PauseStopsTheRunAndSettingsApply()
+        {
+            SaveStore.Reset();
+            SceneManager.LoadScene("Run");
+            yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Combat != null, 20f, "run start");
+            var run = RunController.Instance;
+            var pause = Object.FindAnyObjectByType<PauseMenu>();
+            Assert.IsNotNull(pause);
+            pause.Open();
+            Assert.IsTrue(pause.IsOpen);
+            Assert.AreEqual(0f, Time.timeScale);
+            yield return null; // the frame already under way still carries its delta time
+            float clock = run.Director.Elapsed;
+            yield return new WaitForSecondsRealtime(0.3f);
+            Assert.AreEqual(clock, run.Director.Elapsed, 1e-4f, $"the stage clock stops ({clock} then {run.Director.Elapsed}, dt {Time.deltaTime}, frame {Time.frameCount})");
+            pause.Close();
+            Assert.AreEqual(1f, Time.timeScale);
+
+            var s = SaveStore.Current.settings;
+            s.cameraSensitivity = 2.5f;
+            s.invertY = true;
+            SettingsPanel.Apply(s);
+            Assert.AreEqual(2.5f, run.Camera.Sensitivity);
+            Assert.IsTrue(run.Camera.InvertY);
+        }
+
+        [UnityTest]
         public IEnumerator CorruptSaveIsKeptAsideAndAFreshOneStarts()
         {
             SaveStore.Reset();

@@ -207,6 +207,7 @@ namespace OldGods.Runtime
                     yield return Lean(a.Telegraph, -12f);
                     HitPlayerIfInside(at, a.Size, a.Damage);
                     Audio.Play(Sfx.Slam, 0.9f);
+                    CameraShake.Kick(0.7f);
                     Effects.Burst(Fx.Column(), at, Quaternion.identity, new Vector3(a.Size, 0.5f, a.Size), new Vector3(a.Size * 1.2f, 4f, a.Size * 1.2f), accent, 0.35f);
                     break;
                 }
@@ -242,6 +243,7 @@ namespace OldGods.Runtime
                 {
                     yield return Lean(a.Telegraph, -20f);
                     Audio.Play(Sfx.Slam, 0.8f);
+                    CameraShake.Kick(0.5f);
                     Vector3 c = transform.position;
                     float r = 0f, speed = 14f;
                     bool hit = false;

@@ -141,6 +141,8 @@ namespace OldGods.Runtime
             new GameObject("Damage Numbers").AddComponent<DamageNumbers>();
             Hud = Hud.Create(this);
             Minimap = Minimap.Create(Hud.Root);
+            PauseMenu.Create(this);
+            SettingsPanel.Apply(SaveStore.Current.settings);
             GameInput.SetCursorLocked(true);
         }
 

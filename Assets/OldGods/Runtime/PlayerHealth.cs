@@ -72,6 +72,7 @@ namespace OldGods.Runtime
             float dealt = Health.Damage(amount, ignoreInvulnerability);
             if (dealt <= 0f) return;
             Audio.Play(Health.IsDead ? Sfx.Death : Sfx.Hurt, 0.8f, 0.05f);
+            CameraShake.Kick(Mathf.Clamp(dealt / 25f, 0.25f, 0.8f));
             Damaged?.Invoke(dealt);
             if (Health.IsDead) Died?.Invoke();
         }

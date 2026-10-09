@@ -11,7 +11,7 @@ A 3D low-poly horde-survival roguelike and the prequel to *The Empty Throne*. Yo
 
 Open the repo root in Unity 6000.6.3f1, run **Old Gods > Build > Everything** once, then open `Assets/OldGods/Scenes/Run.unity` and press Play.
 
-Controls: WASD or left stick to move, mouse or right stick to look, Space or A to jump, Shift/Ctrl or B to slide (hold).
+Open `Assets/OldGods/Scenes/Menu.unity` to start from the menu, or `Run.unity` to drop straight into a run with the first unlocked god. Controls are in [gameBible/09-ui.md](gameBible/09-ui.md).
 
 Tests:
 

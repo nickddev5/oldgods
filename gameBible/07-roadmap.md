@@ -14,5 +14,5 @@ First milestone: a complete game. A fresh save can unlock every god, beat The La
 | 7 | Meta-progression and saving | Save/load tested; a fresh save can reach Elias | Built and tested; Nick's real progression later |
 | 8 | Story | Premise, god lines and ending text in place | Built; all text PLACEHOLDER |
 | 9 | Art and audio | Placeholders replaced; horde probe still meets target | Code-built art and synthesized sound in place; probe passes; hand-made art pass still open (ADR 0003) |
-| 10 | UI | Menus, settings, shop, quests; controller and keyboard | |
+| 10 | UI | Menus, settings, shop, quests; controller and keyboard | Built; awaiting Nick's controller check |
 | 11 | Finish | Balance, performance, Windows build, fresh-save play-through | |

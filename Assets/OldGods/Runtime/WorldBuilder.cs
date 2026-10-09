@@ -165,6 +165,8 @@ namespace OldGods.Runtime
             chase.Orbit = orbit;
             chase.Player = player;
             player.ViewYaw = camGo.transform;
+            rig.AddComponent<CinemachineCameraOffset>();
+            CameraShake.Attach(rig);
             rig.SetActive(true);
             return chase;
         }

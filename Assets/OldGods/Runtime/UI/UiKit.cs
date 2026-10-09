@@ -89,6 +89,78 @@ namespace OldGods.Runtime
             return button;
         }
 
+        /// <summary>A labelled horizontal slider row, keyboard and gamepad navigable.</summary>
+        public static Slider Slider(Transform parent, string label, float min, float max, float value, System.Action<float> changed)
+        {
+            var row = new GameObject(label, typeof(RectTransform)).GetComponent<RectTransform>();
+            row.SetParent(parent, false);
+            row.gameObject.AddComponent<LayoutElement>().preferredHeight = 50f;
+            var text = Text(row, label, 26, TextAlignmentOptions.Left);
+            text.rectTransform.anchorMin = new Vector2(0f, 0f);
+            text.rectTransform.anchorMax = new Vector2(0.45f, 1f);
+            text.rectTransform.offsetMin = text.rectTransform.offsetMax = Vector2.zero;
+
+            var area = Panel(row, "Slider", new Color(0f, 0f, 0f, 0.6f));
+            area.anchorMin = new Vector2(0.48f, 0.3f);
+            area.anchorMax = new Vector2(1f, 0.7f);
+            area.offsetMin = area.offsetMax = Vector2.zero;
+            var fillArea = new GameObject("Fill Area", typeof(RectTransform)).GetComponent<RectTransform>();
+            fillArea.SetParent(area, false);
+            Stretch(fillArea, 0f);
+            var fill = Panel(fillArea, "Fill", new Color(1f, 0.72f, 0.38f));
+            fill.anchorMin = Vector2.zero;
+            fill.anchorMax = new Vector2(0f, 1f);
+            fill.offsetMin = fill.offsetMax = Vector2.zero;
+            var handleArea = new GameObject("Handle Area", typeof(RectTransform)).GetComponent<RectTransform>();
+            handleArea.SetParent(area, false);
+            Stretch(handleArea, 0f);
+            var handle = Panel(handleArea, "Handle", Color.white);
+            handle.sizeDelta = new Vector2(18f, 0f);
+            handle.anchorMin = new Vector2(0f, -0.4f);
+            handle.anchorMax = new Vector2(0f, 1.4f);
+
+            var slider = area.gameObject.AddComponent<Slider>();
+            slider.fillRect = fill;
+            slider.handleRect = handle;
+            slider.targetGraphic = handle.GetComponent<Image>();
+            slider.minValue = min;
+            slider.maxValue = max;
+            slider.value = Mathf.Clamp(value, min, max);
+            var colors = slider.colors;
+            colors.selectedColor = new Color(1f, 0.85f, 0.55f);
+            colors.highlightedColor = new Color(1f, 0.9f, 0.7f);
+            slider.colors = colors;
+            slider.onValueChanged.AddListener(v => changed(v));
+            return slider;
+        }
+
+        /// <summary>A labelled on/off row.</summary>
+        public static Toggle Toggle(Transform parent, string label, bool value, System.Action<bool> changed)
+        {
+            var row = new GameObject(label, typeof(RectTransform)).GetComponent<RectTransform>();
+            row.SetParent(parent, false);
+            row.gameObject.AddComponent<LayoutElement>().preferredHeight = 50f;
+            var box = Panel(row, "Box", new Color(0f, 0f, 0f, 0.6f));
+            box.anchorMin = box.anchorMax = new Vector2(0.48f, 0.5f);
+            box.pivot = new Vector2(0f, 0.5f);
+            box.sizeDelta = new Vector2(36f, 36f);
+            var check = Panel(box, "Check", new Color(1f, 0.72f, 0.38f));
+            Stretch(check, 6f);
+            var text = Text(row, label, 26, TextAlignmentOptions.Left);
+            text.rectTransform.anchorMin = new Vector2(0f, 0f);
+            text.rectTransform.anchorMax = new Vector2(0.45f, 1f);
+            text.rectTransform.offsetMin = text.rectTransform.offsetMax = Vector2.zero;
+            var toggle = row.gameObject.AddComponent<Toggle>();
+            toggle.targetGraphic = box.GetComponent<Image>();
+            toggle.graphic = check.GetComponent<Image>();
+            toggle.isOn = value;
+            var colors = toggle.colors;
+            colors.selectedColor = new Color(1f, 0.85f, 0.55f);
+            toggle.colors = colors;
+            toggle.onValueChanged.AddListener(v => changed(v));
+            return toggle;
+        }
+
         /// <summary>Anchors and pivots at the same normalized point, then offsets.</summary>
         public static void Anchor(RectTransform rt, Vector2 anchor, Vector2 offset, Vector2 size)
         {

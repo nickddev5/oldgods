@@ -12,5 +12,6 @@ The design source of truth. Everything here is **PLACEHOLDER** until Nick marks 
 | [06-open-questions](06-open-questions.md) | Decisions waiting on Nick |
 | [07-roadmap](07-roadmap.md) | Milestones and their gates |
 | [08-story](08-story.md) | Premise, god lines, endings, lore stones |
+| [09-ui](09-ui.md) | Screens and controls |
 
 World lore comes from *The Empty Throne*'s bible ("Before the throne"). This game is its prequel and must not contradict it.

@@ -12,14 +12,16 @@ namespace OldGods.Runtime
         public const string Shrine = "Shrine of Embers";
         public const string Quests = "Quests";
         public const string Lore = "Lore";
+        public const string SettingsPage = "Settings";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Register()
         {
-            MenuController.ExtraPages.RemoveAll(p => p.label == Shrine || p.label == Quests || p.label == Lore);
+            MenuController.ExtraPages.RemoveAll(p => p.label == Shrine || p.label == Quests || p.label == Lore || p.label == SettingsPage);
             MenuController.ExtraPages.Add((Shrine, BuildShrine));
             MenuController.ExtraPages.Add((Quests, BuildQuests));
             MenuController.ExtraPages.Add((Lore, BuildLore));
+            MenuController.ExtraPages.Add((SettingsPage, BuildSettings));
         }
 
         static RectTransform Column(RectTransform parent, string name, Vector2 anchor, Vector2 offset, Vector2 size)
@@ -108,6 +110,22 @@ namespace OldGods.Runtime
 
             MenuController.PageShown += label => { if (label == Quests && page != null) Refresh(); };
             Refresh();
+            return page;
+        }
+
+        static RectTransform BuildSettings(MenuController menu)
+        {
+            var page = new GameObject("Settings", typeof(RectTransform)).GetComponent<RectTransform>();
+            page.SetParent(menu.Root, false);
+            UiKit.Stretch(page, 0f);
+            RectTransform panel = null;
+            void Rebuild()
+            {
+                if (panel != null) Object.Destroy(panel.gameObject);
+                panel = SettingsPanel.Build(page, new Vector2(0.5f, 0.5f), Vector2.zero, menu.ShowMain);
+            }
+            MenuController.PageShown += label => { if (label == SettingsPage && page != null) Rebuild(); };
+            Rebuild();
             return page;
         }
 
