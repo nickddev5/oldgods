@@ -73,3 +73,9 @@ crashlytics-build.properties
 Thumbs.db
 .idea/
 .vscode/
+
+# Old Gods: test reports are regenerated; probe JSON is kept as evidence
+/TestResults/*.xml
+/TestResults/*.log
+/Builds/
+__pycache__/

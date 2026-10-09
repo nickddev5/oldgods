@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1534fe77fdfb66047bfba60e2dda17a4, type: 3}
+  m_Name: Hunt
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.GodDefinition
+  Id: god.hunt
+  DisplayName: Hunt
+  Lore: She has never once missed what she meant to hit.
+  StartingWeapon: weapon.spear_volley
+  StartingPassive: passive.keen_eye
+  Kit:
+  - Stat: 16
+    Add: 0.05
+    Percent: 0
+  Order: 3
+  Cost: 500
+  IsLast: 0
+  Look: 3
+  Robe: {r: 0.45, g: 0.55, b: 0.35, a: 1}
+  Mark: {r: 1.2, g: 1.8, b: 0.6, a: 1}

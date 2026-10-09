@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3183497ef65af040907ea31c64f3fe1, type: 3}
+  m_Name: Story
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.StoryText
+  Premise: 'Before anyone held the throne, there were the old gods. Many of them, each with a domain and a people.
+
+
+    Between them stood a throne no one had claimed. It stood empty through every age, guarded by a construct they called The Last Test.
+
+
+    Now the old gods walk the road to it. Some go to see it. Some go to break its guardian. One will sit.'
+  GodLines:
+  - Id: god.storm
+    Text: The sky gathers behind you.
+  - Id: god.forge
+    Text: The fire in your hands has never gone out.
+  - Id: god.tide
+    Text: The water remembers where it is going.
+  - Id: god.hunt
+    Text: You have already chosen your mark.
+  - Id: god.ember
+    Text: A small flame, walking a long road.
+  - Id: god.earth
+    Text: Each step is a promise to the ground.
+  - Id: god.elias
+    Text: You believe the throne should be taken. You walk to take it.
+  BiomeLines:
+  - Id: biome.grey_steppe
+    Text: The first road, and the wall that guards it.
+  - Id: biome.ash_wood
+    Text: It burned, and it has not stopped burning.
+  - Id: biome.drowned_coast
+    Text: The sea takes, and keeps.
+  - Id: biome.last_test
+    Text: The throne waits.
+  - Id: biome.greybox
+    Text: A place to learn the road.
+  EliasEnding:
+  - Elias climbs to the throne. No one has sat here before him.
+  - He sits because he believes it is right.
+  - The power of the old gods flows into him. One by one, they are gone from the world.
+  - They live on in him. The throne is empty no longer.
+  RefusedEnding:
+  - The Last Test falls.
+  - The throne does not answer you. It was never meant for you.
+  - Somewhere behind you, Elias is still walking.
+  Fragments:
+  - Id: lore.empty_seat
+    BiomeId: biome.grey_steppe
+    Title: The Empty Seat
+    Text: No god ever sat the throne. The old gods walked past it for ages, each of them sure it was meant for someone else.
+  - Id: lore.wardens_wall
+    BiomeId: biome.grey_steppe
+    Title: The Warden's Wall
+    Text: The Stone Warden was raised to keep the steppe's first road. When the road was forgotten, it kept walking the wall anyway.
+  - Id: lore.many_gods
+    BiomeId: biome.grey_steppe
+    Title: Many Gods
+    Text: There were many of us once. Storm and Forge, Tide and Hunt, Ember and Earth, and others whose names the grass has taken. None of us ruled. That was the point.
+  - Id: lore.the_burning
+    BiomeId: biome.ash_wood
+    Title: The Burning
+    Text: The wood burned in a quarrel between gods that no one now remembers starting. The stag walked out of the fire, and it has not stopped burning since.
+  - Id: lore.quiet_god
+    BiomeId: biome.ash_wood
+    Title: A Quiet God
+    Text: Elias was the quietest of us. He listened more than he spoke. Some of us mistook that for weakness.
+  - Id: lore.ash_and_memory
+    BiomeId: biome.ash_wood
+    Title: Ash and Memory
+    Text: Fire keeps what it takes. Stand close to the old embers and you can hear the gods arguing about the throne.
+  - Id: lore.what_the_sea_kept
+    BiomeId: biome.drowned_coast
+    Title: What the Sea Kept
+    Text: 'The Tide Mother keeps everything the sea takes: ships, songs, the dead. She does not give them back. She thinks of it as care.'
+  - Id: lore.the_construct
+    BiomeId: biome.drowned_coast
+    Title: The Last Test
+    Text: Someone made a guardian for the throne and called it The Last Test. It keeps the throne from the unworthy. No one remembers who made it, or who made the throne.
+  - Id: lore.the_choice
+    BiomeId: biome.drowned_coast
+    Title: The Choice
+    Text: We could share the world, or let one of us hold it. We argued for an age. In the end one of us decided, and the rest of us followed him there.

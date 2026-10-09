@@ -1,0 +1,124 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a2c61708764e1c48a7e9519e3580275, type: 3}
+  m_Name: DrownedCoast
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.BiomeDefinition
+  Id: biome.drowned_coast
+  DisplayName: The Drowned Coast
+  Terrain:
+    Cells: 128
+    CellSize: 2
+    HillHeight: 16
+    HillScale: 60
+    HillOctaves: 4
+    CliffStep: 4
+    CliffAmount: 0.45
+    CliffScale: 90
+    SpawnFlatRadius: 12
+    RimHeight: 14
+    RimWidth: 16
+    WaterLevel: 6.5
+  Palette:
+    Low: {r: 0.6, g: 0.55, b: 0.42, a: 1}
+    High: {r: 0.72, g: 0.69, b: 0.58, a: 1}
+    Cliff: {r: 0.42, g: 0.44, b: 0.46, a: 1}
+    Rim: {r: 0.35, g: 0.37, b: 0.4, a: 1}
+    CliffSlope: 38
+  Timeline:
+    Duration: 600
+    Phases:
+    - Start: 0
+      End: 60
+      AliveFrom: 15
+      AliveTo: 35
+      Rate: 5
+      Mix:
+      - EnemyId: enemy.drowned
+        Weight: 1
+    - Start: 60
+      End: 180
+      AliveFrom: 35
+      AliveTo: 70
+      Rate: 8
+      Mix:
+      - EnemyId: enemy.drowned
+        Weight: 3
+      - EnemyId: enemy.brine_runner
+        Weight: 1
+    - Start: 180
+      End: 360
+      AliveFrom: 70
+      AliveTo: 130
+      Rate: 12
+      Mix:
+      - EnemyId: enemy.drowned
+        Weight: 3
+      - EnemyId: enemy.brine_runner
+        Weight: 2
+      - EnemyId: enemy.shell_brute
+        Weight: 1
+    - Start: 360
+      End: 600
+      AliveFrom: 130
+      AliveTo: 220
+      Rate: 18
+      Mix:
+      - EnemyId: enemy.drowned
+        Weight: 2
+      - EnemyId: enemy.brine_runner
+        Weight: 2
+      - EnemyId: enemy.shell_brute
+        Weight: 2
+    Events:
+    - At: 90
+      Kind: 1
+      EnemyId: enemy.brine_runner
+      Count: 30
+    - At: 150
+      Kind: 0
+      EnemyId: enemy.tide_champion
+      Count: 1
+    - At: 270
+      Kind: 2
+      EnemyId: enemy.shell_brute
+      Count: 8
+    - At: 330
+      Kind: 0
+      EnemyId: enemy.tide_champion
+      Count: 2
+    - At: 420
+      Kind: 1
+      EnemyId: enemy.drowned
+      Count: 60
+    - At: 510
+      Kind: 0
+      EnemyId: enemy.tide_champion
+      Count: 3
+    HealthPerMinute: 0.18
+    SwarmEnemyId: enemy.ghost
+  Boss: {fileID: 11400000, guid: 0893036d53b512b44999ff3fcc86d1e9, type: 2}
+  Sun: {r: 0.9, g: 0.95, b: 1, a: 1}
+  SunIntensity: 1.2
+  SunEuler: {x: 40, y: 20, z: 0}
+  AmbientSky: {r: 0.55, g: 0.65, b: 0.75, a: 1}
+  AmbientEquator: {r: 0.45, g: 0.52, b: 0.55, a: 1}
+  AmbientGround: {r: 0.22, g: 0.25, b: 0.27, a: 1}
+  Fog: {r: 0.55, g: 0.65, b: 0.72, a: 1}
+  FogStart: 50
+  FogEnd: 190
+  WaterColor: {r: 0.2, g: 0.45, b: 0.55, a: 0.6}
+  RockModel: 2
+  TreeModel: 5
+  RockColor: {r: 0.45, g: 0.47, b: 0.5, a: 1}
+  RockCount: 80
+  TreeColor: {r: 0.3, g: 0.4, b: 0.32, a: 1}
+  TreeCount: 10

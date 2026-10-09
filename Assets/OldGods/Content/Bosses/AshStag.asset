@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a581bf6de37c8a47accf7d6f546ae11, type: 3}
+  m_Name: AshStag
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.BossDefinition
+  Id: boss.ash_stag
+  DisplayName: The Ash Stag
+  Epithet: The forest burned, and it did not
+  MaxHealth: 3200
+  MoveSpeed: 4.5
+  Scale: 2.6
+  Radius: 1.4
+  ContactDamage: 16
+  Rest: 1.1
+  MinionId: enemy.ashling
+  EnrageAt: 0.35
+  Attacks:
+  - Attack: 1
+    Weight: 3
+    Cooldown: 4
+    Damage: 24
+    Telegraph: 0.8
+    Size: 22
+  - Attack: 4
+    Weight: 2
+    Cooldown: 6
+    Damage: 20
+    Telegraph: 1.2
+    Size: 3.5
+  - Attack: 2
+    Weight: 2
+    Cooldown: 8
+    Damage: 20
+    Telegraph: 0.7
+    Size: 24
+  - Attack: 3
+    Weight: 1
+    Cooldown: 12
+    Damage: 0
+    Telegraph: 0.8
+    Size: 10
+  Model: 1
+  Color: {r: 0.3, g: 0.27, b: 0.25, a: 1}
+  Accent: {r: 2, g: 0.6, b: 0.15, a: 1}

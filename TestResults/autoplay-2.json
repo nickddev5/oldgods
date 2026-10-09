@@ -1,0 +1,18 @@
+{ "god": "god.storm", "seed": "0000000000001111", "seconds": 507, "died": true, "stageCleared": false, "level": 17, "kills": 1055, "bosses": 0, "log": [
+    "30s hp 100/100 lv 2 kills 22 alive 24 gold 1 | Chain Lightning 2, ",
+    "60s hp 96/100 lv 2 kills 49 alive 34 gold 1 | Chain Lightning 2, ",
+    "90s hp 96/100 lv 3 kills 101 alive 74 gold 1 | Chain Lightning 2, Crown Light 1, ",
+    "120s hp 97/100 lv 4 kills 200 alive 52 gold 2 | Chain Lightning 2, Crown Light 1, ",
+    "150s hp 100/100 lv 5 kills 261 alive 55 gold 2 | Chain Lightning 2, Crown Light 1, ",
+    "180s hp 100/100 lv 5 kills 343 alive 68 gold 2 | Chain Lightning 2, Crown Light 1, ",
+    "210s hp 100/100 lv 7 kills 379 alive 80 gold 4 | Chain Lightning 3, Crown Light 1, ",
+    "240s hp 100/100 lv 8 kills 463 alive 90 gold 6 | Chain Lightning 3, Crown Light 2, ",
+    "270s hp 100/100 lv 9 kills 500 alive 108 gold 8 | Chain Lightning 3, Crown Light 3, ",
+    "300s hp 100/100 lv 10 kills 587 alive 110 gold 8 | Chain Lightning 3, Crown Light 3, ",
+    "330s hp 100/100 lv 10 kills 647 alive 122 gold 9 | Chain Lightning 3, Crown Light 3, ",
+    "360s hp 100/100 lv 12 kills 697 alive 130 gold 12 | Chain Lightning 4, Crown Light 3, ",
+    "390s hp 100/100 lv 12 kills 748 alive 141 gold 12 | Chain Lightning 4, Crown Light 3, ",
+    "420s hp 100/100 lv 13 kills 789 alive 212 gold 12 | Chain Lightning 4, Crown Light 3, ",
+    "450s hp 77/100 lv 14 kills 891 alive 164 gold 13 | Chain Lightning 4, Crown Light 3, Flame Aura 1, ",
+    "480s hp 100/100 lv 16 kills 957 alive 175 gold 17 | Chain Lightning 4, Crown Light 5, Flame Aura 1, heading to the gate",
+    "507s hp 0/100 lv 17 kills 1055 alive 185 gold 21 | Chain Lightning 4, Crown Light 5, Flame Aura 1, died"  ] }

@@ -1,0 +1,124 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a2c61708764e1c48a7e9519e3580275, type: 3}
+  m_Name: GreySteppe
+  m_EditorClassIdentifier: OldGods.Runtime::OldGods.Runtime.BiomeDefinition
+  Id: biome.grey_steppe
+  DisplayName: The Grey Steppe
+  Terrain:
+    Cells: 128
+    CellSize: 2
+    HillHeight: 14
+    HillScale: 70
+    HillOctaves: 4
+    CliffStep: 3
+    CliffAmount: 0.15
+    CliffScale: 90
+    SpawnFlatRadius: 12
+    RimHeight: 14
+    RimWidth: 16
+    WaterLevel: -1000
+  Palette:
+    Low: {r: 0.45, g: 0.52, b: 0.33, a: 1}
+    High: {r: 0.62, g: 0.6, b: 0.42, a: 1}
+    Cliff: {r: 0.5, g: 0.48, b: 0.45, a: 1}
+    Rim: {r: 0.4, g: 0.38, b: 0.36, a: 1}
+    CliffSlope: 38
+  Timeline:
+    Duration: 600
+    Phases:
+    - Start: 0
+      End: 60
+      AliveFrom: 15
+      AliveTo: 35
+      Rate: 5
+      Mix:
+      - EnemyId: enemy.husk
+        Weight: 1
+    - Start: 60
+      End: 180
+      AliveFrom: 35
+      AliveTo: 70
+      Rate: 8
+      Mix:
+      - EnemyId: enemy.husk
+        Weight: 3
+      - EnemyId: enemy.runner
+        Weight: 1
+    - Start: 180
+      End: 360
+      AliveFrom: 70
+      AliveTo: 130
+      Rate: 12
+      Mix:
+      - EnemyId: enemy.husk
+        Weight: 3
+      - EnemyId: enemy.runner
+        Weight: 2
+      - EnemyId: enemy.brute
+        Weight: 1
+    - Start: 360
+      End: 600
+      AliveFrom: 130
+      AliveTo: 220
+      Rate: 18
+      Mix:
+      - EnemyId: enemy.husk
+        Weight: 2
+      - EnemyId: enemy.runner
+        Weight: 2
+      - EnemyId: enemy.brute
+        Weight: 2
+    Events:
+    - At: 90
+      Kind: 1
+      EnemyId: enemy.runner
+      Count: 30
+    - At: 150
+      Kind: 0
+      EnemyId: enemy.champion
+      Count: 1
+    - At: 270
+      Kind: 2
+      EnemyId: enemy.brute
+      Count: 8
+    - At: 330
+      Kind: 0
+      EnemyId: enemy.champion
+      Count: 2
+    - At: 420
+      Kind: 1
+      EnemyId: enemy.husk
+      Count: 60
+    - At: 510
+      Kind: 0
+      EnemyId: enemy.champion
+      Count: 3
+    HealthPerMinute: 0.18
+    SwarmEnemyId: enemy.ghost
+  Boss: {fileID: 11400000, guid: 3adb9aab60cc65d4d8543be39af25313, type: 2}
+  Sun: {r: 1, g: 0.95, b: 0.85, a: 1}
+  SunIntensity: 1.3
+  SunEuler: {x: 50, y: -35, z: 0}
+  AmbientSky: {r: 0.62, g: 0.68, b: 0.78, a: 1}
+  AmbientEquator: {r: 0.5, g: 0.5, b: 0.48, a: 1}
+  AmbientGround: {r: 0.25, g: 0.24, b: 0.22, a: 1}
+  Fog: {r: 0.66, g: 0.7, b: 0.74, a: 1}
+  FogStart: 40
+  FogEnd: 170
+  WaterColor: {r: 0.25, g: 0.45, b: 0.55, a: 0.55}
+  RockModel: 1
+  TreeModel: 3
+  RockColor: {r: 0.58, g: 0.56, b: 0.54, a: 1}
+  RockCount: 110
+  TreeColor: {r: 0.3, g: 0.42, b: 0.25, a: 1}
+  TreeCount: 15
