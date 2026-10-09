@@ -27,6 +27,8 @@ namespace OldGods.Runtime
         public Color WaterColor = new Color(0.25f, 0.45f, 0.55f, 0.55f);
 
         [Header("Props")]
+        public PropModel RockModel = PropModel.Boulder;
+        public PropModel TreeModel = PropModel.Pine;
         public Color RockColor = new Color(0.55f, 0.53f, 0.5f);
         public int RockCount = 70;
         public Color TreeColor = new Color(0.3f, 0.42f, 0.25f);

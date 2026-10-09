@@ -23,5 +23,7 @@ MonoBehaviour:
   GoldChance: 0.15
   IsElite: 0
   Color: {r: 0.18, g: 0.16, b: 0.15, a: 1}
-  Emission: {r: 0.4, g: 0.1, b: 0.02, a: 1}
+  Emission: {r: 0.12, g: 0.03, b: 0, a: 1}
+  Model: 6
+  WalkSwing: 0.16
   Mesh: {fileID: 0}

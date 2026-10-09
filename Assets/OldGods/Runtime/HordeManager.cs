@@ -91,7 +91,7 @@ namespace OldGods.Runtime
         }
 
         /// <summary>Registers an enemy type with its look. Returns the type index.</summary>
-        public int RegisterType(EnemyDef def, Mesh mesh, Color color, Color emission = default)
+        public int RegisterType(EnemyDef def, Mesh mesh, Color color, Color emission = default, float walkSwing = 0.22f)
         {
             int existing = types.IndexOf(def);
             if (existing >= 0) return existing;
@@ -99,7 +99,7 @@ namespace OldGods.Runtime
             maxRadius = Mathf.Max(maxRadius, def.Radius * def.Scale);
             hash = new SpatialHash(Mathf.Max(1.2f, maxRadius * 2.5f), 13);
             if (Renderer == null) Renderer = GetComponent<HordeRenderer>();
-            if (Renderer != null) Renderer.AddType(mesh, color, def.Scale, emission);
+            if (Renderer != null) Renderer.AddType(mesh, color, def.Scale, emission, walkSwing);
             return types.Count - 1;
         }
 
@@ -156,6 +156,7 @@ namespace OldGods.Runtime
                 KnockZ[i] += knockDirection.z * knock;
             }
             DamageNumbers.Show(Position(i) + Vector3.up * 1.8f * Def(i).Scale, amount);
+            Audio.Play(Sfx.Hit, 0.45f, 0.15f);
             if (Hp[i] <= 0f)
             {
                 Kill(i, true);
@@ -177,7 +178,23 @@ namespace OldGods.Runtime
             AliveCount--;
             free.Push(i);
             var def = types[TypeIndex[i]];
+            if (byPlayer)
+            {
+                Audio.Play(Sfx.Kill, 0.5f, 0.12f);
+                DeathPuff(new Vector3(X[i], Y[i], Z[i]), def.Scale);
+            }
             EnemyKilled?.Invoke(new Vector3(X[i], Y[i], Z[i]), def, byPlayer);
+        }
+
+        float puffBudget;
+
+        /// <summary>A brief ring of dust where an enemy fell, capped so big waves stay cheap.</summary>
+        void DeathPuff(Vector3 at, float scale)
+        {
+            if (puffBudget <= 0f) return;
+            puffBudget -= 1f;
+            Effects.Burst(Fx.Ring(0.55f, 16), at + Vector3.up * 0.15f, Quaternion.identity, Vector3.one * 0.3f * scale, Vector3.one * 1.4f * scale,
+                new Color(0.85f, 0.8f, 0.7f, 0.5f), 0.35f);
         }
 
         public void KillAll(bool byPlayer)
@@ -278,6 +295,7 @@ namespace OldGods.Runtime
         {
             float dt = Time.deltaTime;
             if (dt <= 0f) return;
+            puffBudget = Mathf.Min(12f, puffBudget + dt * 30f);
             simWatch.Restart();
             Simulate(dt);
             LastSimulateMs = (float)simWatch.Elapsed.TotalMilliseconds;

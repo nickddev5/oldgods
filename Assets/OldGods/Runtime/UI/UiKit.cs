@@ -84,6 +84,7 @@ namespace OldGods.Runtime
             button.colors = colors;
             var t = Text(rt, label, fontSize, TextAlignmentOptions.Center);
             Stretch(t.rectTransform, 8f);
+            button.onClick.AddListener(() => Audio.Play(Sfx.Click, 0.6f, 0.05f));
             if (onClick != null) button.onClick.AddListener(() => onClick());
             return button;
         }

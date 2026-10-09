@@ -106,19 +106,19 @@ namespace OldGods.Editor
             {
                 e.Id = "enemy.ashling"; e.DisplayName = "Ashling";
                 e.MaxHealth = 6f; e.MoveSpeed = 6.2f; e.Radius = 0.3f; e.ContactDamage = 3f; e.XpValue = 1; e.Scale = 0.7f;
-                e.Color = new Color(0.3f, 0.28f, 0.27f); e.Emission = new Color(0.5f, 0.15f, 0.02f);
+                e.Color = new Color(0.3f, 0.28f, 0.27f); e.Emission = new Color(0.18f, 0.05f, 0f);
             });
             Enemy(library, "Cinder", e =>
             {
                 e.Id = "enemy.cinder"; e.DisplayName = "Cinder Husk";
                 e.MaxHealth = 14f; e.MoveSpeed = 3.6f; e.Radius = 0.4f; e.ContactDamage = 6f; e.XpValue = 2;
-                e.Color = new Color(0.22f, 0.2f, 0.2f); e.Emission = new Color(0.3f, 0.08f, 0.01f);
+                e.Color = new Color(0.22f, 0.2f, 0.2f); e.Emission = new Color(0.08f, 0.02f, 0f);
             });
             Enemy(library, "Hulk", e =>
             {
                 e.Id = "enemy.hulk"; e.DisplayName = "Charred Hulk";
                 e.MaxHealth = 60f; e.MoveSpeed = 2.4f; e.Radius = 0.55f; e.ContactDamage = 12f; e.XpValue = 6; e.Scale = 1.7f;
-                e.Color = new Color(0.18f, 0.16f, 0.15f); e.Emission = new Color(0.4f, 0.1f, 0.02f); e.GoldChance = 0.15f;
+                e.Color = new Color(0.18f, 0.16f, 0.15f); e.Emission = new Color(0.12f, 0.03f, 0f); e.GoldChance = 0.15f;
             });
             Enemy(library, "Drowned", e =>
             {
@@ -142,7 +142,7 @@ namespace OldGods.Editor
             {
                 e.Id = "enemy.ash_champion"; e.DisplayName = "An Ash Champion";
                 e.MaxHealth = 700f; e.MoveSpeed = 3.6f; e.Radius = 0.55f; e.ContactDamage = 16f; e.XpValue = 40; e.Scale = 2.4f;
-                e.Color = new Color(0.2f, 0.17f, 0.16f); e.Emission = new Color(0.8f, 0.25f, 0.04f); e.IsElite = true; e.GoldChance = 1f;
+                e.Color = new Color(0.2f, 0.17f, 0.16f); e.Emission = new Color(0.35f, 0.1f, 0.01f); e.IsElite = true; e.GoldChance = 1f;
             });
             Enemy(library, "TideChampion", e =>
             {
@@ -374,6 +374,35 @@ namespace OldGods.Editor
                 foreach (var p in l.Passives) if (p != null && costs.TryGetValue(p.Id, out int c)) { p.UnlockId = p.Id; p.UnlockCost = c; EditorUtility.SetDirty(p); }
                 foreach (var i in l.Items) if (i != null && costs.TryGetValue(i.Id, out int c)) { i.UnlockId = i.Id; i.UnlockCost = c; EditorUtility.SetDirty(i); }
                 assets.ContentVersion = 1;
+                EditorUtility.SetDirty(assets);
+            }
+            if (assets.ContentVersion < 2)
+            {
+                // Milestone 9: each enemy gets its own model; biomes get their own prop kits.
+                var models = new Dictionary<string, EnemyModel>
+                {
+                    { "enemy.husk", EnemyModel.Husk }, { "enemy.runner", EnemyModel.Runner }, { "enemy.brute", EnemyModel.Brute },
+                    { "enemy.ghost", EnemyModel.Ghost }, { "enemy.ashling", EnemyModel.Ashling }, { "enemy.cinder", EnemyModel.Cinder },
+                    { "enemy.hulk", EnemyModel.Hulk }, { "enemy.drowned", EnemyModel.Drowned }, { "enemy.brine_runner", EnemyModel.BrineRunner },
+                    { "enemy.shell_brute", EnemyModel.ShellBrute }, { "enemy.champion", EnemyModel.Champion },
+                    { "enemy.ash_champion", EnemyModel.AshChampion }, { "enemy.tide_champion", EnemyModel.TideChampion },
+                };
+                foreach (var e in l.Enemies)
+                {
+                    if (e == null || !models.TryGetValue(e.Id, out var model)) continue;
+                    e.Model = model;
+                    e.WalkSwing = model == EnemyModel.Ghost ? 0.04f : model == EnemyModel.Hulk || model == EnemyModel.ShellBrute ? 0.16f : 0.22f;
+                    EditorUtility.SetDirty(e);
+                }
+                foreach (var b in assets.Stages)
+                {
+                    if (b == null) continue;
+                    if (b.Id == "biome.grey_steppe") { b.RockModel = PropModel.StandingStone; b.TreeModel = PropModel.Pine; }
+                    if (b.Id == "biome.ash_wood") { b.RockModel = PropModel.Boulder; b.TreeModel = PropModel.DeadTree; }
+                    if (b.Id == "biome.drowned_coast") { b.RockModel = PropModel.SeaStack; b.TreeModel = PropModel.Driftwood; }
+                    EditorUtility.SetDirty(b);
+                }
+                assets.ContentVersion = 2;
                 EditorUtility.SetDirty(assets);
             }
         }

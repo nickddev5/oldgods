@@ -32,6 +32,8 @@ Release player, 1600x900 windowed, Ryzen 7 9800X3D / Radeon RX 9070 XT, 2026-10-
 | 500 | 0.82 | 1.25 | 1221 | 0.21 |
 | 1000 | 1.07 | 1.41 | 933 | 0.44 |
 
+After the milestone 9 art pass (13 enemy models, props, effects, sound): 1000 enemies at 801 fps, 1% low 1.53 ms, horde CPU 0.61 ms.
+
 **Decision (2026-10-09):** the single-threaded C# loop is far inside budget (0.44 ms for 1000 enemies), so the hot loop stays on the main thread; Jobs and Burst are not used. Re-run the probe after real enemy art and weapons land (milestones 2 and 9); revisit if horde CPU passes 4 ms at 1000.
 
 ## Seeds

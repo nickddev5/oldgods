@@ -97,6 +97,7 @@ namespace OldGods.Runtime
             attacking = true;
             float t = 0f;
             Effects.Burst(Fx.Ring(0.7f, 40), transform.position + Vector3.up * 0.2f, Quaternion.identity, Vector3.one * 2f, Vector3.one * Def.Scale * 3f, accent, 1.2f);
+            Audio.Play(Sfx.BossWake, 1f, 0f);
             while (t < 1.2f)
             {
                 t += Time.deltaTime;
@@ -122,6 +123,7 @@ namespace OldGods.Runtime
             Vector3 at = transform.position;
             Effects.Burst(Fx.Column(), at, Quaternion.identity, new Vector3(2f, 1f, 2f), new Vector3(Def.Scale * 2f, 25f, Def.Scale * 2f), accent, 1.2f);
             Effects.Burst(Fx.Ring(0.6f, 48), at + Vector3.up * 0.3f, Quaternion.identity, Vector3.one, Vector3.one * 20f, accent, 1f);
+            Audio.Play(Sfx.Death, 1f, 0f);
             All.Remove(this);
             Defeated?.Invoke(this);
             Destroy(gameObject, 0.05f);
@@ -204,6 +206,7 @@ namespace OldGods.Runtime
                     Effects.Burst(Fx.Disc(), at + Vector3.up * 0.1f, Quaternion.identity, Vector3.one * a.Size * 0.2f, Vector3.one * a.Size, Warning, a.Telegraph);
                     yield return Lean(a.Telegraph, -12f);
                     HitPlayerIfInside(at, a.Size, a.Damage);
+                    Audio.Play(Sfx.Slam, 0.9f);
                     Effects.Burst(Fx.Column(), at, Quaternion.identity, new Vector3(a.Size, 0.5f, a.Size), new Vector3(a.Size * 1.2f, 4f, a.Size * 1.2f), accent, 0.35f);
                     break;
                 }
@@ -238,6 +241,7 @@ namespace OldGods.Runtime
                 case BossAttack.Shockwave:
                 {
                     yield return Lean(a.Telegraph, -20f);
+                    Audio.Play(Sfx.Slam, 0.8f);
                     Vector3 c = transform.position;
                     float r = 0f, speed = 14f;
                     bool hit = false;
@@ -281,6 +285,7 @@ namespace OldGods.Runtime
                         Effects.Burst(Fx.Disc(), points[i] + Vector3.up * 0.1f, Quaternion.identity, Vector3.one * a.Size * 0.2f, Vector3.one * a.Size, Warning, a.Telegraph);
                     }
                     yield return Lean(a.Telegraph, -10f);
+                    Audio.Play(Sfx.Slam, 0.7f);
                     foreach (var p in points)
                     {
                         HitPlayerIfInside(p, a.Size, a.Damage);

@@ -68,6 +68,7 @@ namespace OldGods.Runtime
             core.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             core.AddComponent<MeshRenderer>().sharedMaterial = Fx.Fade(new Color(0.5f, 0.85f, 1f, 0.45f));
             Effects.Burst(Fx.Ring(0.6f, 40), go.transform.position + Vector3.up * 0.2f, Quaternion.identity, Vector3.one, Vector3.one * 8f, new Color(0.6f, 1f, 1.6f, 0.8f), 1f);
+            Audio.Play(Sfx.Portal, 1f, 0f);
             return portal;
         }
 

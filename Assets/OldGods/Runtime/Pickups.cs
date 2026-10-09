@@ -116,6 +116,7 @@ namespace OldGods.Runtime
                     alive[i] = false;
                     free.Push(i);
                     count--;
+                    Audio.Play(kind[i] == PickupKind.Gold ? Sfx.Gold : Sfx.Pickup, 0.6f, 0.2f);
                     Collected?.Invoke(kind[i], value[i]);
                     if (kind[i] == PickupKind.Magnet) MagnetAll();
                     continue;

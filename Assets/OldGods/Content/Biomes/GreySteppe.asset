@@ -116,6 +116,8 @@ MonoBehaviour:
   FogStart: 40
   FogEnd: 170
   WaterColor: {r: 0.25, g: 0.45, b: 0.55, a: 0.55}
+  RockModel: 1
+  TreeModel: 3
   RockColor: {r: 0.58, g: 0.56, b: 0.54, a: 1}
   RockCount: 110
   TreeColor: {r: 0.3, g: 0.42, b: 0.25, a: 1}

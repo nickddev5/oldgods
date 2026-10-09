@@ -110,7 +110,7 @@ namespace OldGods.Runtime
             Horde = WorldBuilder.CreateHorde(Assets, Player, null);
             Horde.SpawnRng = Seed.Stream(RunSeed.Spawns);
             foreach (var e in Assets.Content.Enemies)
-                if (e != null) Horde.RegisterType(Content.Enemy(e.Id), e.MeshOrPlaceholder, e.Color, e.Emission);
+                if (e != null) Horde.RegisterType(Content.Enemy(e.Id), e.MeshOrPlaceholder, e.Color, e.Emission, e.WalkSwing);
 
             var systems = new GameObject("Combat Systems");
             Pickups = systems.AddComponent<Pickups>();
@@ -195,6 +195,7 @@ namespace OldGods.Runtime
             if (!final) ScatterProps(field, Seed.Stream(RunSeed.Map, 100 + stage));
             if (profile.WaterLevel > -100f) BuildWater(field, profile.WaterLevel);
 
+            Audio.Music(Biome.Id);
             sun.color = Biome.Sun;
             sun.intensity = Biome.SunIntensity;
             sun.transform.rotation = Quaternion.Euler(Biome.SunEuler);
@@ -291,7 +292,7 @@ namespace OldGods.Runtime
         void ScatterProps(HeightField field, Rng rng)
         {
             var rockMat = WorldBuilder.Tinted(Assets.LowPoly, Biome.RockColor);
-            var rock = PlaceholderMeshes.Rock();
+            var rock = PropModels.Get(Biome.RockModel);
             for (int i = 0; i < Biome.RockCount; i++)
             {
                 float x = rng.Range(field.MinX + 20f, field.MaxX - 20f);
@@ -305,7 +306,7 @@ namespace OldGods.Runtime
             if (Biome.TreeCount > 0)
             {
                 var treeMat = WorldBuilder.Tinted(Assets.LowPoly, Biome.TreeColor);
-                var tree = PlaceholderMeshes.Tree();
+                var tree = PropModels.Get(Biome.TreeModel);
                 for (int i = 0; i < Biome.TreeCount; i++)
                 {
                     float x = rng.Range(field.MinX + 20f, field.MaxX - 20f);

@@ -118,6 +118,10 @@ namespace OldGods.Runtime
             GameInput.SetCursorLocked(false);
             root.gameObject.SetActive(true);
             banishing = false;
+            Audio.Play(Sfx.LevelUp, 0.8f, 0f);
+            if (combat != null)
+                Effects.Burst(Fx.Ring(0.8f, 40), combat.transform.position + Vector3.up * 0.2f, Quaternion.identity, Vector3.one, Vector3.one * 6f,
+                    new Color(0.5f, 0.85f, 1.6f, 0.8f), 0.6f);
             Deal(null);
         }
 

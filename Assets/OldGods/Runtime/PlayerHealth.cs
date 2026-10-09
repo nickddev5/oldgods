@@ -71,6 +71,7 @@ namespace OldGods.Runtime
         {
             float dealt = Health.Damage(amount, ignoreInvulnerability);
             if (dealt <= 0f) return;
+            Audio.Play(Health.IsDead ? Sfx.Death : Sfx.Hurt, 0.8f, 0.05f);
             Damaged?.Invoke(dealt);
             if (Health.IsDead) Died?.Invoke();
         }

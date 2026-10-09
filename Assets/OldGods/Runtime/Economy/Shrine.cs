@@ -90,6 +90,7 @@ namespace OldGods.Runtime
         void Spent()
         {
             used = true;
+            Audio.Play(Sfx.Shrine, 0.8f, 0f);
             if (Gem != null) Gem.gameObject.SetActive(false);
             Effects.Burst(Fx.Column(), transform.position, Quaternion.identity, new Vector3(0.8f, 0.5f, 0.8f), new Vector3(1.5f, 8f, 1.5f),
                 Features.ShrineColor(Kind), 0.6f);

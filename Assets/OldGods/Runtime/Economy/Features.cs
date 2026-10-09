@@ -159,6 +159,7 @@ namespace OldGods.Runtime
         {
             if (opened || !RunEconomy.Instance.OpenChest(Free)) return;
             opened = true;
+            Audio.Play(Sfx.Chest, 0.9f, 0f);
             Effects.Burst(Fx.Column(), transform.position, Quaternion.identity, new Vector3(0.6f, 0.5f, 0.6f), new Vector3(1.2f, 6f, 1.2f), new Color(1.8f, 1.5f, 0.6f, 0.8f), 0.6f);
             foreach (Transform c in transform) Destroy(c.gameObject);
             transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y * 0.6f, transform.localScale.z);

@@ -53,7 +53,7 @@ namespace OldGods.Runtime
             }
         }
 
-        public void AddType(Mesh mesh, Color color, float scale, Color emission = default)
+        public void AddType(Mesh mesh, Color color, float scale, Color emission = default, float walkSwing = 0.22f)
         {
             var d = new TypeDraw { Mesh = mesh, Scale = scale, Props = new MaterialPropertyBlock() };
             if (HordeMaterial != null)
@@ -61,6 +61,7 @@ namespace OldGods.Runtime
                 d.Material = new Material(HordeMaterial) { name = $"Horde_{mesh.name}" };
                 d.Material.SetColor(BaseColorId, color);
                 d.Material.SetColor("_EmissionColor", emission);
+                d.Material.SetFloat("_WalkSwing", walkSwing);
             }
             draws.Add(d);
         }

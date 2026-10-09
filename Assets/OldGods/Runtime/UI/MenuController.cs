@@ -61,6 +61,7 @@ namespace OldGods.Runtime
                 return;
             }
             BuildStage();
+            Audio.Music("menu");
             var canvas = UiKit.Canvas("Menu", 10);
             Root = canvas.transform as RectTransform;
             mainPage = BuildMain();

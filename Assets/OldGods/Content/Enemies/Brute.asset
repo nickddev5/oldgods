@@ -24,4 +24,6 @@ MonoBehaviour:
   IsElite: 0
   Color: {r: 0.32, g: 0.3, b: 0.36, a: 1}
   Emission: {r: 0, g: 0, b: 0, a: 1}
+  Model: 2
+  WalkSwing: 0.22
   Mesh: {fileID: 0}

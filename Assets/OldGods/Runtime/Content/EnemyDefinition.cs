@@ -19,7 +19,10 @@ namespace OldGods.Runtime
         public bool IsElite;
         public Color Color = new Color(0.6f, 0.25f, 0.2f);
         [ColorUsage(false, true)] public Color Emission = Color.black;
-        [Tooltip("Leave empty to use the placeholder husk.")]
+        public EnemyModel Model;
+        [Tooltip("How far legs swing in the walk; small for drifting enemies.")]
+        public float WalkSwing = 0.22f;
+        [Tooltip("An imported mesh overrides the built-in model.")]
         public Mesh Mesh;
 
         public EnemyDef ToDef() => new EnemyDef
@@ -36,6 +39,6 @@ namespace OldGods.Runtime
             IsElite = IsElite,
         };
 
-        public Mesh MeshOrPlaceholder => Mesh != null ? Mesh : PlaceholderMeshes.Husk();
+        public Mesh MeshOrPlaceholder => Mesh != null ? Mesh : EnemyModels.Get(Model);
     }
 }
