@@ -175,7 +175,7 @@ namespace OldGods.Runtime
             // The map edge: the rim slopes up, and a wall partway up it stops the player.
             // Walking, sliding or jumping into it stops the outward part of the motion.
             var pos = transform.position;
-            var inside = Ground.ClampToPlayable(pos, -Ground.RimWidth * 0.55f);
+            var inside = Ground.ClampInsideWall(pos);
             if ((inside - pos).sqrMagnitude > 1e-6f)
             {
                 cc.Move(new Vector3(inside.x - pos.x, 0f, inside.z - pos.z));

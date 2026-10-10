@@ -113,5 +113,11 @@ namespace OldGods.Rules
         {
             return x > f.MinX + rimWidth && x < f.MaxX - rimWidth && z > f.MinZ + rimWidth && z < f.MaxZ - rimWidth;
         }
+
+        /// <summary>
+        /// How far in from the map's edge the wall partway up the rim stands. The player and the
+        /// horde can both walk up the rim this far, so the horde can always follow.
+        /// </summary>
+        public static float WallInset(float rimWidth) => rimWidth * 0.45f;
     }
 }

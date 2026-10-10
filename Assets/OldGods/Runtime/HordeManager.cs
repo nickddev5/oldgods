@@ -429,7 +429,7 @@ namespace OldGods.Runtime
                     else { nx = X[i]; nz = Z[i]; }
                 }
 
-                var clamped = Ground.ClampToPlayable(new Vector3(nx, 0f, nz), 0.5f);
+                var clamped = Ground.ClampInsideWall(new Vector3(nx, 0f, nz), 0.5f);
                 X[i] = clamped.x;
                 Z[i] = clamped.z;
                 Y[i] = Ground.Height(X[i], Z[i]);

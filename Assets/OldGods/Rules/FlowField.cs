@@ -152,12 +152,15 @@ namespace OldGods.Rules
 
         /// <summary>
         /// Classifies each cell by how much its corners rise: up to walkRise is open, up to
-        /// climbRise is a scramble, more is a cliff. Cells outside the playable square and
-        /// cells under obstacles are blocked.
+        /// climbRise is a scramble, more is a cliff. The rim's slope up to its wall is open
+        /// ground, since the player can stand there; cells past the wall are blocked, and
+        /// cells under obstacles are solid.
         /// </summary>
         public static FlowField FromTerrain(HeightField f, Obstacles obstacles, float rimWidth, float walkRise = 1.3f, float climbRise = 3f)
         {
             var ff = new FlowField(f.Cells, f.CellSize, f.OriginX, f.OriginZ);
+            // A cell is on the walkable rim when any part of it is inside the wall.
+            float wall = TerrainGenerator.WallInset(rimWidth) - f.CellSize * 0.5f;
             for (int iz = 0; iz < f.Cells; iz++)
                 for (int ix = 0; ix < f.Cells; ix++)
                 {
@@ -165,8 +168,9 @@ namespace OldGods.Rules
                     float rise = Math.Max(Math.Max(a, b), Math.Max(c, d)) - Math.Min(Math.Min(a, b), Math.Min(c, d));
                     float x = f.OriginX + (ix + 0.5f) * f.CellSize, z = f.OriginZ + (iz + 0.5f) * f.CellSize;
                     CellClass k = rise <= walkRise ? CellClass.Open : rise <= climbRise ? CellClass.Climb : CellClass.Blocked;
-                    if (!TerrainGenerator.InPlayableArea(f, x, z, rimWidth)) k = CellClass.Blocked;
-                    else if (k != CellClass.Blocked && obstacles != null && obstacles.Overlaps(x, z, f.CellSize * 0.4f)) k = CellClass.Solid;
+                    if (!TerrainGenerator.InPlayableArea(f, x, z, rimWidth))
+                        k = TerrainGenerator.InPlayableArea(f, x, z, wall) ? CellClass.Open : CellClass.Blocked;
+                    if (k != CellClass.Blocked && obstacles != null && obstacles.Overlaps(x, z, f.CellSize * 0.4f)) k = CellClass.Solid;
                     ff.Class[iz * f.Cells + ix] = k;
                 }
             return ff;

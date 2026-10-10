@@ -58,6 +58,15 @@ namespace OldGods.Runtime
             p.z = Mathf.Clamp(p.z, Field.MinZ + m, Field.MaxZ - m);
             return p;
         }
+
+        /// <summary>How far in from the map's edge the wall partway up the rim stands.</summary>
+        public static float WallInset => TerrainGenerator.WallInset(RimWidth);
+
+        /// <summary>
+        /// Clamps a point inside the wall on the rim, the limit for everything that walks, so
+        /// the horde can follow the player up the rim's slope.
+        /// </summary>
+        public static Vector3 ClampInsideWall(Vector3 p, float margin = 0f) => ClampToPlayable(p, WallInset - RimWidth + margin);
     }
 
     /// <summary>Palette for a biome's ground, by height band and slope.</summary>
