@@ -74,6 +74,30 @@ class CommandTests(unittest.TestCase):
         self.assertEqual(playbot.seeds_for(None, 3), ["1111", "2222", "3333"])
 
 
+class RunCheckTests(unittest.TestCase):
+    def test_reports_that_never_started_are_rejected(self):
+        self.assertIn("no god", playbot.rejected({"outcome": "error", "note": "no god with id god.typo"}, 3))
+        self.assertIn("locked", playbot.rejected({"outcome": "locked", "note": "Elias is locked in this save"}, 3))
+        self.assertIsNotNone(playbot.rejected({}, 0))
+
+    def test_crashes_are_rejected_and_finished_runs_count(self):
+        self.assertIn("exited 1", playbot.rejected({"outcome": "died"}, 1))
+        for outcome in ("won", "died", "timeout", "stage limit"):
+            self.assertIsNone(playbot.rejected({"outcome": outcome}, 0))
+
+    def test_fresh_clears_old_saves_and_reports(self):
+        with tempfile.TemporaryDirectory() as d:
+            save = Path(d) / "campaign-save"
+            save.mkdir()
+            (save / "save.json").write_text("{}")
+            report = Path(d) / "run-1.json"
+            report.write_text("{}")
+            playbot.fresh(save)
+            playbot.fresh(report)
+            playbot.fresh(Path(d) / "missing")
+            self.assertFalse(save.exists() or report.exists())
+
+
 class SummaryTests(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(playbot.summarise([])["runs"], 0)

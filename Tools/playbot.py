@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 import time
@@ -72,9 +73,29 @@ def list_gods(exe: Path, folder: Path, width: int, height: int, timeout: float) 
     return json.loads(out.read_text(encoding="utf-8"))["content"]["gods"]
 
 
+def rejected(run: Run, code: int) -> str | None:
+    """Why a player report does not count as a run (a typo'd god, a locked god, a crash), or None."""
+    if run.get("outcome") in ("error", "locked", "", None):
+        return run.get("note") or f"the run did not start ({run.get('outcome') or 'no outcome'})"
+    if code != 0:
+        return f"the player exited {code}"
+    return None
+
+
+def fresh(path: Path) -> None:
+    """Removes a save folder or report left by an earlier run into the same output folder."""
+    if path.is_dir():
+        shutil.rmtree(path)
+    elif path.exists():
+        path.unlink()
+
+
 def play(job: dict[str, Any], timeout: float) -> Run | None:
     print(f"  playing {job['label']} ...", flush=True)
     started = time.time()
+    fresh(job["out"])
+    if job.get("fresh_save"):
+        fresh(job["save"])
     try:
         code = subprocess.call(job["cmd"], timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -85,6 +106,10 @@ def play(job: dict[str, Any], timeout: float) -> Run | None:
         print(f"  {job['label']}: no report (exit {code}); see {job['log']}")
         return None
     run = json.loads(out.read_text(encoding="utf-8"))
+    why = rejected(run, code)
+    if why:
+        print(f"  {job['label']}: not counted: {why}; see {job['log']}")
+        return None
     print(f"  {job['label']}: {run.get('outcome')} after {run.get('stagesCleared', 0)} stage(s), "
           f"level {run.get('level', 0)}, {run.get('seconds', 0):.0f}s of play in {time.time() - started:.0f}s")
     return run
@@ -504,10 +529,10 @@ def main(argv: list[str] | None = None) -> int:
     seeds = seeds_for(args.seeds, args.runs)
     jobs: list[dict[str, Any]] = []
 
-    def job(label: str, god: str | None, seed: str | None, save: Path, unlock_all: bool) -> dict[str, Any]:
+    def job(label: str, god: str | None, seed: str | None, save: Path, unlock_all: bool, fresh_save: bool) -> dict[str, Any]:
         out = folder / f"run-{label}.json"
         log = folder / f"run-{label}.log"
-        return {"label": label, "out": out, "log": log,
+        return {"label": label, "out": out, "log": log, "save": save, "fresh_save": fresh_save,
                 "cmd": player_command(args.exe, out, log, save, god, seed, args.picks, args.step, args.width, args.height, unlock_all, args.extra)}
 
     if args.campaign:
@@ -515,7 +540,8 @@ def main(argv: list[str] | None = None) -> int:
         save = folder / "campaign-save"
         for i in range(args.campaign):
             seed = seeds[i % len(seeds)] if args.seeds else f"{0x1111 * (i + 1):X}"
-            jobs.append(job(f"{i + 1:02d}-campaign-{seed}", "newest", seed, save, False))
+            # Only the first run starts from an empty save; the rest carry it on.
+            jobs.append(job(f"{i + 1:02d}-campaign-{seed}", "newest", seed, save, False, fresh_save=i == 0))
         args.jobs = 1
     else:
         if args.gods == "all":
@@ -526,7 +552,7 @@ def main(argv: list[str] | None = None) -> int:
         for god in gods:
             for seed in seeds:
                 label = f"{god.replace('god.', '')}-{seed}"
-                jobs.append(job(label, god, seed, folder / f"save-{label}", True))
+                jobs.append(job(label, god, seed, folder / f"save-{label}", True, fresh_save=True))
 
     print(f"Playing {len(jobs)} run(s) into {folder}")
     if args.jobs > 1:
@@ -541,7 +567,9 @@ def main(argv: list[str] | None = None) -> int:
     for t in tips:
         print(f"- {t}")
     print(f"Report: {folder / 'report.md'}")
-    return 0 if runs else 1
+    if len(runs) < len(jobs):
+        print(f"{len(jobs) - len(runs)} of {len(jobs)} run(s) did not count; see the lines above.")
+    return 0 if runs and len(runs) == len(jobs) else 1
 
 
 if __name__ == "__main__":
