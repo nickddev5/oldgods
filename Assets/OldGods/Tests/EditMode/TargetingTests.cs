@@ -23,6 +23,20 @@ namespace OldGods.Tests.EditMode
         }
 
         [Test]
+        public void TheBossBesideThePlayerDoesNotHideAFoeBesideIt()
+        {
+            var dist = new System.Collections.Generic.Dictionary<int, float> { { 7, 1f }, { 3, 2f }, { 4, 9f } };
+            float D(int i) => dist[i];
+            // The boss is nearest, a common foe is also inside 3.5 m: shoot the foe.
+            Assert.AreEqual(-1, Targeting.BossToAim(7, new[] { 7, 3 }, 2, D));
+            // Only the boss is close: shoot the boss.
+            Assert.AreEqual(7, Targeting.BossToAim(7, new[] { 7 }, 1, D));
+            Assert.AreEqual(7, Targeting.BossToAim(7, new[] { 7, 4 }, 2, D), "a foe outside the range does not count");
+            Assert.AreEqual(7, Targeting.BossToAim(7, new int[0], 0, D));
+            Assert.AreEqual(-1, Targeting.BossToAim(-1, new[] { 3 }, 1, D));
+        }
+
+        [Test]
         public void BossFirstMovesAListedBossToTheFront()
         {
             var list = new[] { 4, 5, 9, 6 };

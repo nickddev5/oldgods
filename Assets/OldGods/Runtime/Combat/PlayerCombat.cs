@@ -170,13 +170,15 @@ namespace OldGods.Runtime
         protected HordeManager Horde => HordeManager.Instance;
 
         /// <summary>The boss to aim at from here, or -1: none in range, or a foe is too close to ignore (Targeting.AimAtBoss).</summary>
+        readonly int[] nearBoss = new int[64];
+
         protected int BossTarget(Vector3 from, float range)
         {
             int boss = Horde.NearestBoss(from, range);
             if (boss < 0) return -1;
-            int close = Horde.Nearest(from, Targeting.SelfDefenceRange);
-            float d = close < 0 || close == boss ? float.MaxValue : Vector3.Distance(Horde.Position(close), from);
-            return Targeting.AimAtBoss(boss, d) ? boss : -1;
+            // Its own buffer: callers may still be using Found.
+            int n = Horde.QueryCircle(from, Targeting.SelfDefenceRange, nearBoss);
+            return Targeting.BossToAim(boss, nearBoss, n, i => Vector3.Distance(Horde.Position(i), from));
         }
 
         public static WeaponDriver Create(PlayerCombat owner, WeaponState state, WeaponDefinition asset)

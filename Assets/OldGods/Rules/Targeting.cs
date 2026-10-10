@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace OldGods.Rules
 {
     /// <summary>
@@ -16,6 +19,20 @@ namespace OldGods.Rules
 
         /// <summary>Whether a boss in range should be aimed at, given how far the nearest foe is.</summary>
         public static bool AimAtBoss(int boss, float nearestDistance) => boss >= 0 && nearestDistance > SelfDefenceRange;
+
+        /// <summary>
+        /// The boss to aim at, or -1. nearby are the slots around the player and distance gives
+        /// each one's distance; the boss itself never counts as the foe to defend against, so a
+        /// common foe beside the boss still takes the shot.
+        /// </summary>
+        public static int BossToAim(int boss, IReadOnlyList<int> nearby, int nearbyCount, Func<int, float> distance)
+        {
+            if (boss < 0) return -1;
+            float closest = float.MaxValue;
+            for (int i = 0; i < nearbyCount; i++)
+                if (nearby[i] != boss) closest = Math.Min(closest, distance(nearby[i]));
+            return AimAtBoss(boss, closest) ? boss : -1;
+        }
 
         /// <summary>The boss slot when one is in range (boss &gt;= 0), otherwise the nearest foe.</summary>
         public static int Choose(int nearest, int boss) => boss >= 0 ? boss : nearest;
