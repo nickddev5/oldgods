@@ -89,6 +89,7 @@ namespace OldGods.Runtime
             {
                 m.transform.localScale = Vector3.one * Def.Scale;
                 m.AddComponent<MeshFilter>().sharedMesh = BossModels.Get(asset.Model);
+                m.AddComponent<CapeSway>();
                 modelRenderer = m.AddComponent<MeshRenderer>();
                 // Built-in models carry their colours in the mesh.
                 modelRenderer.sharedMaterial = WorldBuilder.Outlined(WorldBuilder.Tinted(assets.LowPoly, Color.white), 3.5f);

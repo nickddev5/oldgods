@@ -126,6 +126,7 @@ namespace OldGods.Runtime
             var walk = visual.AddComponent<WalkAnimator>();
             walk.Tracked = go.transform;
             walk.Motor = motor;
+            visual.AddComponent<CapeSway>();
             if (mark != default)
             {
                 var gem = new GameObject("Mark");

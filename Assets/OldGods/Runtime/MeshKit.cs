@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 namespace OldGods.Runtime
 {
     /// <summary>Which body part a vertex belongs to; the shaders swing limbs by part.</summary>
-    public enum BodyPart { Body = 0, LeftLeg = 1, RightLeg = 2, LeftArm = 3, RightArm = 4, Head = 5 }
+    public enum BodyPart { Body = 0, LeftLeg = 1, RightLeg = 2, LeftArm = 3, RightArm = 4, Head = 5, Cape = 6 }
 
     /// <summary>
     /// Builds flat-shaded low-poly meshes from simple parts. Every face gets its own

@@ -23,6 +23,7 @@ CBUFFER_START(UnityPerMaterial)
     half _OutlineWidth;
     half _PixelAmount;
     half _TexelsPerMeter;
+    float4 _CapeSwing; // x: backward lift, y: sideways swing (radians), z: ripple 0..1; set by CapeSway
 CBUFFER_END
 
 TEXTURE2D(_OG_PixelTex);
@@ -33,7 +34,7 @@ struct Attributes
     float4 positionOS : POSITION;
     float3 normalOS   : NORMAL;
     half4  color      : COLOR;
-    float2 part       : TEXCOORD0; // x: body part (0 body, 1-2 legs, 3-4 arms, 5 head); y: knee or elbow height
+    float2 part       : TEXCOORD0; // x: body part (0 body, 1-2 legs, 3-4 arms, 5 head, 6 cape); y: knee or elbow height, or cape length
     float3 joint      : TEXCOORD1; // the joint the part swings around
 #ifdef OG_HORDE
     uint   instanceID : SV_InstanceID;
@@ -96,14 +97,35 @@ void BendLimb(inout float3 p, inout float3 n, float bend, float3 joint, float an
     n = SwingX(n, float3(0, 0, 0), angle * w);
 }
 
+// Bends a cape about the shoulder line it hangs from. Each vertex turns by a share of the
+// angle that grows from 0 at the shoulders to 1 at the hem, so the cloth curves rather than
+// swinging like a board. Only cloth behind the anchor moves (a mantle's front stays on the
+// chest), short capes move less than long ones, and a travelling wave ripples the hem.
+void BendCape(inout float3 p, inout float3 n, float drop, float3 joint, float3 cape)
+{
+    drop = max(drop, 0.05);
+    float below = joint.y - p.y;
+    float w = saturate(below / drop) * saturate((joint.z - p.z) / 0.08 + 0.5) * saturate(drop / 0.7);
+    if (w <= 0.0) return;
+    float ripple = sin(_Time.y * 11.0 - below * 9.0 + p.x * 7.0) * cape.z * 0.12;
+    float pitch = (cape.x + ripple * (0.4 + cape.x)) * w;
+    float roll = (cape.y + ripple * 0.3) * w;
+    p = SwingX(p, joint, pitch);
+    n = SwingX(n, float3(0, 0, 0), pitch);
+    p = SwingZ(p, joint, roll);
+    n = SwingZ(n, float3(0, 0, 0), roll);
+}
+
 // Procedural motion from body parts baked into the mesh: legs swing in opposite phase and
 // bend at the knee as they come forward; arms counter-swing with bent elbows; the body leans
-// into the run and bobs twice per stride; the head nods a little. air and slide (0..1) blend
-// in a jumping pose (knees tucked, arms out) and a sliding pose (legs forward, arms back).
-void Animate(inout float3 p, inout float3 n, float2 part, float3 joint, float phase, float swing, float air, float slide)
+// into the run and bobs twice per stride; the head nods a little; a cape bends back by the
+// cape angles. air and slide (0..1) blend in a jumping pose (knees tucked, arms out) and a
+// sliding pose (legs forward, arms back).
+void Animate(inout float3 p, inout float3 n, float2 part, float3 joint, float phase, float swing, float air, float slide, float3 cape)
 {
-    if (swing <= 0.0 && air <= 0.0 && slide <= 0.0) return;
     float id = part.x;
+    if (id > 5.5) BendCape(p, n, part.y, joint, cape);
+    if (swing <= 0.0 && air <= 0.0 && slide <= 0.0) return;
     float bend = part.y;
     if (id > 0.5 && id < 2.5)
     {
@@ -133,7 +155,7 @@ void Animate(inout float3 p, inout float3 n, float2 part, float3 joint, float ph
             n = SwingZ(n, float3(0, 0, 0), raise);
         }
     }
-    else if (id > 4.5)
+    else if (id > 4.5 && id < 5.5)
     {
         float nod = sin(phase * 2.0) * swing * 0.25 - air * 0.12;
         p = SwingX(p, joint, nod);
@@ -155,7 +177,8 @@ void OGTransform(Attributes IN, out float3 positionWS, out float3 normalWS, out 
     float3 n = IN.normalOS;
 #ifdef OG_HORDE
     HordeInstance inst = _Instances[IN.instanceID];
-    Animate(p, n, IN.part, IN.joint, inst.phase, _WalkSwing, 0.0, 0.0);
+    // The horde has no cape physics: a running enemy's cape just trails at a fixed lift.
+    Animate(p, n, IN.part, IN.joint, inst.phase, _WalkSwing, 0.0, 0.0, float3(_WalkSwing * 2.2, 0.0, 0.5));
     float c = cos(inst.yaw), s2 = sin(inst.yaw);
     float3 r = float3(p.x * c + p.z * s2, p.y, -p.x * s2 + p.z * c);
     positionWS = r * inst.scale + inst.position;
@@ -164,7 +187,7 @@ void OGTransform(Attributes IN, out float3 positionWS, out float3 normalWS, out 
     tint = inst.tint;
 #else
     UNITY_SETUP_INSTANCE_ID(IN);
-    Animate(p, n, IN.part, IN.joint, _AnimPhase, _WalkSwing, _AirPose, _SlidePose);
+    Animate(p, n, IN.part, IN.joint, _AnimPhase, _WalkSwing, _AirPose, _SlidePose, _CapeSwing.xyz);
     positionWS = TransformObjectToWorld(p);
     normalWS = TransformObjectToWorldNormal(n);
 #endif

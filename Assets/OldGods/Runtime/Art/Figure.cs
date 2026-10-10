@@ -420,40 +420,55 @@ namespace OldGods.Runtime
             return this;
         }
 
-        /// <summary>A short shoulder cape: a domed collar with a jagged hem.</summary>
+        /// <summary>A short shoulder cape: a domed collar with a jagged hem. Its back sways a little (CapeSway).</summary>
         public Figure Mantle(Color color, float length = 0.2f, float width = 1.6f, Color? lining = null)
         {
             var s = Spec;
-            Kit.Body();
             var top = Torso(0f, s.TorsoLength * 0.98f, 0f);
+            Kit.Part(BodyPart.Cape, top + Vector3.up * 0.03f, length + 0.03f);
             float r = s.ShoulderWidth * width * 0.75f;
             Kit.Lathe(top, new[] { new Vector2(0.03f, s.TorsoWidth * 0.55f), new Vector2(-0.02f, r * 0.8f), new Vector2(-length * 0.6f, r), new Vector2(-length, r * 1.04f) }, 16, color, 0.78f, TorsoRotation);
             if (lining.HasValue) Kit.Lathe(top, new[] { new Vector2(-length, r * 1.0f), new Vector2(-length * 0.7f, r * 0.9f) }, 16, lining.Value, 0.76f, TorsoRotation);
+            Kit.Body();
             return this;
         }
 
-        /// <summary>A cloak hanging down the back to the given length above the ground.</summary>
+        /// <summary>
+        /// A cloak hanging down the back to the given length above the ground, folded down the
+        /// middle and billowing out below the shoulders. It is a grid of rows so it can curve
+        /// when it swings (CapeSway).
+        /// </summary>
         public Figure Cloak(Color color, float bottom = 0.25f, Color? inner = null)
         {
             var s = Spec;
-            Kit.Body();
             var top = Torso(0f, s.TorsoLength * 0.92f, -s.TorsoDepth * 0.85f);
+            Kit.Part(BodyPart.Cape, top + new Vector3(0f, 0f, 0.04f), top.y - bottom);
             float w = s.ShoulderWidth * 1.15f;
             var bl = new Vector3(-w * 1.25f, bottom, top.z - 0.18f);
             var br = new Vector3(w * 1.25f, bottom, top.z - 0.18f);
             var tl = top + new Vector3(-w, 0f, 0f);
             var tr = top + new Vector3(w, 0f, 0f);
-            var ml = Vector3.Lerp(tl, bl, 0.5f) + new Vector3(0f, 0f, -0.07f);
-            var mr = Vector3.Lerp(tr, br, 0.5f) + new Vector3(0f, 0f, -0.07f);
-            var mc = (ml + mr) * 0.5f + new Vector3(0f, 0f, -0.04f);
-            var bc = (bl + br) * 0.5f + new Vector3(0f, 0f, -0.05f);
-            var tc = top + new Vector3(0f, 0f, -0.03f);
-            var c = color;
-            Kit.Quad(tl, tc, mc, ml, c); Kit.Quad(tc, tr, mr, mc, c);
-            Kit.Quad(ml, mc, bc, bl, c); Kit.Quad(mc, mr, br, bc, c);
+            const int rows = 6, cols = 4;
+            var grid = new Vector3[rows + 1, cols + 1];
+            for (int i = 0; i <= rows; i++)
+                for (int j = 0; j <= cols; j++)
+                {
+                    float v = i / (float)rows, u = j / (float)cols;
+                    var at = Vector3.Lerp(Vector3.Lerp(tl, tr, u), Vector3.Lerp(bl, br, u), v);
+                    // Billows out at mid height; the centre fold sits furthest back.
+                    float fold = 1f - Mathf.Abs(u * 2f - 1f);
+                    at.z -= 0.07f * Mathf.Sin(v * Mathf.PI) + fold * Mathf.Lerp(0.03f, 0.05f, v);
+                    grid[i, j] = at;
+                }
             var ci = inner ?? color * 0.7f;
-            Kit.Quad(ml, mc, tc, tl, ci); Kit.Quad(mc, mr, tr, tc, ci);
-            Kit.Quad(bl, bc, mc, ml, ci); Kit.Quad(bc, br, mr, mc, ci);
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                {
+                    Vector3 a = grid[i, j], b = grid[i, j + 1], c = grid[i + 1, j + 1], d = grid[i + 1, j];
+                    Kit.Quad(a, b, c, d, color);
+                    Kit.Quad(d, c, b, a, ci);
+                }
+            Kit.Body();
             return this;
         }
 
