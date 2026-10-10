@@ -8,7 +8,7 @@ report.md and report.json with a short list of rule-based suggestions.
 Usage:
   python Tools/playbot.py                        # every god, seeds 1111 and 2222, all content unlocked
   python Tools/playbot.py --gods god.storm --seeds 1111,2222,3333
-  python Tools/playbot.py --runs 4 --jobs 2      # 4 seeds per god, two players at once
+  python Tools/playbot.py --runs 3 --jobs 2      # 3 seeds per god, two players at once (capped at 24 runs)
   python Tools/playbot.py --campaign 8           # fresh save, 8 runs in a row, the bot buys unlocks between runs
   python Tools/playbot.py --summarise DIR        # rebuild the report from the run JSONs in DIR
 
@@ -33,6 +33,10 @@ from unity_paths import DEFAULT_BUILD, PROJECT  # noqa: E402
 
 RESULTS = PROJECT / "TestResults" / "playbot"
 DEFAULT_SEEDS = ["1111", "2222"]
+# Each run opens a game window. A sweep over this many asks for --max-runs, so nobody's
+# desktop fills with windows for an hour by accident.
+MAX_RUNS = 24
+MAX_JOBS = 3
 
 Run = dict[str, Any]
 
@@ -79,6 +83,16 @@ def rejected(run: Run, code: int) -> str | None:
         return run.get("note") or f"the run did not start ({run.get('outcome') or 'no outcome'})"
     if code != 0:
         return f"the player exited {code}"
+    return None
+
+
+def too_many(runs: int, jobs: int, max_runs: int) -> str | None:
+    """Why a sweep should not start: more runs than allowed, or more windows at once than the cap."""
+    if runs > max_runs:
+        return (f"This would play {runs} runs, each in its own game window; the limit is {max_runs}. "
+                f"Use fewer gods or seeds, or pass --max-runs {runs} to allow it.")
+    if jobs > MAX_JOBS:
+        return f"--jobs {jobs} would open {jobs} game windows at once; the limit is {MAX_JOBS}."
     return None
 
 
@@ -545,7 +559,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--campaign", type=int, metavar="N", help="N runs on one fresh save; the bot buys unlocks and plays its newest god")
     parser.add_argument("--picks", default="smart", choices=["smart", "first", "random"], help="how the bot takes level-up cards")
     parser.add_argument("--step", type=float, default=1 / 30, help="game seconds per frame; the run goes as fast as frames render")
-    parser.add_argument("--jobs", type=int, default=1, help="players to run at once")
+    parser.add_argument("--jobs", type=int, default=1, help=f"players (game windows) at once, at most {MAX_JOBS}")
+    parser.add_argument("--max-runs", type=int, default=MAX_RUNS, help=f"refuse to start more runs than this (default {MAX_RUNS})")
     parser.add_argument("--exe", type=Path, default=DEFAULT_BUILD)
     parser.add_argument("--out", type=Path, help="output folder (default TestResults/playbot/<time>)")
     parser.add_argument("--timeout", type=float, default=1800.0, help="real seconds allowed per run")
@@ -601,7 +616,11 @@ def main(argv: list[str] | None = None) -> int:
                 label = f"{god.replace('god.', '')}-{seed}"
                 jobs.append(job(label, god, seed, folder / f"save-{label}", True, fresh_save=True))
 
-    print(f"Playing {len(jobs)} run(s) into {folder}")
+    problem = too_many(len(jobs), args.jobs, args.max_runs)
+    if problem:
+        print(problem)
+        return 2
+    print(f"Playing {len(jobs)} run(s) into {folder}, {args.jobs} game window(s) open at a time")
     if args.jobs > 1:
         with ThreadPoolExecutor(max_workers=args.jobs) as pool:
             results = list(pool.map(lambda j: play(j, args.timeout), jobs))
