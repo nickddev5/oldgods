@@ -79,6 +79,9 @@ namespace OldGods.Runtime
                 catch (IOException e) { Debug.LogWarning(e.Message); }
             }
             SaveStore.FolderOverride = folder;
+            // Bot windows are always silent: several can run at once, often while Nick works.
+            Audio.Muted = true;
+            AudioListener.volume = 0f;
             SaveStore.Load(out _); // never keep a copy of the real save that something read first
             // Keep running when the window loses focus, so scripted runs do not stall.
             Application.runInBackground = true;
@@ -166,6 +169,7 @@ namespace OldGods.Runtime
         /// </summary>
         void Update()
         {
+            if (AudioListener.volume > 0f) { report.audioHeard = true; AudioListener.volume = 0f; }
             if (!playing) return;
             if (run == null) { playing = false; Finish("error", "the run ended unexpectedly", 1); return; }
             if (run.IsOver) { playing = false; Finish(run.Won ? "won" : "died", "", 0); return; }

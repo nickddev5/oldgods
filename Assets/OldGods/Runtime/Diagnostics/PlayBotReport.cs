@@ -28,6 +28,8 @@ namespace OldGods.Runtime
         /// <summary>Seconds spent on each branch of the bot's decision trees (amount is seconds).</summary>
         public List<Source> decisions = new List<Source>();
         public float closeReach;
+        /// <summary>True if anything turned the game's volume up during the run (the bot puts it back to 0).</summary>
+        public bool audioHeard;
         public List<Pick> draft = new List<Pick>();
         public List<Held> weapons = new List<Held>();
         public List<Held> passives = new List<Held>();
