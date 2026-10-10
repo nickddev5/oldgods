@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace OldGods.Runtime
 {
-    public enum GodLook { Storm, Forge, Tide, Hunt, Ember, Earth, Elias }
+    public enum GodLook { Storm, Forge, Tide, Beast, Ember, Earth, Elias }
 
     /// <summary>Authoring asset for a playable god.</summary>
     [CreateAssetMenu(menuName = "Old Gods/God", fileName = "God")]

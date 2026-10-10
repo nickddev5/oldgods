@@ -16,7 +16,7 @@ All shipped art is built in code, so it is ours and licence-safe:
 | Effects | `Runtime/Combat/Effects.cs`, `Runtime/Fx.cs` |
 | Sound and music | `Runtime/Art/Audio.cs` (synthesized at startup; see [Tools/audio](../Tools/audio/README.md)) |
 
-Since 2026-10-09 they follow Nick's reference for detail: dressed figures (boots, trousers, tunics, robes, belts with pouches, sleeves, gloves, mantles, cloaks, hats, hoods, crowns), faces with eyes and brows, hands with fingers, weapons and props, coloured in the mesh. Rounded parts are smooth-shaded; blocks and stone stay faceted. The building blocks are in `Runtime/Art/Figure.cs`.
+Since 2026-10-09 they follow Nick's reference for detail: dressed figures (boots, trousers, tunics, robes, belts with pouches, sleeves, gloves, mantles, cloaks, hats, hoods, crowns), faces with eyes and brows, hands with fingers, weapons and props, coloured in the mesh. Heads are faceted eight-sided skulls with a flat face plane, square jaw and box eyes; hair, hoods and beards are faceted; shoulders are squared caps and plate pauldrons (Nick asked for less rounded faces and shoulders, 2026-10-09). Other rounded parts are smooth-shaded; blocks and stone stay faceted. The building blocks are in `Runtime/Art/Figure.cs`.
 
 Review them without playing: `python Tools/smoke.py --gallery TestResults/gallery` saves front, turned and close shots of every god, enemy and boss.
 

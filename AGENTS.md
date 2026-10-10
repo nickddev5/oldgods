@@ -11,7 +11,7 @@ A Unity 6000.6.3f1 (URP) horde-survival roguelike, prequel to *The Empty Throne*
 - **All code is new.** Nothing is copied or shared from The Empty Throne (`C:\GameTest`), including tooling. Lessons only. Never edit `C:\GameTest`.
 - **Every name and number is PLACEHOLDER** until Nick marks it FINAL in the bible. God names are TBD canon; use working domains (Storm, Forge, Tide, ...).
 - **Tone is straight.** No meme humour in text, names or effects.
-- **Art is low-poly 3D, stylised:** layered outfits, gear and clear colour blocks under a coarse pixel-art texture (shader-applied, see `Runtime/Art/PixelTexture.cs`), rounded parts smooth-shaded and stone or plate faceted, at the detail of Nick's reference (2026-10-09; see ArtSource/README.md). Licence-safe sources only: CC0 or made for this project. Record the source of every imported asset in `ArtSource/SOURCES.md`.
+- **Art is low-poly 3D, stylised:** layered outfits, gear and clear colour blocks under a coarse pixel-art texture (shader-applied, see `Runtime/Art/PixelTexture.cs`), heads, hair, shoulders, stone and plate faceted and squared off (Nick, 2026-10-09), other rounded parts smooth-shaded, at the detail of Nick's reference (2026-10-09; see ArtSource/README.md). Licence-safe sources only: CC0 or made for this project. Record the source of every imported asset in `ArtSource/SOURCES.md`.
 
 ## Code layout
 
