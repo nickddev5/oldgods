@@ -39,6 +39,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bc05c24b73728bf41afff51ce3d25103, type: 2}
   - {fileID: 11400000, guid: 27f9ba4936c6f554baa3feb5db2ee90a, type: 2}
   - {fileID: 11400000, guid: 59b90f76c908dfa47a0bcec186a22e55, type: 2}
+  - {fileID: 11400000, guid: 9d2059e51a71dcb48afb654478931f2b, type: 2}
   Passives:
   - {fileID: 11400000, guid: 069020dd5ae1dee4e9685bb632efda24, type: 2}
   - {fileID: 11400000, guid: 1223802982553ec41b69f0b1717773d8, type: 2}

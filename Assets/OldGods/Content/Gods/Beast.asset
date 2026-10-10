@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: god.beast
   DisplayName: Beast
   Lore: All things walk wild in me.
-  StartingWeapon: weapon.spear_volley
+  StartingWeapon: weapon.rending_claws
   StartingPassive: passive.keen_eye
   Kit:
   - Stat: 16

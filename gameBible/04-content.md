@@ -13,7 +13,7 @@
 | 1 | Storm | Chain Lightning | Swiftness |
 | 2 | Forge | Hammer Orbit | Iron Skin |
 | 3 | Tide | Tidal Wave | Regeneration |
-| 4 | Beast | Spear Volley | Keen Eye |
+| 4 | Beast | Rending Claws | Keen Eye |
 | 5 | Ember | Flame Aura | Fury |
 | 6 | Earth | Quake | Bulwark |
 | 7 | Elias (last unlock) | Crown Light | Resolve |
@@ -44,6 +44,7 @@ All three stages use the standard ten-minute timeline with the biome's own basic
 | Hammer Orbit | Orbit | 12 | 0.5 s per foe | 2 hammers, heavy knockback |
 | Tidal Wave | Projectile | 14 | 2.2 s | wide, pierces everything |
 | Spear Volley | Projectile | 13 | 1.0 s | 2 spears, pierce 1 |
+| Rending Claws | Swipe | 16 | 0.9 s | 140-degree arc, 2.6 m reach toward the nearest foe; +1 count adds a swipe behind |
 | Flame Aura | Aura | 4 | 0.45 s tick | 3 m ring |
 | Quake | Area (on self) | 20 | 2.5 s | 5.5 m, big knockback |
 | Crown Light | Area | 30 | 1.6 s | smites a nearby foe |

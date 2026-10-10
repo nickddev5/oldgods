@@ -179,6 +179,7 @@ namespace OldGods.Runtime
                 case WeaponShape.Orbit: return new OrbitDriver(owner, state, asset);
                 case WeaponShape.Pull: return new PullDriver(owner, state, asset);
                 case WeaponShape.Chain: return new ChainDriver(owner, state, asset);
+                case WeaponShape.Swipe: return new SwipeDriver(owner, state, asset);
                 default: throw new ArgumentOutOfRangeException();
             }
         }
@@ -475,6 +476,42 @@ namespace OldGods.Runtime
                 if (x.Left <= 0f) vortices.RemoveAt(v);
                 else vortices[v] = x;
             }
+        }
+    }
+
+    sealed class SwipeDriver : WeaponDriver
+    {
+        readonly bool[] struck = new bool[128];
+
+        public SwipeDriver(PlayerCombat o, WeaponState s, WeaponDefinition a) : base(o, s, a) { }
+
+        protected override bool Fire(in EffectiveWeapon e)
+        {
+            Vector3 at = Owner.transform.position;
+            int first = Horde.Nearest(at, e.Size * 1.2f);
+            if (first < 0) return false;
+            Vector3 to = Horde.Position(first) - at;
+            float aim = Swipe.HeadingTo(to.x, to.z);
+            int n = Horde.QueryCircle(at, e.Size, Found);
+            System.Array.Clear(struck, 0, n);
+            var info = Info(e);
+            var c = GlowColor;
+            for (int k = 0; k < e.Count; k++)
+            {
+                float heading = Swipe.Heading(aim, k, e.Count);
+                for (int j = 0; j < n; j++)
+                {
+                    if (struck[j]) continue;
+                    int i = Found[j];
+                    float dx = Horde.X[i] - at.x, dz = Horde.Z[i] - at.z;
+                    if (!Swipe.Catches(dx, dz, Horde.BodyRadius(i), heading, e.Size, e.Range)) continue;
+                    struck[j] = true;
+                    Owner.Hit(i, info, new Vector3(dx, 0f, dz));
+                }
+                Effects.Burst(Fx.ClawMarks(e.Range), at + Vector3.up * 0.9f, Quaternion.Euler(0f, heading * Mathf.Rad2Deg, 0f),
+                    new Vector3(e.Size * 0.6f, 1f, e.Size * 0.6f), new Vector3(e.Size, 1f, e.Size), new Color(c.r, c.g, c.b, 0.9f), Mathf.Max(0.08f, e.Duration), Owner.transform);
+            }
+            return true;
         }
     }
 

@@ -105,6 +105,51 @@ namespace OldGods.Tests.EditMode
         }
     }
 
+    public class SwipeTests
+    {
+        const float Ahead = 0f; // heading along +z
+
+        [Test]
+        public void CatchesFoesInFrontWithinReach()
+        {
+            Assert.IsTrue(Swipe.Catches(0f, 2f, 0.4f, Ahead, 2.5f, 140f));
+            Assert.IsTrue(Swipe.Catches(1.2f, 1.2f, 0.4f, Ahead, 2.5f, 140f), "45 degrees off is inside a 140 degree arc");
+        }
+
+        [Test]
+        public void MissesFoesBeyondReachOrOutsideTheArc()
+        {
+            Assert.IsFalse(Swipe.Catches(0f, 3.5f, 0.4f, Ahead, 2.5f, 140f), "too far");
+            Assert.IsFalse(Swipe.Catches(2f, 0f, 0.4f, Ahead, 2.5f, 140f), "90 degrees off");
+            Assert.IsFalse(Swipe.Catches(0f, -2f, 0.4f, Ahead, 2.5f, 140f), "behind");
+        }
+
+        [Test]
+        public void BodyRadiusExtendsReachAndFoesOnThePlayerAreCaught()
+        {
+            Assert.IsTrue(Swipe.Catches(0f, 2.8f, 0.4f, Ahead, 2.5f, 140f));
+            Assert.IsTrue(Swipe.Catches(0.1f, -0.1f, 0.4f, Ahead, 2.5f, 140f));
+        }
+
+        [Test]
+        public void ArcWrapsAcrossTheBack()
+        {
+            float back = Swipe.HeadingTo(0f, -1f);
+            Assert.IsTrue(Swipe.Catches(-0.3f, -2f, 0.4f, back, 2.5f, 140f));
+            Assert.IsTrue(Swipe.Catches(0.3f, -2f, 0.4f, back, 2.5f, 140f));
+        }
+
+        [Test]
+        public void ExtraSwipesSpreadEvenlySoTheSecondStrikesBehind()
+        {
+            float aim = Swipe.HeadingTo(1f, 0f);
+            Assert.AreEqual(aim, Swipe.Heading(aim, 0, 1), 1e-5f);
+            float second = Swipe.Heading(aim, 1, 2);
+            Assert.IsTrue(Swipe.Catches(-2f, 0f, 0.4f, second, 2.5f, 140f));
+            Assert.IsFalse(Swipe.Catches(2f, 0f, 0.4f, second, 2.5f, 140f));
+        }
+    }
+
     public class XpTests
     {
         [Test]
