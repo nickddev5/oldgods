@@ -142,6 +142,8 @@ namespace OldGods.Runtime
                 float len = face > 0 ? 0.6f : 0.7f, width = face > 0 ? 0.25f : 0.3f;
                 var rot = Quaternion.Euler(face * -5f, 0f, 0f);
                 var top = f.Torso(0f, s.TorsoLength * 0.08f, face * rz);
+                // Both banners swing from the belt (CapeSway); a negative length marks the front one, which stays off the legs.
+                k.Part(BodyPart.Cape, top + new Vector3(0f, 0.02f, -face * 0.04f), (len + 0.12f) * (face > 0 ? -1f : 1f));
                 var c = top + rot * new Vector3(0f, -len * 0.5f, face * 0.01f);
                 Vector3 On(float x, float y) => c + rot * new Vector3(x, y, face * 0.011f);
                 k.Box(c, new Vector3(width, len, 0.016f), red, 1f, rot);
@@ -173,6 +175,7 @@ namespace OldGods.Runtime
                 foreach (float y in new[] { -0.02f, -0.1f, -0.17f })
                     k.Gem(On(0f, y), new Vector3(0.016f, 0.024f, 0.007f), pale * (y < -0.15f ? 0.9f : 1f));
             }
+            k.Body();
         }
 
         /// <summary>A second, wider belt band under the first and a large gold sun-star buckle.</summary>
@@ -358,6 +361,8 @@ namespace OldGods.Runtime
                 k.Ball(sh + new Vector3(side * 0.02f, 0.05f, -0.02f), new Vector3(0.17f, 0.11f, 0.17f), fur * 0.97f, 9, 4, null, 0.2f, 13 + side);
             }
             // Ragged tufts hanging from the bottom edge of the mantle down the back, and off the shoulders.
+            // The back tufts swing a little with the cape (CapeSway).
+            k.Part(BodyPart.Cape, back + f.TorsoRotation * new Vector3(0f, -0.06f, 0.04f), 0.3f);
             for (int i = 0; i < 11; i++)
             {
                 float x = Mathf.Lerp(-0.4f, 0.4f, i / 10f);
@@ -366,6 +371,7 @@ namespace OldGods.Runtime
                 float drop = 0.1f + (i % 3) * 0.05f + (i == 5 ? 0.05f : 0f);
                 k.Limb(root, root + new Vector3(x * 0.15f, -drop, -0.03f), 0.05f, 0f, fur * (i % 2 == 0 ? 1f : 0.9f), 5);
             }
+            k.Body();
             for (int side = -1; side <= 1; side += 2)
             {
                 var sh = side < 0 ? f.ShoulderL : f.ShoulderR;
