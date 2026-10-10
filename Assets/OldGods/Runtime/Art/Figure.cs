@@ -69,6 +69,8 @@ namespace OldGods.Runtime
         public Vector3 HipL, HipR, KneeL, KneeR, AnkleL, AnkleR;
         public Vector3 ShoulderL, ShoulderR, ElbowL, ElbowR, WristL, WristR, HandL, HandR;
         public Quaternion TorsoRotation;
+        /// <summary>The left arm swings whole from the shoulder and never bends at the elbow (a heavy or monstrous arm). Set before Body.</summary>
+        public bool RigidLeftArm;
 
         public Figure(MeshKit kit, FigureSpec spec, Palette palette)
         {
@@ -110,7 +112,7 @@ namespace OldGods.Runtime
         /// <summary>Starts a leg part: it swings at the hip and bends at the knee.</summary>
         public void LegPart(bool left) => Kit.Part(left ? BodyPart.LeftLeg : BodyPart.RightLeg, left ? HipL : HipR, (left ? KneeL : KneeR).y);
         /// <summary>Starts an arm part: it swings at the shoulder and bends at the elbow.</summary>
-        public void ArmPart(bool left) => Kit.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? ShoulderL : ShoulderR, (left ? ElbowL : ElbowR).y);
+        public void ArmPart(bool left) => Kit.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? ShoulderL : ShoulderR, left && RigidLeftArm ? 0f : (left ? ElbowL : ElbowR).y);
         /// <summary>Starts something held in a hand: all of it turns with the forearm.</summary>
         public void HeldPart(bool left) => Kit.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? ShoulderL : ShoulderR, -(left ? ElbowL : ElbowR).y);
         void HeadPart() => Kit.Part(BodyPart.Head, NeckBase);
