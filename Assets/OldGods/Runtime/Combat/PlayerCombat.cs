@@ -243,7 +243,7 @@ namespace OldGods.Runtime
             if (proj == null) return true;
             Vector3 origin = Owner.Chest;
             if (targets.Length != Mathf.Max(1, e.Count)) targets = new int[Mathf.Max(1, e.Count)];
-            int n = Horde.NearestN(origin, e.Range, targets);
+            int n = Targeting.BossFirst(targets, Horde.NearestN(origin, e.Range, targets), Horde.NearestBoss(origin, e.Range));
             if (n == 0) return false;
             var info = Info(e);
             for (int k = 0; k < e.Count; k++)
@@ -324,12 +324,14 @@ namespace OldGods.Runtime
                 }
                 return true;
             }
-            int n = Horde.NearestN(Owner.transform.position, e.Range, Found);
+            int boss = Horde.NearestBoss(Owner.transform.position, e.Range);
+            int n = Targeting.BossFirst(Found, Horde.NearestN(Owner.transform.position, e.Range, Found), boss);
             if (n == 0) return false;
             n = Mathf.Min(n, 24);
             for (int k = 0; k < e.Count; k++)
             {
-                int target = Found[(int)(Owner.Roll() * n) % n];
+                // The first strike goes to a boss in range; the rest scatter over the nearest foes.
+                int target = k == 0 && boss >= 0 ? boss : Found[(int)(Owner.Roll() * n) % n];
                 Queue(Horde.Position(target), delay, e);
             }
             return true;
@@ -432,7 +434,8 @@ namespace OldGods.Runtime
         protected override bool Fire(in EffectiveWeapon e)
         {
             last = e;
-            int n = Horde.NearestN(Owner.transform.position, e.Range, Found);
+            Vector3 feet = Owner.transform.position;
+            int n = Targeting.BossFirst(Found, Horde.NearestN(feet, e.Range, Found), Horde.NearestBoss(feet, e.Range));
             if (n == 0) return false;
             for (int k = 0; k < e.Count; k++)
             {
@@ -523,7 +526,8 @@ namespace OldGods.Runtime
 
         protected override bool Fire(in EffectiveWeapon e)
         {
-            int first = Horde.Nearest(Owner.transform.position, e.Range);
+            Vector3 feet = Owner.transform.position;
+            int first = Targeting.Choose(Horde.Nearest(feet, e.Range), Horde.NearestBoss(feet, e.Range));
             if (first < 0) return false;
             chain.Clear();
             chain.Add(first);

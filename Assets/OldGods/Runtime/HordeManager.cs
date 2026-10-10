@@ -278,6 +278,22 @@ namespace OldGods.Runtime
             return best;
         }
 
+        /// <summary>Nearest alive controlled slot (a boss) within maxRange of its edge, or -1.</summary>
+        public int NearestBoss(Vector3 p, float maxRange)
+        {
+            int best = -1;
+            float bestD = float.MaxValue;
+            for (int i = 0; i < highWater; i++)
+            {
+                if (!Alive[i] || !Controlled[i]) continue;
+                float dx = X[i] - p.x, dz = Z[i] - p.z;
+                float r = maxRange + types[TypeIndex[i]].Radius * types[TypeIndex[i]].Scale;
+                float d = dx * dx + dz * dz;
+                if (d <= r * r && d < bestD) { bestD = d; best = i; }
+            }
+            return best;
+        }
+
         /// <summary>The n nearest alive enemies within maxRange, nearest first.</summary>
         public int NearestN(Vector3 p, float maxRange, int[] results)
         {
