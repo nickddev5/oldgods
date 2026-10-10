@@ -12,6 +12,9 @@ Shader "OldGods/HordeInstanced"
         _AnimPhase ("Anim Phase (set per renderer)", Float) = 0
         _AirPose ("Air Pose (set per renderer)", Range(0, 1)) = 0
         _SlidePose ("Slide Pose (set per renderer)", Range(0, 1)) = 0
+        _OutlineWidth ("Outline Width (pixels, 0 = none)", Range(0, 4)) = 2.5
+        _PixelAmount ("Pixel Texture Amount", Range(0, 0.6)) = 0.22
+        _TexelsPerMeter ("Pixel Texels Per Metre", Range(2, 64)) = 14
     }
 
     SubShader
@@ -28,6 +31,22 @@ Shader "OldGods/HordeInstanced"
             #pragma fragment LitFrag
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+            #pragma multi_compile_fog
+            #define OG_HORDE
+            #include "LowPolyCommon.hlsl"
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "Outline"
+            Tags { "LightMode" = "SRPDefaultUnlit" }
+            Cull Front
+            ZWrite On
+            HLSLPROGRAM
+            #pragma target 4.5
+            #pragma vertex OutlineVert
+            #pragma fragment OutlineFrag
             #pragma multi_compile_fog
             #define OG_HORDE
             #include "LowPolyCommon.hlsl"

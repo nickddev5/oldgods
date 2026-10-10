@@ -3,6 +3,9 @@
 
 // Shared passes for the Old Gods low-poly look: vertex colour times base colour,
 // flat normals from the mesh, main light with shadows, ambient from light probes, fog.
+// Characters get a dark outline (an inverted hull, _OutlineWidth in pixels). Every surface is
+// shaded with a pixel-art detail texture (_PixelAmount, _TexelsPerMeter; see PixelTexture.cs)
+// projected in object space, so the coarse texels stick to moving models.
 // Define OG_HORDE before including to draw from the horde instance buffer.
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -17,14 +20,21 @@ CBUFFER_START(UnityPerMaterial)
     float _AnimPhase;
     half _AirPose;
     half _SlidePose;
+    half _OutlineWidth;
+    half _PixelAmount;
+    half _TexelsPerMeter;
+    float4 _CapeSwing; // x: backward lift, y: sideways swing (radians), z: ripple 0..1; set by CapeSway
 CBUFFER_END
+
+TEXTURE2D(_OG_PixelTex);
+SAMPLER(sampler_OG_PixelTex);
 
 struct Attributes
 {
     float4 positionOS : POSITION;
     float3 normalOS   : NORMAL;
     half4  color      : COLOR;
-    float2 part       : TEXCOORD0; // x: body part (0 body, 1-2 legs, 3-4 arms, 5 head); y: knee or elbow height
+    float2 part       : TEXCOORD0; // x: body part (0 body, 1-2 legs, 3-4 arms, 5 head, 6 cape); y: knee or elbow height, or cape length
     float3 joint      : TEXCOORD1; // the joint the part swings around
 #ifdef OG_HORDE
     uint   instanceID : SV_InstanceID;
@@ -41,6 +51,8 @@ struct Varyings
     half4  color      : COLOR;
     half   fogFactor  : TEXCOORD2;
     half   flash      : TEXCOORD3;
+    float3 restOS     : TEXCOORD4; // rest-pose object position in metres: the pixel texture sticks to the surface
+    float3 restNormal : TEXCOORD5; // rest-pose object normal, to pick the projection plane
 };
 
 #ifdef OG_HORDE
@@ -85,14 +97,35 @@ void BendLimb(inout float3 p, inout float3 n, float bend, float3 joint, float an
     n = SwingX(n, float3(0, 0, 0), angle * w);
 }
 
+// Bends a cape about the shoulder line it hangs from. Each vertex turns by a share of the
+// angle that grows from 0 at the shoulders to 1 at the hem, so the cloth curves rather than
+// swinging like a board. Only cloth behind the anchor moves (a mantle's front stays on the
+// chest), short capes move less than long ones, and a travelling wave ripples the hem.
+void BendCape(inout float3 p, inout float3 n, float drop, float3 joint, float3 cape)
+{
+    drop = max(drop, 0.05);
+    float below = joint.y - p.y;
+    float w = saturate(below / drop) * saturate((joint.z - p.z) / 0.08 + 0.5) * saturate(drop / 0.7);
+    if (w <= 0.0) return;
+    float ripple = sin(_Time.y * 11.0 - below * 9.0 + p.x * 7.0) * cape.z * 0.12;
+    float pitch = (cape.x + ripple * (0.4 + cape.x)) * w;
+    float roll = (cape.y + ripple * 0.3) * w;
+    p = SwingX(p, joint, pitch);
+    n = SwingX(n, float3(0, 0, 0), pitch);
+    p = SwingZ(p, joint, roll);
+    n = SwingZ(n, float3(0, 0, 0), roll);
+}
+
 // Procedural motion from body parts baked into the mesh: legs swing in opposite phase and
 // bend at the knee as they come forward; arms counter-swing with bent elbows; the body leans
-// into the run and bobs twice per stride; the head nods a little. air and slide (0..1) blend
-// in a jumping pose (knees tucked, arms out) and a sliding pose (legs forward, arms back).
-void Animate(inout float3 p, inout float3 n, float2 part, float3 joint, float phase, float swing, float air, float slide)
+// into the run and bobs twice per stride; the head nods a little; a cape bends back by the
+// cape angles. air and slide (0..1) blend in a jumping pose (knees tucked, arms out) and a
+// sliding pose (legs forward, arms back).
+void Animate(inout float3 p, inout float3 n, float2 part, float3 joint, float phase, float swing, float air, float slide, float3 cape)
 {
-    if (swing <= 0.0 && air <= 0.0 && slide <= 0.0) return;
     float id = part.x;
+    if (id > 5.5) BendCape(p, n, part.y, joint, cape);
+    if (swing <= 0.0 && air <= 0.0 && slide <= 0.0) return;
     float bend = part.y;
     if (id > 0.5 && id < 2.5)
     {
@@ -122,7 +155,7 @@ void Animate(inout float3 p, inout float3 n, float2 part, float3 joint, float ph
             n = SwingZ(n, float3(0, 0, 0), raise);
         }
     }
-    else if (id > 4.5)
+    else if (id > 4.5 && id < 5.5)
     {
         float nod = sin(phase * 2.0) * swing * 0.25 - air * 0.12;
         p = SwingX(p, joint, nod);
@@ -144,7 +177,8 @@ void OGTransform(Attributes IN, out float3 positionWS, out float3 normalWS, out 
     float3 n = IN.normalOS;
 #ifdef OG_HORDE
     HordeInstance inst = _Instances[IN.instanceID];
-    Animate(p, n, IN.part, IN.joint, inst.phase, _WalkSwing, 0.0, 0.0);
+    // The horde has no cape physics: a running enemy's cape just trails at a fixed lift.
+    Animate(p, n, IN.part, IN.joint, inst.phase, _WalkSwing, 0.0, 0.0, float3(_WalkSwing * 2.2, 0.0, 0.5));
     float c = cos(inst.yaw), s2 = sin(inst.yaw);
     float3 r = float3(p.x * c + p.z * s2, p.y, -p.x * s2 + p.z * c);
     positionWS = r * inst.scale + inst.position;
@@ -153,10 +187,57 @@ void OGTransform(Attributes IN, out float3 positionWS, out float3 normalWS, out 
     tint = inst.tint;
 #else
     UNITY_SETUP_INSTANCE_ID(IN);
-    Animate(p, n, IN.part, IN.joint, _AnimPhase, _WalkSwing, _AirPose, _SlidePose);
+    Animate(p, n, IN.part, IN.joint, _AnimPhase, _WalkSwing, _AirPose, _SlidePose, _CapeSwing.xyz);
     positionWS = TransformObjectToWorld(p);
     normalWS = TransformObjectToWorldNormal(n);
 #endif
+}
+
+// Object-space position in metres (object scale applied), for noise that does not swim.
+float3 RestPosition(Attributes IN)
+{
+#ifdef OG_HORDE
+    return IN.positionOS.xyz;
+#else
+    float3x3 m = (float3x3)GetObjectToWorldMatrix();
+    return IN.positionOS.xyz * float3(length(m._m00_m10_m20), length(m._m01_m11_m21), length(m._m02_m12_m22));
+#endif
+}
+
+float OGHash(float2 p)
+{
+    p = frac(p * float2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return frac(p.x * p.y);
+}
+
+// Smooth value noise in 0..1, for broad patches.
+float OGValueNoise(float2 p)
+{
+    float2 i = floor(p), f = frac(p);
+    f = f * f * (3.0 - 2.0 * f);
+    float a = OGHash(i), b = OGHash(i + float2(1, 0)), c = OGHash(i + float2(0, 1)), d = OGHash(i + float2(1, 1));
+    return lerp(lerp(a, b, f.x), lerp(c, d, f.x), f.y);
+}
+
+// Pixel-art shading: the detail texture on the plane the face mostly lies in (flat faces
+// pick one axis, so texels stay square and crisp, as in a hand-UV'd pixel texture). Ground
+// faces use the grass channel, characters the fine grain, other walls grain and streaks.
+// Darker texels are also a little more saturated, like a pixel artist's colour ramp.
+// Static scenery gets soft broad patches as well, so a wide field is not one tone.
+half3 PixelShade(half3 albedo, float3 p, float3 n, bool character)
+{
+    float3 an = abs(n);
+    bool up = an.y >= max(an.x, an.z);
+    float2 uv = up ? p.xz : (an.x >= an.z ? p.zy : p.xy);
+    half4 t = SAMPLE_TEXTURE2D(_OG_PixelTex, sampler_OG_PixelTex, uv * (_TexelsPerMeter / 128.0));
+    half tone = character ? t.r : (up && n.y > 0 ? t.g : lerp(t.r, t.b, 0.6));
+    half k = (tone - 0.5) * 2.0 * _PixelAmount;
+    half3 c = albedo * (1.0 + k);
+    half lum = dot(c, half3(0.2126, 0.7152, 0.0722));
+    c = max(0, lerp(lum.xxx, c, 1.0 - k * 0.8));
+    if (!character) c *= 1.0 + (OGValueNoise(uv / 4.0 + 17.0) - 0.5) * 0.14;
+    return c;
 }
 
 Varyings LitVert(Attributes IN)
@@ -164,6 +245,8 @@ Varyings LitVert(Attributes IN)
     Varyings OUT;
     half flash, tint;
     OGTransform(IN, OUT.positionWS, OUT.normalWS, flash, tint);
+    OUT.restOS = RestPosition(IN);
+    OUT.restNormal = IN.normalOS;
     OUT.positionCS = TransformWorldToHClip(OUT.positionWS);
     OUT.color = half4(IN.color.rgb * tint, IN.color.a);
     OUT.fogFactor = ComputeFogFactor(OUT.positionCS.z);
@@ -175,6 +258,8 @@ half4 LitFrag(Varyings IN) : SV_Target
 {
     float3 n = normalize(IN.normalWS);
     half3 albedo = IN.color.rgb * _BaseColor.rgb;
+    // Outlined models are characters: fine grain only, no ground patches.
+    if (_PixelAmount > 0) albedo = PixelShade(albedo, IN.restOS, IN.restNormal, _OutlineWidth > 0);
     float4 shadowCoord = TransformWorldToShadowCoord(IN.positionWS);
     Light mainLight = GetMainLight(shadowCoord);
     half ndl = saturate(dot(n, mainLight.direction));
@@ -186,6 +271,39 @@ half4 LitFrag(Varyings IN) : SV_Target
     color = lerp(color, half3(1, 1, 1), saturate(IN.flash));
     color = MixFog(color, IN.fogFactor);
     return half4(color, 1);
+}
+
+// Outline: the back faces, pushed out along the normal by a fixed number of pixels (thinner
+// far away so a distant crowd does not turn to ink), in a dark shade of the surface colour.
+struct OutlineVaryings
+{
+    float4 positionCS : SV_POSITION;
+    half4  color      : COLOR;
+    half   fogFactor  : TEXCOORD0;
+};
+
+OutlineVaryings OutlineVert(Attributes IN)
+{
+    OutlineVaryings OUT;
+    float3 positionWS, normalWS;
+    half flash, tint;
+    OGTransform(IN, positionWS, normalWS, flash, tint);
+    float4 positionCS = TransformWorldToHClip(positionWS);
+    float3 normalCS = mul((float3x3)GetWorldToHClipMatrix(), normalWS);
+    float2 dir = normalCS.xy;
+    dir = dot(dir, dir) > 1e-8 ? normalize(dir) : float2(0, 0);
+    float width = _OutlineWidth * lerp(1.0, 0.45, saturate((positionCS.w - 20.0) / 60.0));
+    positionCS.xy += dir * width * 2.0 / _ScreenParams.xy * positionCS.w;
+    // Width 0 turns the pass off: every vertex lands outside the clip volume.
+    OUT.positionCS = _OutlineWidth > 0 ? positionCS : float4(2, 2, 2, 1);
+    OUT.color = half4(IN.color.rgb * _BaseColor.rgb * tint * 0.16, 1);
+    OUT.fogFactor = ComputeFogFactor(positionCS.z);
+    return OUT;
+}
+
+half4 OutlineFrag(OutlineVaryings IN) : SV_Target
+{
+    return half4(MixFog(IN.color.rgb, IN.fogFactor), 1);
 }
 
 // Shadow caster

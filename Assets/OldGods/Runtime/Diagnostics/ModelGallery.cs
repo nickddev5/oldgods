@@ -7,7 +7,7 @@ namespace OldGods.Runtime
     /// <summary>
     /// Started by -gallery DIR. Lines up every built-in model under even light and saves close
     /// screenshots of the gods, the enemies and the bosses, front and three-quarter, then quits.
-    /// For reviewing art without playing.
+    /// For reviewing art without playing. Add -galleryTurn NAME for one god's front, side and back.
     /// </summary>
     public sealed class ModelGallery : MonoBehaviour
     {
@@ -34,7 +34,7 @@ namespace OldGods.Runtime
             yield return null;
             var assets = GameAssets.Load();
             Fx.Init(assets);
-            var white = WorldBuilder.Tinted(assets.LowPoly, Color.white);
+            var white = WorldBuilder.Outlined(WorldBuilder.Tinted(assets.LowPoly, Color.white));
             var floorMat = WorldBuilder.Tinted(assets.LowPoly, new Color(0.42f, 0.42f, 0.44f));
 
             var camGo = new GameObject("Gallery Camera");
@@ -63,23 +63,50 @@ namespace OldGods.Runtime
                 var x = (i - 3) * 1.1f;
                 yield return Shoot(cam, new Vector3(x, 1.25f, -3.2f), new Vector3(x, 1.0f, 0f), $"god_{(GodLook)i}");
             }
+            // -galleryTurn NAME: that god alone, front, side and back.
+            if (System.Enum.TryParse<GodLook>(CommandLine.Value("-galleryTurn"), out var turn))
+            {
+                foreach (Transform t in gods) t.gameObject.SetActive(t.name == $"God {turn}");
+                var x = ((int)turn - 3) * 1.1f;
+                var views = new (float yaw, string name)[] { (180f, "front"), (90f, "side"), (0f, "back"), (135f, "three_quarter") };
+                foreach (var v in views)
+                {
+                    foreach (Transform t in gods) t.rotation = Quaternion.Euler(0f, v.yaw, 0f);
+                    yield return Shoot(cam, new Vector3(x, 1.2f, -4.6f), new Vector3(x, 1.0f, 0f), $"turn_{turn}_{v.name}");
+                }
+            }
             Destroy(gods.gameObject);
 
             // Poses, side on: standing, two moments of the run, the jump and the slide.
-            var poses = new GameObject("Poses").transform;
             var posed = new (float phase, float swing, float air, float slide)[] { (0f, 0.02f, 0f, 0f), (1.57f, 0.2f, 0f, 0f), (4.71f, 0.2f, 0f, 0f), (0f, 0.03f, 1f, 0f), (0f, 0.03f, 0f, 1f) };
-            for (int i = 0; i < posed.Length; i++)
+            yield return Poses(cam, white, GodLook.Storm, posed, 90f, "poses");
+            if (System.Enum.TryParse<GodLook>(CommandLine.Value("-galleryTurn"), out var walker))
             {
-                var go = WorldBuilder.CreateProp($"Pose {i}", GodModels.Get(GodLook.Storm), white, new Vector3((i - 2) * 1.3f, posed[i].slide > 0f ? -0.32f : 0f, 0f), Quaternion.Euler(posed[i].slide > 0f ? -16f : 0f, 90f, 0f), Vector3.one, poses, false);
-                var block = new MaterialPropertyBlock();
-                block.SetFloat("_AnimPhase", posed[i].phase);
-                block.SetFloat("_WalkSwing", posed[i].swing);
-                block.SetFloat("_AirPose", posed[i].air);
-                block.SetFloat("_SlidePose", posed[i].slide);
-                go.GetComponent<MeshRenderer>().SetPropertyBlock(block);
+                // A full stride of that god at run swing, side on and from the front quarter, then the jump and slide.
+                var stride = new (float, float, float, float)[] { (0f, 0.2f, 0f, 0f), (1.05f, 0.2f, 0f, 0f), (2.1f, 0.2f, 0f, 0f), (3.14f, 0.2f, 0f, 0f), (4.19f, 0.2f, 0f, 0f) };
+                yield return Poses(cam, white, walker, stride, 90f, $"walk_{walker}_side");
+                yield return Poses(cam, white, walker, stride, 150f, $"walk_{walker}_front");
+                yield return Poses(cam, white, walker, posed, 90f, $"poses_{walker}");
             }
-            yield return Shoot(cam, new Vector3(0f, 1.1f, -9f), new Vector3(0f, 0.9f, 0f), "poses");
-            Destroy(poses.gameObject);
+
+            // Capes, side on: hanging, walking, running, and swung to one side, for each caped god.
+            var swings = new[] { new Vector4(0f, 0f, 0f, 0f), new Vector4(0.3f, 0f, 0.4f, 0f), new Vector4(0.7f, 0f, 1f, 0f), new Vector4(0.3f, 0.5f, 0.5f, 0f) };
+            foreach (var look in new[] { GodLook.Storm, GodLook.Elias })
+            {
+                var capes = new GameObject("Capes").transform;
+                for (int i = 0; i < swings.Length; i++)
+                {
+                    var go = WorldBuilder.CreateProp($"Cape {look} {i}", GodModels.Get(look), white, new Vector3((i - 1.5f) * 1.3f, 0f, 0f), Quaternion.Euler(0f, 90f, 0f), Vector3.one, capes, false);
+                    var block = new MaterialPropertyBlock();
+                    block.SetFloat("_WalkSwing", swings[i].x > 0.6f ? 0.2f : swings[i].x > 0f ? 0.1f : 0.02f);
+                    block.SetFloat("_AnimPhase", 1.57f);
+                    block.SetVector("_CapeSwing", swings[i]);
+                    go.GetComponent<MeshRenderer>().SetPropertyBlock(block);
+                }
+                yield return Shoot(cam, new Vector3(0f, 1.1f, -8f), new Vector3(0f, 0.9f, 0f), $"capes_{look}");
+                Destroy(capes.gameObject);
+                yield return null;
+            }
 
             var enemies = new GameObject("Enemies").transform;
             int n = System.Enum.GetValues(typeof(EnemyModel)).Length;
@@ -108,6 +135,24 @@ namespace OldGods.Runtime
 
             yield return new WaitForSecondsRealtime(0.5f);
             Application.Quit(0);
+        }
+
+        /// <summary>A row of one god in shader poses (phase, swing, air, slide), turned to yaw, then a screenshot.</summary>
+        IEnumerator Poses(Camera cam, Material white, GodLook look, (float phase, float swing, float air, float slide)[] posed, float yaw, string name)
+        {
+            var poses = new GameObject("Poses").transform;
+            for (int i = 0; i < posed.Length; i++)
+            {
+                var go = WorldBuilder.CreateProp($"Pose {i}", GodModels.Get(look), white, new Vector3((i - 2) * 1.3f, posed[i].slide > 0f ? -0.32f : 0f, 0f), Quaternion.Euler(posed[i].slide > 0f ? -16f : 0f, yaw, 0f), Vector3.one, poses, false);
+                var block = new MaterialPropertyBlock();
+                block.SetFloat("_AnimPhase", posed[i].phase);
+                block.SetFloat("_WalkSwing", posed[i].swing);
+                block.SetFloat("_AirPose", posed[i].air);
+                block.SetFloat("_SlidePose", posed[i].slide);
+                go.GetComponent<MeshRenderer>().SetPropertyBlock(block);
+            }
+            yield return Shoot(cam, new Vector3(0f, 1.1f, -9f), new Vector3(0f, 0.9f, 0f), name);
+            Destroy(poses.gameObject);
         }
 
         IEnumerator Shoot(Camera cam, Vector3 from, Vector3 at, string name)

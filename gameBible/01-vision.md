@@ -19,8 +19,10 @@ Megabonk for structure and feel (3D horde survival, random maps, auto weapons, b
 
 ## Camera
 
-Third-person chase camera behind and slightly above the player, shallow downward tilt, short lag when turning, pulls in against walls. The player sits low and centred in frame. Pitch stays where the player puts it (6 to 60 degrees); only yaw swings back behind the direction of travel after a second without looking. Height changes are smoothed so jumps and slopes do not bounce the view. The player cannot leave the map: a wall partway up the rim stops them.
+Third-person chase camera behind and slightly above the player, shallow downward tilt (15 degrees by default, so the horizon and sky stay in view; Nick, 2026-10-09), short lag when turning, pulls in against walls. The player sits low and centred in frame. Pitch stays where the player puts it (6 to 60 degrees); only yaw swings back behind the direction of travel after a second without looking. Height changes are smoothed so jumps and slopes do not bounce the view. The player cannot leave the map: a wall partway up the rim stops them. The horde and bosses can climb the rim to the same wall, so standing on the slope is no refuge.
 
 ## Art direction
 
 Low-poly 3D, flat shaded, a strong palette per biome. Enemy silhouettes read at distance. Effects are bright and short.
+
+Each biome has one dominant mood colour that the fog, the sky horizon and the far hills share, so distance melts into it (PLACEHOLDER values in the biome assets). Characters, enemies and bosses carry a thin dark outline so a crowd reads against any ground; every surface carries a coarse pixel-art texture over its colour blocks (Nick, 2026-10-09), with bigger texels on the ground than on characters. A light bloom, colour grade and vignette sit over everything. Notes on what this borrows from Megabonk, and what it does not: [docs/art/megabonk-look.md](../docs/art/megabonk-look.md).

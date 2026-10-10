@@ -260,6 +260,17 @@ namespace OldGods.Tests.EditMode
         }
 
         [Test]
+        public void VersionOneRenamesTheHuntGodToBeast()
+        {
+            var data = new SaveData { version = 1, unlocked = new List<string> { "god.storm", "god.hunt" } };
+            data.lastRun.god = "god.hunt";
+            Assert.IsTrue(SaveMigration.Migrate(data));
+            Assert.AreEqual(SaveData.CurrentVersion, data.version);
+            CollectionAssert.AreEquivalent(new[] { "god.storm", "god.beast" }, data.unlocked);
+            Assert.AreEqual("god.beast", data.lastRun.god);
+        }
+
+        [Test]
         public void UnknownVersionsAreRejected()
         {
             Assert.IsFalse(SaveMigration.Migrate(new SaveData { version = 0 }));

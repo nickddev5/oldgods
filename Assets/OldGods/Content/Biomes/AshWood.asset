@@ -52,10 +52,10 @@ MonoBehaviour:
     Spacing: 10
     MinFromSpawn: 26
   Palette:
-    Low: {r: 0.25, g: 0.23, b: 0.22, a: 1}
-    High: {r: 0.38, g: 0.33, b: 0.3, a: 1}
-    Cliff: {r: 0.3, g: 0.26, b: 0.24, a: 1}
-    Rim: {r: 0.18, g: 0.16, b: 0.15, a: 1}
+    Low: {r: 0.36, g: 0.33, b: 0.33, a: 1}
+    High: {r: 0.5, g: 0.45, b: 0.43, a: 1}
+    Cliff: {r: 0.38, g: 0.34, b: 0.33, a: 1}
+    Rim: {r: 0.25, g: 0.19, b: 0.18, a: 1}
     Road: {r: 0.3, g: 0.27, b: 0.25, a: 1}
     Stone: {r: 0.34, g: 0.31, b: 0.29, a: 1}
     Accent: {r: 0.3, g: 0.15, b: 0.1, a: 1}
@@ -139,21 +139,21 @@ MonoBehaviour:
     HealthPerMinute: 0.18
     SwarmEnemyId: enemy.ghost
   Boss: {fileID: 11400000, guid: b0033786960edd74ca380e1c35783b2c, type: 2}
-  Sun: {r: 1, g: 0.62, b: 0.42, a: 1}
-  SunIntensity: 1.1
+  Sun: {r: 1, g: 0.66, b: 0.45, a: 1}
+  SunIntensity: 1.25
   SunEuler: {x: 25, y: -60, z: 0}
-  AmbientSky: {r: 0.55, g: 0.45, b: 0.4, a: 1}
-  AmbientEquator: {r: 0.45, g: 0.35, b: 0.3, a: 1}
-  AmbientGround: {r: 0.2, g: 0.15, b: 0.12, a: 1}
-  Fog: {r: 0.45, g: 0.35, b: 0.3, a: 1}
-  FogStart: 30
-  FogEnd: 140
+  AmbientSky: {r: 0.62, g: 0.46, b: 0.56, a: 1}
+  AmbientEquator: {r: 0.55, g: 0.4, b: 0.38, a: 1}
+  AmbientGround: {r: 0.25, g: 0.17, b: 0.15, a: 1}
+  Fog: {r: 0.56, g: 0.42, b: 0.5, a: 1}
+  FogStart: 18
+  FogEnd: 115
   WaterColor: {r: 0.25, g: 0.45, b: 0.55, a: 0.55}
   RockModel: 0
   TreeModel: 4
-  RockColor: {r: 0.3, g: 0.28, b: 0.27, a: 1}
+  RockColor: {r: 0.34, g: 0.3, b: 0.29, a: 1}
   RockCount: 40
-  TreeColor: {r: 0.2, g: 0.18, b: 0.17, a: 1}
+  TreeColor: {r: 0.24, g: 0.2, b: 0.19, a: 1}
   TreeCount: 170
   RockPrefabs: []
   TreePrefabs: []

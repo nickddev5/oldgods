@@ -162,6 +162,8 @@ namespace OldGods.Runtime
 
         public EnemyDef Def(int i) => types[TypeIndex[i]];
         public Vector3 Position(int i) => new Vector3(X[i], Y[i], Z[i]);
+        /// <summary>How far an enemy's body reaches from its centre on the ground plane.</summary>
+        public float BodyRadius(int i) => types[TypeIndex[i]].Radius * types[TypeIndex[i]].Scale;
 
         /// <summary>Deals damage. Returns true if this killed the enemy.</summary>
         public bool Damage(int i, float amount, Vector3 knockDirection = default, float knock = 0f)
@@ -427,7 +429,7 @@ namespace OldGods.Runtime
                     else { nx = X[i]; nz = Z[i]; }
                 }
 
-                var clamped = Ground.ClampToPlayable(new Vector3(nx, 0f, nz), 0.5f);
+                var clamped = Ground.ClampInsideWall(new Vector3(nx, 0f, nz), 0.5f);
                 X[i] = clamped.x;
                 Z[i] = clamped.z;
                 Y[i] = Ground.Height(X[i], Z[i]);

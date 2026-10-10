@@ -26,8 +26,8 @@ MonoBehaviour:
     Text: The fire in your hands has never gone out.
   - Id: god.tide
     Text: The water remembers where it is going.
-  - Id: god.hunt
-    Text: You have already chosen your mark.
+  - Id: god.beast
+    Text: The wild walks where you walk.
   - Id: god.ember
     Text: A small flame, walking a long road.
   - Id: god.earth
@@ -66,7 +66,7 @@ MonoBehaviour:
   - Id: lore.many_gods
     BiomeId: biome.grey_steppe
     Title: Many Gods
-    Text: There were many of us once. Storm and Forge, Tide and Hunt, Ember and Earth, and others whose names the grass has taken. None of us ruled. That was the point.
+    Text: There were many of us once. Storm and Forge, Tide and Beast, Ember and Earth, and others whose names the grass has taken. None of us ruled. That was the point.
   - Id: lore.the_burning
     BiomeId: biome.ash_wood
     Title: The Burning

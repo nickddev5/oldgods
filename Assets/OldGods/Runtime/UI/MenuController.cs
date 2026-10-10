@@ -111,6 +111,7 @@ namespace OldGods.Runtime
             previewMesh = preview.gameObject.AddComponent<MeshFilter>();
             previewRenderer = preview.gameObject.AddComponent<MeshRenderer>();
             preview.gameObject.AddComponent<WalkAnimator>().IdleSwing = 0.05f;
+            preview.gameObject.AddComponent<CapeSway>();
         }
 
         void Update()
@@ -131,7 +132,7 @@ namespace OldGods.Runtime
                 return;
             }
             previewMesh.sharedMesh = GodModels.Get(g.Look);
-            previewRenderer.sharedMaterial = WorldBuilder.Tinted(Assets.LowPoly, Color.white);
+            previewRenderer.sharedMaterial = WorldBuilder.Outlined(WorldBuilder.Tinted(Assets.LowPoly, Color.white));
         }
 
         RectTransform Page(string name)

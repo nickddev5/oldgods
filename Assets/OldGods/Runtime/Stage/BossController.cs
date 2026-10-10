@@ -89,9 +89,10 @@ namespace OldGods.Runtime
             {
                 m.transform.localScale = Vector3.one * Def.Scale;
                 m.AddComponent<MeshFilter>().sharedMesh = BossModels.Get(asset.Model);
+                m.AddComponent<CapeSway>();
                 modelRenderer = m.AddComponent<MeshRenderer>();
                 // Built-in models carry their colours in the mesh.
-                modelRenderer.sharedMaterial = WorldBuilder.Tinted(assets.LowPoly, Color.white);
+                modelRenderer.sharedMaterial = WorldBuilder.Outlined(WorldBuilder.Tinted(assets.LowPoly, Color.white), 3.5f);
                 var walk = m.AddComponent<WalkAnimator>();
                 walk.Tracked = transform;
                 walk.MaxSwing = 0.22f;
@@ -172,7 +173,7 @@ namespace OldGods.Runtime
 
         void Move(Vector3 delta)
         {
-            Vector3 p = Ground.ClampToPlayable(transform.position + delta, 2f);
+            Vector3 p = Ground.ClampInsideWall(transform.position + delta, 1f);
             // Bosses shoulder along walls and columns rather than walking through them.
             if (Ground.Obstacles != null) Ground.Obstacles.PushOut(ref p.x, ref p.z, Def.Radius * 0.8f);
             transform.position = Ground.Snap(p);

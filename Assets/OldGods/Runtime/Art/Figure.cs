@@ -69,6 +69,8 @@ namespace OldGods.Runtime
         public Vector3 HipL, HipR, KneeL, KneeR, AnkleL, AnkleR;
         public Vector3 ShoulderL, ShoulderR, ElbowL, ElbowR, WristL, WristR, HandL, HandR;
         public Quaternion TorsoRotation;
+        /// <summary>The left arm swings whole from the shoulder and never bends at the elbow (a heavy or monstrous arm). Set before Body.</summary>
+        public bool RigidLeftArm;
 
         public Figure(MeshKit kit, FigureSpec spec, Palette palette)
         {
@@ -110,7 +112,7 @@ namespace OldGods.Runtime
         /// <summary>Starts a leg part: it swings at the hip and bends at the knee.</summary>
         public void LegPart(bool left) => Kit.Part(left ? BodyPart.LeftLeg : BodyPart.RightLeg, left ? HipL : HipR, (left ? KneeL : KneeR).y);
         /// <summary>Starts an arm part: it swings at the shoulder and bends at the elbow.</summary>
-        public void ArmPart(bool left) => Kit.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? ShoulderL : ShoulderR, (left ? ElbowL : ElbowR).y);
+        public void ArmPart(bool left) => Kit.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? ShoulderL : ShoulderR, left && RigidLeftArm ? 0f : (left ? ElbowL : ElbowR).y);
         /// <summary>Starts something held in a hand: all of it turns with the forearm.</summary>
         public void HeldPart(bool left) => Kit.Part(left ? BodyPart.LeftArm : BodyPart.RightArm, left ? ShoulderL : ShoulderR, -(left ? ElbowL : ElbowR).y);
         void HeadPart() => Kit.Part(BodyPart.Head, NeckBase);
@@ -137,12 +139,14 @@ namespace OldGods.Runtime
             Kit.Ball(Pelvis + Vector3.up * 0.02f, new Vector3(s.TorsoWidth * 0.95f, s.TorsoLength * 0.2f, s.TorsoDepth * 1.05f), torso, 12, 6, TorsoRotation);
             Kit.Ball(Torso(0f, s.TorsoLength * 0.36f, 0f), new Vector3(s.TorsoWidth * 0.85f, s.TorsoLength * 0.26f, s.TorsoDepth * 0.95f), torso, 12, 6, TorsoRotation);
             Kit.Ball(Chest, new Vector3(s.TorsoWidth * 1.08f, s.TorsoLength * 0.34f, s.TorsoDepth * 1.1f), torso, 12, 7, TorsoRotation);
+            // A flat yoke across the top of the chest so the shoulder line reads square.
+            Kit.Block(Torso(0f, s.TorsoLength * 0.9f, 0f), new Vector3(s.TorsoWidth * 1.9f, s.TorsoLength * 0.2f, s.TorsoDepth * 1.7f), torso, 0.4f, TorsoRotation);
             for (int side = 0; side < 2; side++)
             {
                 bool left = side == 0;
                 ArmPart(left);
                 Vector3 sh = left ? ShoulderL : ShoulderR, el = left ? ElbowL : ElbowR, wr = left ? WristL : WristR, hand = left ? HandL : HandR;
-                Kit.Ball(sh, Vector3.one * s.ArmThickness * 1.55f, torso, n, 5);
+                Deltoid(left, s.ArmThickness * 1.55f, torso);
                 Kit.Limb(sh, el, s.ArmThickness * 1.2f, s.ArmThickness * 0.95f, arm, n);
                 Kit.Ball(el, Vector3.one * s.ArmThickness * 0.95f, arm, n, 4);
                 Kit.Limb(el, wr, s.ArmThickness * 0.95f, s.ArmThickness * 0.75f, arm, n);
@@ -150,9 +154,38 @@ namespace OldGods.Runtime
             }
             HeadPart();
             Kit.Limb(NeckBase - TorsoRotation * Vector3.up * 0.03f, Head - Vector3.up * s.HeadSize * 0.55f, s.ArmThickness * 1.3f, s.ArmThickness * 1.15f, P.Skin, n);
-            Kit.Ball(Head, new Vector3(s.HeadSize * 0.9f, s.HeadSize, s.HeadSize * 0.95f), P.Skin, 14, 9);
+            Skull(P.Skin);
             Kit.Body();
             return this;
+        }
+
+        /// <summary>
+        /// The head: an eight-sided faceted skull, widest at the cheekbones, with a flat crown and a
+        /// squared jaw that narrows to the chin. A flat plane faces forward for the face to sit on.
+        /// </summary>
+        public void Skull(Color color, float jaw = 1f)
+        {
+            float h = Spec.HeadSize;
+            bool smooth = Kit.Smooth;
+            Kit.Smooth = false;
+            Kit.Lathe(Head + new Vector3(0f, -h, h * 0.04f), new[]
+            {
+                new Vector2(0f, h * 0.38f * jaw), new Vector2(h * 0.4f, h * 0.72f * jaw), new Vector2(h * 0.92f, h * 0.93f),
+                new Vector2(h * 1.45f, h * 0.9f), new Vector2(h * 1.8f, h * 0.68f), new Vector2(h * 1.95f, h * 0.36f),
+            }, 8, color, 1f, Facing);
+            Kit.Smooth = smooth;
+        }
+
+        // Turns an eight-sided lathe or ball so a flat face points forward instead of an edge.
+        static readonly Quaternion Facing = Quaternion.Euler(0f, 22.5f, 0f);
+
+        /// <summary>A squared shoulder cap: a chamfered block sloping down and out from the collar.</summary>
+        public void Deltoid(bool left, float radius, Color color)
+        {
+            var sh = left ? ShoulderL : ShoulderR;
+            float sx = left ? -1f : 1f;
+            Kit.Block(sh + TorsoRotation * new Vector3(sx * radius * 0.12f, -radius * 0.32f, 0f), new Vector3(radius * 1.85f, radius * 1.4f, radius * 1.85f), color, 0.5f,
+                TorsoRotation * Quaternion.Euler(0f, 0f, sx * -16f));
         }
 
         public void Foot(Vector3 ankle, Color color, float size)
@@ -191,12 +224,13 @@ namespace OldGods.Runtime
             var f = Head + new Vector3(0f, 0f, h * 0.86f);
             for (int side = -1; side <= 1; side += 2)
             {
-                var eye = f + new Vector3(side * h * 0.33f, h * 0.08f, -h * 0.05f);
-                Kit.Ball(eye, new Vector3(h * 0.17f, h * 0.15f, h * 0.08f), P.Eye, 8, 4);
-                Kit.Ball(eye + new Vector3(0f, -h * 0.01f, h * 0.06f), new Vector3(h * 0.08f, h * 0.09f, h * 0.04f), P.Pupil, 6, 3);
+                var eye = f + new Vector3(side * h * 0.33f, h * 0.08f, -h * 0.01f);
+                Kit.Box(eye, new Vector3(h * 0.3f, h * 0.26f, h * 0.1f), P.Eye);
+                Kit.Box(eye + new Vector3(0f, -h * 0.01f, h * 0.05f), new Vector3(h * 0.13f, h * 0.17f, h * 0.04f), P.Pupil);
                 if (brows) Kit.Box(eye + new Vector3(0f, h * 0.22f, h * 0.03f), new Vector3(h * 0.32f, h * 0.06f, h * 0.06f), P.Hair, 1f, Quaternion.Euler(0f, 0f, side * -8f));
             }
-            Kit.Ball(f + new Vector3(0f, -h * 0.12f, h * 0.05f), new Vector3(h * 0.12f, h * 0.16f, h * 0.12f), P.SkinShade, 6, 4);
+            // A wedge nose and a straight mouth.
+            Kit.Box(f + new Vector3(0f, -h * 0.26f, h * 0.02f), new Vector3(h * 0.2f, h * 0.32f, h * 0.16f), P.SkinShade, 0.35f);
             Kit.Box(f + new Vector3(0f, -h * 0.42f, -h * 0.05f), new Vector3(h * 0.34f, h * 0.05f, h * 0.05f), P.SkinShade);
             Kit.Body();
             return this;
@@ -216,7 +250,7 @@ namespace OldGods.Runtime
             }
             Kit.Box(f + new Vector3(0f, h * 0.3f, -h * 0.02f), new Vector3(h * 1.1f, h * 0.16f, h * 0.2f), P.SkinShade, 0.9f);
             // Jaw.
-            Kit.Ball(Head + new Vector3(0f, -h * 0.62f, h * 0.38f), new Vector3(h * 0.62f, h * 0.3f, h * 0.48f), P.SkinShade, 10, 5);
+            Kit.Block(Head + new Vector3(0f, -h * 0.6f, h * 0.38f), new Vector3(h * 1.25f, h * 0.58f, h * 0.95f), P.SkinShade, 0.45f);
             if (teeth)
                 for (int i = -2; i <= 2; i++)
                 {
@@ -231,8 +265,11 @@ namespace OldGods.Runtime
         {
             float h = Spec.HeadSize;
             HeadPart();
-            Kit.Ball(Head + new Vector3(0f, h * 0.22f, -h * 0.12f), new Vector3(h * 0.98f, h * 0.85f, h * 0.95f) * volume, color, 14, 8);
-            Kit.Ball(Head + new Vector3(0f, -h * 0.15f, -h * 0.55f), new Vector3(h * 0.8f, h * 0.7f, h * 0.45f) * volume, color, 10, 6);
+            bool smooth = Kit.Smooth;
+            Kit.Smooth = false;
+            Kit.Ball(Head + new Vector3(0f, h * 0.24f, -h * 0.12f), new Vector3(h * 1.02f, h * 0.85f, h * 0.98f) * volume, color, 8, 5, Facing);
+            Kit.Ball(Head + new Vector3(0f, -h * 0.15f, -h * 0.55f), new Vector3(h * 0.84f, h * 0.7f, h * 0.45f) * volume, color, 8, 4, Facing);
+            Kit.Smooth = smooth;
             Kit.Body();
             return this;
         }
@@ -296,7 +333,7 @@ namespace OldGods.Runtime
             {
                 new Vector2(-drop, s.TorsoWidth * flare), new Vector2(-drop * 0.4f, s.TorsoWidth * 1.15f),
                 new Vector2(s.TorsoLength * 0.15f, s.TorsoWidth * 0.98f), new Vector2(s.TorsoLength * 0.62f, s.TorsoWidth * 1.15f),
-                new Vector2(s.TorsoLength * 0.9f, s.TorsoWidth * 1.0f), new Vector2(s.TorsoLength * 1.0f, s.TorsoWidth * 0.5f),
+                new Vector2(s.TorsoLength * 0.9f, s.TorsoWidth * 1.12f), new Vector2(s.TorsoLength * 0.97f, s.TorsoWidth * 0.9f), new Vector2(s.TorsoLength * 1.0f, s.TorsoWidth * 0.5f),
             }, 14, color, s.TorsoDepth / s.TorsoWidth * 1.05f, TorsoRotation);
             return this;
         }
@@ -311,7 +348,7 @@ namespace OldGods.Runtime
             {
                 new Vector2(hem, s.TorsoWidth * flare), new Vector2(s.LegLength * 0.45f, s.TorsoWidth * 1.45f),
                 new Vector2(s.LegLength, s.TorsoWidth * 1.12f), new Vector2(s.LegLength + s.TorsoLength * 0.62f, s.TorsoWidth * 1.18f),
-                new Vector2(top - 0.06f, s.TorsoWidth * 0.95f), new Vector2(top, s.TorsoWidth * 0.45f),
+                new Vector2(top - 0.06f, s.TorsoWidth * 1.12f), new Vector2(top - 0.015f, s.TorsoWidth * 0.9f), new Vector2(top, s.TorsoWidth * 0.45f),
             }, 16, color, s.TorsoDepth / s.TorsoWidth * 1.08f);
             return this;
         }
@@ -353,7 +390,7 @@ namespace OldGods.Runtime
                 bool left = side == 0;
                 ArmPart(left);
                 Vector3 sh = left ? ShoulderL : ShoulderR, el = left ? ElbowL : ElbowR, wr = left ? WristL : WristR;
-                Kit.Ball(sh, Vector3.one * s.ArmThickness * 1.85f, color, Sides, 5);
+                Deltoid(left, s.ArmThickness * 1.85f, color);
                 Kit.Limb(sh, el, s.ArmThickness * 1.5f, s.ArmThickness * 1.3f, color, Sides);
                 if (rolled)
                 {
@@ -385,40 +422,55 @@ namespace OldGods.Runtime
             return this;
         }
 
-        /// <summary>A short shoulder cape: a domed collar with a jagged hem.</summary>
+        /// <summary>A short shoulder cape: a domed collar with a jagged hem. Its back sways a little (CapeSway).</summary>
         public Figure Mantle(Color color, float length = 0.2f, float width = 1.6f, Color? lining = null)
         {
             var s = Spec;
-            Kit.Body();
             var top = Torso(0f, s.TorsoLength * 0.98f, 0f);
+            Kit.Part(BodyPart.Cape, top + Vector3.up * 0.03f, length + 0.03f);
             float r = s.ShoulderWidth * width * 0.75f;
             Kit.Lathe(top, new[] { new Vector2(0.03f, s.TorsoWidth * 0.55f), new Vector2(-0.02f, r * 0.8f), new Vector2(-length * 0.6f, r), new Vector2(-length, r * 1.04f) }, 16, color, 0.78f, TorsoRotation);
             if (lining.HasValue) Kit.Lathe(top, new[] { new Vector2(-length, r * 1.0f), new Vector2(-length * 0.7f, r * 0.9f) }, 16, lining.Value, 0.76f, TorsoRotation);
+            Kit.Body();
             return this;
         }
 
-        /// <summary>A cloak hanging down the back to the given length above the ground.</summary>
+        /// <summary>
+        /// A cloak hanging down the back to the given length above the ground, folded down the
+        /// middle and billowing out below the shoulders. It is a grid of rows so it can curve
+        /// when it swings (CapeSway).
+        /// </summary>
         public Figure Cloak(Color color, float bottom = 0.25f, Color? inner = null)
         {
             var s = Spec;
-            Kit.Body();
             var top = Torso(0f, s.TorsoLength * 0.92f, -s.TorsoDepth * 0.85f);
+            Kit.Part(BodyPart.Cape, top + new Vector3(0f, 0f, 0.04f), top.y - bottom);
             float w = s.ShoulderWidth * 1.15f;
             var bl = new Vector3(-w * 1.25f, bottom, top.z - 0.18f);
             var br = new Vector3(w * 1.25f, bottom, top.z - 0.18f);
             var tl = top + new Vector3(-w, 0f, 0f);
             var tr = top + new Vector3(w, 0f, 0f);
-            var ml = Vector3.Lerp(tl, bl, 0.5f) + new Vector3(0f, 0f, -0.07f);
-            var mr = Vector3.Lerp(tr, br, 0.5f) + new Vector3(0f, 0f, -0.07f);
-            var mc = (ml + mr) * 0.5f + new Vector3(0f, 0f, -0.04f);
-            var bc = (bl + br) * 0.5f + new Vector3(0f, 0f, -0.05f);
-            var tc = top + new Vector3(0f, 0f, -0.03f);
-            var c = color;
-            Kit.Quad(tl, tc, mc, ml, c); Kit.Quad(tc, tr, mr, mc, c);
-            Kit.Quad(ml, mc, bc, bl, c); Kit.Quad(mc, mr, br, bc, c);
+            const int rows = 6, cols = 4;
+            var grid = new Vector3[rows + 1, cols + 1];
+            for (int i = 0; i <= rows; i++)
+                for (int j = 0; j <= cols; j++)
+                {
+                    float v = i / (float)rows, u = j / (float)cols;
+                    var at = Vector3.Lerp(Vector3.Lerp(tl, tr, u), Vector3.Lerp(bl, br, u), v);
+                    // Billows out at mid height; the centre fold sits furthest back.
+                    float fold = 1f - Mathf.Abs(u * 2f - 1f);
+                    at.z -= 0.07f * Mathf.Sin(v * Mathf.PI) + fold * Mathf.Lerp(0.03f, 0.05f, v);
+                    grid[i, j] = at;
+                }
             var ci = inner ?? color * 0.7f;
-            Kit.Quad(ml, mc, tc, tl, ci); Kit.Quad(mc, mr, tr, tc, ci);
-            Kit.Quad(bl, bc, mc, ml, ci); Kit.Quad(bc, br, mr, mc, ci);
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                {
+                    Vector3 a = grid[i, j], b = grid[i, j + 1], c = grid[i + 1, j + 1], d = grid[i + 1, j];
+                    Kit.Quad(a, b, c, d, color);
+                    Kit.Quad(d, c, b, a, ci);
+                }
+            Kit.Body();
             return this;
         }
 
@@ -427,7 +479,10 @@ namespace OldGods.Runtime
             float h = Spec.HeadSize;
             HeadPart();
             // Set back from the face so it frames it, with a peak at the top.
-            Kit.Ball(Head + new Vector3(0f, h * 0.18f, -h * 0.38f), new Vector3(h * 1.16f, h * 1.2f, h * 1.05f), color, 14, 8);
+            bool smooth = Kit.Smooth;
+            Kit.Smooth = false;
+            Kit.Ball(Head + new Vector3(0f, h * 0.18f, -h * 0.38f), new Vector3(h * 1.16f, h * 1.2f, h * 1.05f), color, 8, 6, Facing);
+            Kit.Smooth = smooth;
             Kit.Limb(Head + new Vector3(0f, h * 1.05f, -h * 0.5f), Head + new Vector3(0f, h * 1.3f, -h * 1.0f), h * 0.35f, 0f, color, 8);
             Kit.Lathe(Head + new Vector3(0f, -h * 0.9f, -h * 0.2f), new[] { new Vector2(0f, h * 1.5f), new Vector2(h * 0.35f, h * 1.05f) }, 14, color, 0.9f);
             Kit.Body();
@@ -473,10 +528,11 @@ namespace OldGods.Runtime
                 ArmPart(left);
                 var sh = left ? ShoulderL : ShoulderR;
                 float sx = left ? -1f : 1f;
+                // Two overlapping plates, each a chamfered slab angled further down the arm.
                 for (int layer = 0; layer < 2; layer++)
-                    Kit.Ball(sh + new Vector3(sx * size * (0.25f + layer * 0.15f), size * (0.35f - layer * 0.35f), 0f),
-                        new Vector3(size * (1.1f - layer * 0.1f), size * 0.55f, size * (1.05f - layer * 0.05f)), layer == 0 ? color : (trim ?? color * 0.85f), 12, 5,
-                        Quaternion.Euler(0f, 0f, sx * -(25f + layer * 15f)));
+                    Kit.Block(sh + new Vector3(sx * size * (0.3f + layer * 0.25f), size * (0.38f - layer * 0.42f), 0f),
+                        new Vector3(size * (2.1f - layer * 0.2f), size * 0.42f, size * (2.0f - layer * 0.1f)), layer == 0 ? color : (trim ?? color * 0.85f), 0.5f,
+                        Quaternion.Euler(0f, 0f, sx * -(20f + layer * 18f)));
             }
             Kit.Body();
             return this;

@@ -104,6 +104,12 @@ namespace OldGods.Editor
             var lowPoly = Mat("LowPoly", "OldGods/LowPoly", Color.white);
             var horde = Mat("Horde", "OldGods/HordeInstanced", Color.white);
             horde.SetFloat("_WalkSwing", 0.22f);
+            horde.SetFloat("_OutlineWidth", 2.5f);
+            // Pixel-art texture: big texels on ground, stone and props; finer on the horde.
+            lowPoly.SetFloat("_PixelAmount", 0.26f);
+            lowPoly.SetFloat("_TexelsPerMeter", 10f);
+            horde.SetFloat("_PixelAmount", 0.22f);
+            horde.SetFloat("_TexelsPerMeter", 14f);
             var glow = Mat("Glow", "OldGods/LowPoly", Color.white, new Color(1.2f, 1.1f, 0.8f));
             var unlit = Mat("UnlitGlow", "OldGods/UnlitGlow", Color.white);
             var fade = Mat("UnlitFade", "OldGods/UnlitGlow", Color.white);
@@ -113,6 +119,7 @@ namespace OldGods.Editor
             fade.SetFloat("_Cull", (float)UnityEngine.Rendering.CullMode.Off);
             fade.SetOverrideTag("RenderType", "Transparent");
             fade.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            var sky = Mat("Sky", "OldGods/Sky", Color.white);
 
             var content = LoadOrCreate<ContentLibrary>(ContentPath);
             ContentAuthoring.Populate(content);
@@ -124,6 +131,7 @@ namespace OldGods.Editor
             assets.Glow = glow;
             assets.UnlitGlow = unlit;
             assets.UnlitFade = fade;
+            assets.Sky = sky;
             assets.Content = content;
             if (assets.GreyboxBiome == null) assets.GreyboxBiome = ContentAuthoring.GreyboxBiome();
             ContentAuthoring.Biomes(assets, content);

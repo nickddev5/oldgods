@@ -44,8 +44,8 @@ namespace OldGods.Editor
                 1, 150, GodLook.Forge, new Color(0.72f, 0.52f, 0.35f), new Color(2.2f, 1.2f, 0.4f), new StatMod(StatId.Armor, 1f), new StatMod(StatId.MaxHealth, 10f));
             GodAsset(l, "Tide", "god.tide", "Tide", "What the tide takes, it returns changed.", "weapon.tidal_wave", "passive.regeneration",
                 2, 300, GodLook.Tide, new Color(0.38f, 0.62f, 0.62f), new Color(0.3f, 1.4f, 1.8f), new StatMod(StatId.Regen, 0.2f));
-            GodAsset(l, "Hunt", "god.hunt", "Hunt", "She has never once missed what she meant to hit.", "weapon.spear_volley", "passive.keen_eye",
-                3, 500, GodLook.Hunt, new Color(0.45f, 0.55f, 0.35f), new Color(1.2f, 1.8f, 0.6f), new StatMod(StatId.CritChance, 0.05f));
+            GodAsset(l, "Beast", "god.beast", "Beast", "All things walk wild in me.", "weapon.rending_claws", "passive.keen_eye",
+                3, 500, GodLook.Beast, new Color(0.6f, 0.24f, 0.2f), new Color(2.2f, 0.5f, 0.3f), new StatMod(StatId.CritChance, 0.05f));
             GodAsset(l, "Ember", "god.ember", "Ember", "A small fire that refused to go out.", "weapon.flame_aura", "passive.fury",
                 4, 750, GodLook.Ember, new Color(0.8f, 0.38f, 0.28f), new Color(2.4f, 0.8f, 0.2f), new StatMod(StatId.Damage, 0.05f));
             GodAsset(l, "Earth", "god.earth", "Earth", "The ground remembers every step.", "weapon.quake", "passive.bulwark",
@@ -203,35 +203,38 @@ namespace OldGods.Editor
             {
                 b.Id = "biome.grey_steppe"; b.DisplayName = "The Grey Steppe";
                 b.Terrain = new TerrainProfile { HillHeight = 14f, HillScale = 70f, CliffStep = 3f, CliffAmount = 0.15f };
-                b.Palette = new GroundPalette { Low = new Color(0.45f, 0.52f, 0.33f), High = new Color(0.62f, 0.6f, 0.42f), Cliff = new Color(0.5f, 0.48f, 0.45f), Rim = new Color(0.4f, 0.38f, 0.36f) };
+                b.Palette = new GroundPalette { Low = new Color(0.42f, 0.56f, 0.3f), High = new Color(0.6f, 0.64f, 0.4f), Cliff = new Color(0.55f, 0.52f, 0.47f), Rim = new Color(0.42f, 0.44f, 0.38f) };
                 b.Timeline = DefaultTimelines.Standard("enemy.husk", "enemy.runner", "enemy.brute", "enemy.champion");
                 b.Boss = warden;
+                b.Sun = new Color(1f, 0.94f, 0.82f); b.SunIntensity = 1.35f;
+                b.AmbientSky = new Color(0.6f, 0.74f, 0.9f); b.AmbientEquator = new Color(0.55f, 0.6f, 0.55f); b.AmbientGround = new Color(0.3f, 0.28f, 0.22f);
+                b.Fog = new Color(0.66f, 0.8f, 0.9f); b.FogStart = 22f; b.FogEnd = 135f;
                 b.RockCount = 110; b.TreeCount = 15; b.RockColor = new Color(0.58f, 0.56f, 0.54f);
             });
             var wood = LoadOrCreate<BiomeDefinition>(BiomesDir + "/AshWood.asset", b =>
             {
                 b.Id = "biome.ash_wood"; b.DisplayName = "The Ash Wood";
                 b.Terrain = new TerrainProfile { HillHeight = 22f, HillScale = 40f, CliffStep = 3.5f, CliffAmount = 0.4f };
-                b.Palette = new GroundPalette { Low = new Color(0.25f, 0.23f, 0.22f), High = new Color(0.38f, 0.33f, 0.3f), Cliff = new Color(0.3f, 0.26f, 0.24f), Rim = new Color(0.18f, 0.16f, 0.15f) };
+                b.Palette = new GroundPalette { Low = new Color(0.36f, 0.33f, 0.33f), High = new Color(0.5f, 0.45f, 0.43f), Cliff = new Color(0.38f, 0.34f, 0.33f), Rim = new Color(0.25f, 0.19f, 0.18f) };
                 b.Timeline = DefaultTimelines.Standard("enemy.cinder", "enemy.ashling", "enemy.hulk", "enemy.ash_champion");
                 b.Boss = stag;
-                b.Sun = new Color(1f, 0.62f, 0.42f); b.SunIntensity = 1.1f; b.SunEuler = new Vector3(25f, -60f, 0f);
-                b.AmbientSky = new Color(0.55f, 0.45f, 0.4f); b.AmbientEquator = new Color(0.45f, 0.35f, 0.3f); b.AmbientGround = new Color(0.2f, 0.15f, 0.12f);
-                b.Fog = new Color(0.45f, 0.35f, 0.3f); b.FogStart = 30f; b.FogEnd = 140f;
-                b.RockCount = 40; b.RockColor = new Color(0.3f, 0.28f, 0.27f); b.TreeCount = 140; b.TreeColor = new Color(0.2f, 0.18f, 0.17f);
+                b.Sun = new Color(1f, 0.66f, 0.45f); b.SunIntensity = 1.25f; b.SunEuler = new Vector3(25f, -60f, 0f);
+                b.AmbientSky = new Color(0.62f, 0.46f, 0.56f); b.AmbientEquator = new Color(0.55f, 0.4f, 0.38f); b.AmbientGround = new Color(0.25f, 0.17f, 0.15f);
+                b.Fog = new Color(0.56f, 0.42f, 0.5f); b.FogStart = 18f; b.FogEnd = 115f;
+                b.RockCount = 40; b.RockColor = new Color(0.34f, 0.3f, 0.29f); b.TreeCount = 140; b.TreeColor = new Color(0.24f, 0.2f, 0.19f);
             });
             var coast = LoadOrCreate<BiomeDefinition>(BiomesDir + "/DrownedCoast.asset", b =>
             {
                 b.Id = "biome.drowned_coast"; b.DisplayName = "The Drowned Coast";
                 b.Terrain = new TerrainProfile { HillHeight = 16f, HillScale = 60f, CliffStep = 4f, CliffAmount = 0.45f, WaterLevel = 6.5f };
-                b.Palette = new GroundPalette { Low = new Color(0.6f, 0.55f, 0.42f), High = new Color(0.72f, 0.69f, 0.58f), Cliff = new Color(0.42f, 0.44f, 0.46f), Rim = new Color(0.35f, 0.37f, 0.4f) };
+                b.Palette = new GroundPalette { Low = new Color(0.8f, 0.72f, 0.54f), High = new Color(0.88f, 0.82f, 0.66f), Cliff = new Color(0.44f, 0.5f, 0.54f), Rim = new Color(0.38f, 0.42f, 0.47f) };
                 b.Timeline = DefaultTimelines.Standard("enemy.drowned", "enemy.brine_runner", "enemy.shell_brute", "enemy.tide_champion");
                 b.Boss = mother;
-                b.Sun = new Color(0.9f, 0.95f, 1f); b.SunIntensity = 1.2f; b.SunEuler = new Vector3(40f, 20f, 0f);
-                b.AmbientSky = new Color(0.55f, 0.65f, 0.75f); b.AmbientEquator = new Color(0.45f, 0.52f, 0.55f); b.AmbientGround = new Color(0.22f, 0.25f, 0.27f);
-                b.Fog = new Color(0.55f, 0.65f, 0.72f); b.FogStart = 50f; b.FogEnd = 190f;
+                b.Sun = new Color(1f, 0.97f, 0.9f); b.SunIntensity = 1.3f; b.SunEuler = new Vector3(40f, 20f, 0f);
+                b.AmbientSky = new Color(0.55f, 0.74f, 0.86f); b.AmbientEquator = new Color(0.5f, 0.62f, 0.64f); b.AmbientGround = new Color(0.26f, 0.3f, 0.3f);
+                b.Fog = new Color(0.6f, 0.8f, 0.86f); b.FogStart = 25f; b.FogEnd = 150f;
                 b.RockCount = 80; b.RockColor = new Color(0.45f, 0.47f, 0.5f); b.TreeCount = 10; b.TreeColor = new Color(0.3f, 0.4f, 0.32f);
-                b.WaterColor = new Color(0.2f, 0.45f, 0.55f, 0.6f);
+                b.WaterColor = new Color(0.15f, 0.5f, 0.6f, 0.65f);
             });
             var arena = LoadOrCreate<BiomeDefinition>(BiomesDir + "/LastTestArena.asset", b =>
             {
@@ -304,6 +307,10 @@ namespace OldGods.Editor
                 WeaponShape.Projectile, Stats(13f, 1f, 2f, 1f, 26f, 1.1f, 26f, 2f, 1f),
                 Ups((WeaponStat.Damage, 3f), (WeaponStat.Count, 1f), (WeaponStat.Pierce, 1f), (WeaponStat.Cooldown, 0.1f)),
                 new Color(0.85f, 0.8f, 0.65f), new Color(1.6f, 1.5f, 1.1f), new Vector3(0.8f, 0.8f, 2.2f));
+            Weapon(l, "RendingClaws", "weapon.rending_claws", "Rending Claws", "The beast arm rakes everything in front of you.",
+                WeaponShape.Swipe, Stats(16f, 0.9f, 1f, 2.6f, 0f, 0.18f, 140f, 3f),
+                Ups((WeaponStat.Damage, 4f), (WeaponStat.Size, 0.12f), (WeaponStat.Count, 1f), (WeaponStat.Cooldown, 0.1f)),
+                new Color(0.75f, 0.15f, 0.12f), new Color(2.2f, 0.35f, 0.25f), Vector3.one);
             Weapon(l, "FlameAura", "weapon.flame_aura", "Flame Aura", "A ring of fire burns everything close to you.",
                 WeaponShape.Aura, Stats(4f, 0.45f, 1f, 3f, 0f, 0f, 0f, 0.5f),
                 Ups((WeaponStat.Damage, 1.5f), (WeaponStat.Size, 0.15f), (WeaponStat.Cooldown, 0.1f)),

@@ -4,7 +4,7 @@ Decisions waiting on Nick. Each has the working default the build uses until he 
 
 | # | Question | Working default |
 |---|---|---|
-| 1 | Names of the six old gods | Working domains (Storm, Forge, Tide, Hunt, Ember, Earth) |
+| 1 | Names of the six old gods | Working domains (Storm, Forge, Tide, Beast, Ember, Earth) |
 | 2 | Name of the meta currency | Embers |
 | 3 | Can gods other than Elias beat The Last Test? | Yes, and it wins the run (the plan's milestone 5 gate: "a run can be won as any unlocked god"); only Elias takes the throne and sees the full ending |
 | 4 | Stage length | 10:00 countdown |

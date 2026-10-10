@@ -332,7 +332,7 @@ namespace OldGods.Tests.PlayMode
             run.PlayerHealth.Invincible = true;
             run.Director.Paused = true;
             var f = Ground.Field;
-            float limit = f.MaxX - Ground.RimWidth * 0.45f + 0.05f;
+            float limit = f.MaxX - Ground.WallInset + 0.05f;
 
             // Run, then jump, at the east edge for a few seconds.
             run.Player.Teleport(Ground.Snap(new Vector3(f.MaxX - Ground.RimWidth - 4f, 0f, 0f)) + Vector3.up);
@@ -348,6 +348,53 @@ namespace OldGods.Tests.PlayMode
             }
             GameInput.MoveOverride = null;
             Assert.Greater(run.Player.transform.position.y, Ground.Height(run.Player.transform.position.x, 0f) - 2f, "player is on the ground, not under it");
+        }
+
+        [UnityTest]
+        public IEnumerator HordeFollowsThePlayerUpTheRim()
+        {
+            SceneManager.LoadScene("Run");
+            yield return WaitFor(() => RunController.Instance != null && RunController.Instance.Player != null && Ground.Field != null
+                && RunController.Instance.Horde.Types.Count > 0, 20f, "run start");
+            var run = RunController.Instance;
+            run.PlayerHealth.Invincible = true;
+            run.Director.Paused = true;
+            run.Combat.enabled = false; // weapons would kill the enemies being watched
+            run.Horde.KillAll(false);
+            var f = Ground.Field;
+
+            // Walk the player up the east rim until the wall stops them.
+            run.Player.Teleport(Ground.Snap(new Vector3(f.MaxX - Ground.RimWidth - 2f, 0f, 0f)) + Vector3.up);
+            var east = new GameObject("East").transform;
+            east.rotation = Quaternion.Euler(0f, 90f, 0f);
+            run.Player.ViewYaw = east;
+            GameInput.MoveOverride = Vector2.up;
+            yield return new WaitForSeconds(2f);
+            GameInput.MoveOverride = null;
+            var player = run.Player.transform.position;
+            Assert.Greater(player.x, f.MaxX - Ground.RimWidth, "the player is up on the rim");
+
+            // Enemies from the arena floor, below and to the sides, have to reach them there.
+            int[] slots =
+            {
+                run.Horde.Spawn(0, new Vector3(f.MaxX - Ground.RimWidth - 10f, 0f, 0f), 1000f),
+                run.Horde.Spawn(0, new Vector3(f.MaxX - Ground.RimWidth - 6f, 0f, 8f), 1000f),
+                run.Horde.Spawn(0, new Vector3(f.MaxX - Ground.RimWidth - 6f, 0f, -8f), 1000f),
+            };
+            float until = Time.realtimeSinceStartup + 8f;
+            bool AllClose()
+            {
+                foreach (int i in slots)
+                {
+                    float reach = run.Horde.BodyRadius(i) + run.Horde.PlayerRadius + 0.6f;
+                    if (new Vector2(run.Horde.X[i] - player.x, run.Horde.Z[i] - player.z).magnitude > reach) return false;
+                }
+                return true;
+            }
+            while (!AllClose() && Time.realtimeSinceStartup < until) yield return null;
+            foreach (int i in slots)
+                Assert.LessOrEqual(new Vector2(run.Horde.X[i] - player.x, run.Horde.Z[i] - player.z).magnitude,
+                    run.Horde.BodyRadius(i) + run.Horde.PlayerRadius + 0.6f, $"enemy {i} reaches the player at the wall");
         }
 
         [UnityTest]

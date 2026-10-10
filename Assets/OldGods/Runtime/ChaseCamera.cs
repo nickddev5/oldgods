@@ -26,7 +26,7 @@ namespace OldGods.Runtime
         public float AutoAlignDelay = 1.2f;
         [Tooltip("Degrees per second at full run speed.")]
         public float AutoAlignSpeed = 90f;
-        public float DefaultPitch = 24f;
+        public float DefaultPitch = 15f;
         public float MinPitch = 6f, MaxPitch = 60f;
         public float NormalRadius = 9f;
         public float BossRadius = 13f;
@@ -36,6 +36,13 @@ namespace OldGods.Runtime
         float idle;
         float pitch = -1f;
         float bossBlend;
+
+        void Awake()
+        {
+            // -cameraPitch N starts the camera at N degrees, for screenshots of the horizon.
+            if (float.TryParse(CommandLine.Value("-cameraPitch"), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float p))
+                DefaultPitch = Mathf.Clamp(p, MinPitch, MaxPitch);
+        }
 
         void Update()
         {
