@@ -24,7 +24,7 @@ Lore lines (PLACEHOLDER): Storm, "The sky's anger, patient until it is not." For
 
 ## Weapon shapes
 
-`Projectile` (fires at the nearest enemy), `Aura` (damages around the player), `Area` (strikes a spot), `Orbit` (circles the player), `Pull` (drags enemies in). Each weapon is data: shape, cooldown, damage, count, size, pierce, and a per-level upgrade table.
+`Projectile` (fires at the nearest enemy; projectile, chain and single-target area weapons take a boss in range first, unless a foe is within 3.5 m), `Aura` (damages around the player), `Area` (strikes a spot), `Orbit` (circles the player), `Pull` (drags enemies in). Each weapon is data: shape, cooldown, damage, count, size, pierce, and a per-level upgrade table.
 
 ## Biomes
 
@@ -46,7 +46,7 @@ All three stages use the standard ten-minute timeline with the biome's own basic
 | Hammer Orbit | Orbit | 12 | 0.5 s per foe | 2 hammers, heavy knockback |
 | Tidal Wave | Projectile | 14 | 2.2 s | wide, pierces everything |
 | Spear Volley | Projectile | 13 | 1.0 s | 2 spears, pierce 1 |
-| Rending Claws | Swipe | 16 | 0.9 s | 140-degree arc, 2.6 m reach toward the nearest foe; +1 count adds a swipe behind |
+| Rending Claws | Swipe | 19 | 0.9 s | 140-degree arc, 2.6 m reach toward the nearest foe; +1 count adds a swipe behind |
 | Flame Aura | Aura | 4 | 0.45 s tick | 3 m ring |
 | Quake | Area (on self) | 20 | 2.5 s | 5.5 m, big knockback |
 | Crown Light | Area | 30 | 1.6 s | smites a nearby foe |
@@ -83,7 +83,7 @@ Per Common level: Swiftness +8% move speed, Iron Skin +1 armour, Regeneration +0
 |---|---|---|---|---|
 | Husk | 12 | 3.3 | 4 | 1 |
 | Runner | 7 | 5.6 | 3 | 1 |
-| Brute | 55 | 2.6 | 9 | 4 |
+| Brute | 55 | 2.6 | 7 | 4 |
 | Husk Champion (miniboss) | 600 | 3.2 | 14 | 30 |
 | Ghost (final swarm) | 20 | 5.0 | 8 | 2 |
 | Ashling | 6 | 6.2 | 3 | 1 |
