@@ -145,7 +145,7 @@ def summarise(runs: list[Run]) -> dict[str, Any]:
             e = stages.setdefault(name, {"order": st.get("index", 0), "boss": st.get("boss", ""), "reached": 0, "cleared": 0,
                                          "deaths": 0, "deathsToBoss": 0, "seconds": [], "damage": [], "lowest": [],
                                          "bossSeconds": [], "bossDamage": [], "woke": 0, "chests": [], "level": [],
-                                         "stuck": 0, "fellOut": 0, "swarm": 0, "peakAlive": 0})
+                                         "stuck": 0, "fellOut": 0, "swarm": 0, "peakAlive": 0, "bossUnfinished": 0})
             e["reached"] += 1
             e["cleared"] += 1 if st.get("cleared") else 0
             e["seconds"].append(st.get("seconds", 0))
@@ -159,6 +159,8 @@ def summarise(runs: list[Run]) -> dict[str, Any]:
             e["peakAlive"] = max(e["peakAlive"], st.get("peakAlive", 0))
             if st.get("bossWokeAt", -1) >= 0:
                 e["woke"] += 1
+                if st.get("bossSeconds", -1) < 0 and r.get("outcome") == "timeout" and st is r["stages"][-1]:
+                    e["bossUnfinished"] += 1
                 e["bossDamage"].append(st.get("bossDamageTaken", 0))
                 if st.get("bossSeconds", -1) >= 0:
                     e["bossSeconds"].append(st["bossSeconds"])
@@ -311,6 +313,9 @@ def suggestions(s: dict[str, Any]) -> list[str]:
             out.append(f"{boss} killed {st['deathsToBoss']} of {st['woke']} runs that woke it"
                        + (f"; most of its damage comes from {top}" if top else "")
                        + ". Consider less damage or a longer telegraph.")
+        elif st["woke"] >= 2 and st.get("bossUnfinished", 0) >= max(2, st["woke"] // 6):
+            out.append(f"{boss} was still standing when {st['bossUnfinished']} of {st['woke']} runs ran out of time, though the bot was not dying. "
+                       "Weapons aim at the nearest enemy, so a thick horde soaks the shots; consider making bosses a priority target or thinning the horde during the fight.")
         elif st["woke"] >= 2 and st["avgBossSeconds"] > 0 and st["avgBossSeconds"] < 25 and st["avgBossDamage"] < 15:
             out.append(f"{boss} falls in {st['avgBossSeconds']:.0f}s on average and deals {st['avgBossDamage']:.0f} damage. It may be too easy.")
         other_deaths = st["deaths"] - st["deathsToBoss"]

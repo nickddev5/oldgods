@@ -175,7 +175,7 @@ namespace OldGods.Runtime
             if (Time.deltaTime > 0f) Think();
         }
 
-        float StageTimeLimit() => run.IsFinal ? 900f : run.Director.Timeline.Duration + 240f;
+        float StageTimeLimit() => run.IsFinal ? 900f : run.Director.Timeline.Duration + 360f;
 
         // ---------- Menu ----------
 
@@ -647,7 +647,7 @@ namespace OldGods.Runtime
             }
 
             bool threatened = run.Horde.QueryCircle(p, 4f, near) > 0;
-            if (!threatened && run.Pickups.Nearest(p, 18f, out var gem))
+            if (!threatened && run.Pickups.Nearest(p, 18f, out var gem) && Flat(Ground.ClampToPlayable(gem, 4f) - gem).sqrMagnitude < 1f)
             {
                 SetGoal(Goal.Gem, null, gem);
                 return;
@@ -783,7 +783,10 @@ namespace OldGods.Runtime
             return push;
         }
 
-        /// <summary>Circles a boss at the reach of the bot's weapons, closer for short-range kits.</summary>
+        /// <summary>
+        /// Circles a boss close in. Weapons aim at the nearest enemies, so from further out the
+        /// horde between soaks the shots and the fight drags on.
+        /// </summary>
         Vector3 FightBoss(Vector3 p)
         {
             var boss = BossController.Active;
@@ -792,7 +795,7 @@ namespace OldGods.Runtime
             float d = to.magnitude;
             float reach = 0f;
             foreach (var w in run.Combat.Loadout.Weapons) reach = Mathf.Max(reach, w.Def.Base.Range);
-            float want = Mathf.Clamp(reach * 0.75f, boss.Def.Radius + 2.5f, 12f);
+            float want = Mathf.Clamp(reach * 0.4f, boss.Def.Radius + 3f, 7f);
             Vector3 radial = d > 0.01f ? to / d * Mathf.Clamp((d - want) * 0.4f, -1.5f, 1.5f) : Vector3.zero;
             Vector3 tangent = d > 0.01f ? Vector3.Cross(Vector3.up, to / d) * orbitSide : Vector3.zero;
             // Switch direction now and then so the bot does not run into the same wall.

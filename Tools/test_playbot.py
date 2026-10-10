@@ -117,6 +117,11 @@ class SuggestionTests(unittest.TestCase):
         self.assertIn("Stone Warden killed 2 of 2", t)
         self.assertIn("Slam (86%)", t)
 
+    def test_boss_fight_that_never_ends(self):
+        st = [stage(0, "Grey Steppe", "Stone Warden", cleared=False, boss_seconds=-1)]
+        t = self.tips([run(outcome="timeout", stages=st), run(seed="2", outcome="timeout", stages=st)])
+        self.assertIn("Stone Warden was still standing when 2 of 2 runs ran out of time", t)
+
     def test_weak_and_unseen_weapons(self):
         t = self.tips([run(seed=str(i)) for i in range(4)])
         self.assertIn("Orb deals only 3%", t)
