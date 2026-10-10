@@ -68,6 +68,19 @@ namespace OldGods.Runtime
             }
         }
 
+        /// <summary>
+        /// True when the look input comes from a stick, which reports a held rate rather than
+        /// the distance moved since last frame (mouse delta).
+        /// </summary>
+        public static bool LookIsRate
+        {
+            get
+            {
+                Ensure();
+                return Look != null && !(Look.activeControl?.device is Pointer);
+            }
+        }
+
         public static bool Pressed(InputAction action)
         {
             Ensure();

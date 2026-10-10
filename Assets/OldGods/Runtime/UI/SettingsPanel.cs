@@ -24,6 +24,9 @@ namespace OldGods.Runtime
                 run.Camera.InvertY = s.invertY;
             }
             CameraShake.Strength = s.screenShake;
+            // A -screen-fullscreen launch flag (the smoke runner's windowed shots) wins over the save.
+            if (!Application.isBatchMode && !CommandLine.Has("-screen-fullscreen") && Screen.fullScreen != s.fullscreen)
+                Screen.fullScreen = s.fullscreen;
         }
 
         public static RectTransform Build(Transform parent, Vector2 anchor, Vector2 offset, Action onClose)
@@ -50,7 +53,7 @@ namespace OldGods.Runtime
             UiKit.Slider(col, "Vertical look", 0.2f, 2f, s.verticalSensitivity > 0f ? s.verticalSensitivity : 1f, v => { s.verticalSensitivity = v; Apply(s); });
             UiKit.Slider(col, "Screen shake", 0f, 1.5f, s.screenShake, v => { s.screenShake = v; Apply(s); });
             UiKit.Toggle(col, "Invert camera Y", s.invertY, v => { s.invertY = v; Apply(s); });
-            UiKit.Toggle(col, "Fullscreen", Screen.fullScreen, v => Screen.fullScreen = v);
+            UiKit.Toggle(col, "Fullscreen", Screen.fullScreen, v => { s.fullscreen = v; Screen.fullScreen = v; });
 
             var done = UiKit.Button(panel, "Done", 30, () =>
             {
