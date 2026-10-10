@@ -138,6 +138,22 @@ namespace OldGods.Tests.EditMode
             Assert.IsTrue(flow.Reachable(-0.9f, 0f), "an enemy pressed to the wall has a path");
             Assert.IsTrue(flow.Direction(-0.9f, 0f, out _, out _));
         }
+
+        [Test]
+        public void TheHordeFollowsThePlayerUpTheRimToTheWall()
+        {
+            var f = Flat(64);
+            TerrainGenerator.RaiseRim(f, 14f, 20f);
+            var flow = FlowField.FromTerrain(f, null, 14f);
+            float wallX = f.MaxX - TerrainGenerator.WallInset(14f) - 0.01f;
+            flow.Solve(wallX, 0f);
+            Assert.AreNotEqual(CellClass.Blocked, flow.ClassAt(wallX, 0f), "the player's spot at the wall is walkable");
+            Assert.IsTrue(flow.Reachable(0f, 0f), "the arena has a path up to a player at the wall");
+            Assert.AreEqual(wallX, flow.Distance(0f, 0f), 3f, "straight up the slope, not around");
+            Assert.IsTrue(flow.Direction(f.MaxX - 16f, 0f, out float dx, out _));
+            Assert.Greater(dx, 0.9f, "climb towards the player");
+            Assert.AreEqual(CellClass.Blocked, flow.ClassAt(f.MaxX - 2f, 0f), "beyond the wall is blocked");
+        }
     }
 
     public class LevelLayoutTests
