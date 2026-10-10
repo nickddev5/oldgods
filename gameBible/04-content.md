@@ -22,6 +22,8 @@ Kits (PLACEHOLDER): Storm +5% move speed; Forge +1 armour, +10 health; Tide +0.2
 
 Lore lines (PLACEHOLDER): Storm, "The sky's anger, patient until it is not." Forge, "Every blade began in his fire." Tide, "What the tide takes, it returns changed." Beast, "All things walk wild in me." Ember, "A small fire that refused to go out." Earth, "The ground remembers every step." Elias, "The last to come, and the one who ends it."
 
+Slides (PLACEHOLDER): each god slides in its own way; speed, length and hitbox are the same for all. Storm rides a storm cloud, spear raised to throw, leaving mist. Forge lowers a shoulder and charges with the hammer on his shoulder, boots skidding sparks. Tide surfs a breaking wave side-on, arms out, throwing spray. Beast drops to all fours and bounds, kicking up dust. Ember dives forward, arms swept back, trailing embers and flame. Earth sinks to the waist and ploughs through the ground, staff level, throwing rock chips. Elias glides upright on a ring of light, arms open, leaving golden motes.
+
 ## Weapon shapes
 
 `Projectile` (fires at the nearest enemy), `Aura` (damages around the player), `Area` (strikes a spot), `Orbit` (circles the player), `Pull` (drags enemies in). Each weapon is data: shape, cooldown, damage, count, size, pierce, and a per-level upgrade table.

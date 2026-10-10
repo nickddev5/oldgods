@@ -100,7 +100,7 @@ namespace OldGods.Runtime
         {
             var godAsset = God != null ? Assets.Content.GodAsset(God.Id) : null;
             Player = godAsset != null
-                ? WorldBuilder.CreatePlayer(Assets, Vector3.up * 50f, godAsset.Robe, null, GodModels.Get(godAsset.Look), godAsset.Mark, godAsset.ModelPrefab, godAsset.ModelScale)
+                ? WorldBuilder.CreatePlayer(Assets, Vector3.up * 50f, godAsset.Robe, null, GodModels.Get(godAsset.Look), godAsset.Mark, godAsset.ModelPrefab, godAsset.ModelScale, GodModels.Dodge(godAsset.Look))
                 : WorldBuilder.CreatePlayer(Assets, Vector3.up * 50f, new Color(0.85f, 0.82f, 0.7f), null);
             PlayerHealth = Player.GetComponent<PlayerHealth>();
             PlayerHealth.Died += OnPlayerDied;

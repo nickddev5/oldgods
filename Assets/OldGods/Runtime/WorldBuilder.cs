@@ -1,3 +1,4 @@
+using OldGods.Rules;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -92,7 +93,7 @@ namespace OldGods.Runtime
             return go;
         }
 
-        public static PlayerMotor CreatePlayer(GameAssets assets, Vector3 position, Color robe, Transform parent, Mesh body = null, Color mark = default, GameObject prefab = null, float prefabScale = 1f)
+        public static PlayerMotor CreatePlayer(GameAssets assets, Vector3 position, Color robe, Transform parent, Mesh body = null, Color mark = default, GameObject prefab = null, float prefabScale = 1f, DodgeStyle dodge = DodgeStyle.Slide)
         {
             var go = new GameObject("Player");
             go.transform.SetParent(parent, false);
@@ -114,6 +115,13 @@ namespace OldGods.Runtime
             visual.transform.SetParent(go.transform, false);
             visual.layer = Layers.Player;
             motor.Visual = visual.transform;
+            // The god's own slide: the motor's whole-model pose, and the mount and trail. Imported
+            // models get these too; only the built-in models also take the limb pose in the shader.
+            motor.Dodge = Dodges.Pose(dodge);
+            var look = visual.AddComponent<DodgeLook>();
+            look.Style = dodge;
+            look.Motor = motor;
+            look.MountMaterial = Outlined(Tinted(assets.LowPoly, Color.white));
             if (prefab != null)
             {
                 AttachModel(prefab, visual.transform, prefabScale);
