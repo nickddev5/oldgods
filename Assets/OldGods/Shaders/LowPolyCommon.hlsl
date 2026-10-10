@@ -101,14 +101,18 @@ void BendLimb(inout float3 p, inout float3 n, float bend, float3 joint, float an
 // angle that grows from 0 at the shoulders to 1 at the hem, so the cloth curves rather than
 // swinging like a board. Only cloth behind the anchor moves (a mantle's front stays on the
 // chest), short capes move less than long ones, and a travelling wave ripples the hem.
+// A negative drop marks cloth hung in front (a banner over the legs): only cloth in front of
+// the anchor moves, and it barely lifts back, so it stays off the legs.
 void BendCape(inout float3 p, inout float3 n, float drop, float3 joint, float3 cape)
 {
-    drop = max(drop, 0.05);
+    float front = drop < 0.0 ? 1.0 : 0.0;
+    drop = max(abs(drop), 0.05);
     float below = joint.y - p.y;
-    float w = saturate(below / drop) * saturate((joint.z - p.z) / 0.08 + 0.5) * saturate(drop / 0.7);
+    float w = saturate(below / drop) * saturate((joint.z - p.z) * (1.0 - 2.0 * front) / 0.08 + 0.5) * saturate(drop / 0.7);
     if (w <= 0.0) return;
     float ripple = sin(_Time.y * 11.0 - below * 9.0 + p.x * 7.0) * cape.z * 0.12;
-    float pitch = (cape.x + ripple * (0.4 + cape.x)) * w;
+    float lift = front > 0.0 ? min(cape.x, 0.12) : cape.x;
+    float pitch = (lift + ripple * (0.4 + max(lift, 0.0))) * w;
     float roll = (cape.y + ripple * 0.3) * w;
     p = SwingX(p, joint, pitch);
     n = SwingX(n, float3(0, 0, 0), pitch);

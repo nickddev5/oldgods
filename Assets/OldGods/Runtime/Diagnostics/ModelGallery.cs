@@ -91,7 +91,7 @@ namespace OldGods.Runtime
 
             // Capes, side on: hanging, walking, running, and swung to one side, for each caped god.
             var swings = new[] { new Vector4(0f, 0f, 0f, 0f), new Vector4(0.3f, 0f, 0.4f, 0f), new Vector4(0.7f, 0f, 1f, 0f), new Vector4(0.3f, 0.5f, 0.5f, 0f) };
-            foreach (var look in new[] { GodLook.Storm, GodLook.Elias })
+            foreach (var look in new[] { GodLook.Storm, GodLook.Elias, GodLook.Beast })
             {
                 var capes = new GameObject("Capes").transform;
                 for (int i = 0; i < swings.Length; i++)
