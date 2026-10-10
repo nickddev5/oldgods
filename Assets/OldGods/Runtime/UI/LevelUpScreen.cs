@@ -140,7 +140,7 @@ namespace OldGods.Runtime
         void Deal(ICollection<string> exclude)
         {
             dealt = DraftRules.Roll(combat.Loadout, Available(combat.Content.Weapons), Available(combat.Content.Passives),
-                rng, combat.Stats.Value(StatId.Luck), 3, exclude);
+                rng, combat.Stats.Value(StatId.Luck), 3, exclude, combat.Xp.Level);
             ShowCards();
         }
 
@@ -182,7 +182,7 @@ namespace OldGods.Runtime
             if (EventSystem.current != null && cards.Count > 0) EventSystem.current.SetSelectedGameObject(cards[0].gameObject);
         }
 
-        static string KindLabel(DraftKind k) => k == DraftKind.NewWeapon ? "New Weapon" : k == DraftKind.NewPassive ? "New Passive" : "Restore";
+        static string KindLabel(DraftKind k) => k == DraftKind.NewWeapon ? "New Weapon" : k == DraftKind.NewPassive ? "New Passive" : k == DraftKind.Boon ? "Boon" : "Restore";
 
         void Choose(int index)
         {
@@ -194,7 +194,7 @@ namespace OldGods.Runtime
                     banishing = false;
                     var keep = dealt.Where((_, i) => i != index).Select(d => d.Id).ToList();
                     var replacement = DraftRules.Roll(combat.Loadout, Available(combat.Content.Weapons), Available(combat.Content.Passives),
-                        rng, combat.Stats.Value(StatId.Luck), 1, keep);
+                        rng, combat.Stats.Value(StatId.Luck), 1, keep, combat.Xp.Level);
                     dealt[index] = replacement[0];
                     ShowCards();
                 }
@@ -211,8 +211,10 @@ namespace OldGods.Runtime
             if (o.Kind == DraftKind.Restore)
             {
                 var h = combat.GetComponent<PlayerHealth>();
-                if (h != null) h.Health.Heal(h.Health.Max * 0.3f);
+                if (h != null) h.Health.Heal(h.Health.Max * BoonRules.RestoreFraction);
             }
+            if (o.Gold > 0 && RunController.Instance != null && RunController.Instance.Economy != null)
+                RunController.Instance.Economy.Wallet.Add(o.Gold);
             combat.SyncDrivers();
             combat.RecomputeStats();
             Next();

@@ -159,8 +159,10 @@ class SuggestionTests(unittest.TestCase):
 
     def test_draft_running_dry(self):
         r = run()
-        r["draft"] = r["draft"] + [{"t": 900, "stage": 2, "level": 60 + i, "offered": ["Restore restore"], "taken": "restore", "kind": "Restore"} for i in range(60)]
-        self.assertIn("offered only Restore", self.tips([r]))
+        r["draft"] = r["draft"] + [{"t": 900, "stage": 2, "level": 60 + i, "offered": ["Restore restore", "Boon boon.spoils", "Boon boon.strength"],
+                                    "taken": "boon.strength", "kind": "Boon"} for i in range(60)]
+        self.assertIn("offered only Restore and boons", self.tips([r]))
+        self.assertEqual({"boon.strength": 60}, playbot.summarise([r])["draft"]["boons"])
 
     def test_easy_stage(self):
         easy = [stage(0, "Grey Steppe", "Stone Warden", lowest=0.9, boss_seconds=60, boss_damage=40)]

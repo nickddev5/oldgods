@@ -131,6 +131,12 @@ def mean(values: list[float]) -> float:
     return sum(values) / len(values) if values else 0.0
 
 
+def dry(pick: dict[str, Any]) -> bool:
+    """True when a level-up offered nothing but Restore and boons: every slot full and maxed."""
+    offered = pick.get("offered") or [f"{pick.get('kind', '')} {pick.get('taken', '')}"]
+    return all(o.split(" ", 1)[0] in ("Restore", "Boon") for o in offered)
+
+
 def boss_of(source: str) -> str | None:
     """'Stone Warden: Slam' -> 'Stone Warden'."""
     return source.split(":", 1)[0] if ":" in source else None
@@ -215,10 +221,10 @@ def summarise(runs: list[Run]) -> dict[str, Any]:
     s["decisions"] = decision_stats(finished)
 
     cards = [p for r in finished for p in r.get("draft", [])]
-    restore_from = [min((p["level"] for p in r.get("draft", []) if p.get("kind") == "Restore"), default=None) for r in finished]
-    restore_from = [x for x in restore_from if x is not None]
-    s["draft"] = {"cards": len(cards), "restoreShare": sum(1 for p in cards if p.get("kind") == "Restore") / len(cards) if cards else 0.0,
-                  "restoreFromLevel": mean(restore_from)}
+    dry_from = [min((p["level"] for p in r.get("draft", []) if dry(p)), default=None) for r in finished]
+    dry_from = [x for x in dry_from if x is not None]
+    s["draft"] = {"cards": len(cards), "dryShare": sum(1 for p in cards if dry(p)) / len(cards) if cards else 0.0,
+                  "dryFromLevel": mean(dry_from), "boons": dict(Counter(p.get("taken") for p in cards if dry(p)))}
     s["weapons"] = weapon_stats(finished)
     s["passives"] = passive_stats(finished)
 
@@ -396,8 +402,8 @@ def suggestions(s: dict[str, Any]) -> list[str]:
             out.append(f"Passive {p['name']} was unlocked but never offered or held in {n} runs.")
 
     picks = s.get("draft", {})
-    if picks.get("cards", 0) >= 50 and picks.get("restoreShare", 0) >= 0.25:
-        out.append(f"{pct(picks['restoreShare'])} of level-ups offered only Restore: every slot was full and maxed, from level {picks['restoreFromLevel']:.0f} on average. "
+    if picks.get("cards", 0) >= 50 and picks.get("dryShare", 0) >= 0.25:
+        out.append(f"{pct(picks['dryShare'])} of level-ups offered only Restore and boons: every slot was full and maxed, from level {picks['dryFromLevel']:.0f} on average. "
                    "Late runs outgrow the draft; consider more slots, higher caps or fewer levels.")
 
     dmg = {d["source"]: d["share"] for d in s.get("damage", [])}
@@ -500,7 +506,9 @@ def render(s: dict[str, Any], tips: list[str], runs: list[Run]) -> str:
     e, m, p = s["economy"], s["moves"], s["perf"]
     lines += ["## Economy, movement and performance", "",
               f"- Gold earned {e['avgGoldEarned']:.0f}, left unspent {e['avgGoldLeft']:.0f}; chests {e['avgChests']:.1f}, shrines {e['avgShrines']:.1f}, items {e['avgItems']:.1f}; Embers {e['avgEmbers']:.0f} per run.",
-              f"- Level-ups: {s['draft']['cards']} cards taken in all, {pct(s['draft']['restoreShare'])} of them Restore (nothing else left to offer).",
+              f"- Level-ups: {s['draft']['cards']} cards taken in all, {pct(s['draft']['dryShare'])} of them from a draft of only Restore and boons "
+              f"(nothing else left to offer), from level {s['draft']['dryFromLevel']:.0f}; taken there: "
+              + (", ".join(f"{k} {v}" for k, v in sorted(s["draft"]["boons"].items(), key=lambda kv: -kv[1])) or "none") + ".",
               f"- Per run: {m['jumps']:.0f} jumps, {m['slides']:.0f} slides, {m['dodges']:.0f} telegraph dodges, {m['interactions']:.0f} interactions, {m['metres']:.0f} m walked.",
               f"- Frame rate {p['fpsMean']:.0f} fps mean, {p['fpsLow1']:.0f} fps 1% low, {p['fpsMin']:.0f} fps worst frame; peak horde {p['peakAlive']}; horde simulation {p['simMsMean']:.2f} ms mean, {p['simMsMax']:.2f} ms max."]
     if e["purchases"]:

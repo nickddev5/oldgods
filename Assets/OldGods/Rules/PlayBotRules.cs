@@ -28,7 +28,8 @@ namespace OldGods.Rules
 
         /// <summary>
         /// A card's worth to the smart bot: new weapons first while slots are free, then
-        /// weapon upgrades, then passives. Rarer is better. Restore only when hurt.
+        /// weapon upgrades, then passives. Rarer is better. Restore only when hurt; among the
+        /// boons, a stat before gold.
         /// </summary>
         public static float Score(DraftOption o, Loadout loadout, float healthFraction)
         {
@@ -36,6 +37,7 @@ namespace OldGods.Rules
             switch (o.Kind)
             {
                 case DraftKind.Restore: return healthFraction < 0.5f ? 300f : 1f;
+                case DraftKind.Boon: return o.Gold > 0 ? 20f : 35f;
                 case DraftKind.NewWeapon: return (loadout.Weapons.Count < loadout.WeaponSlots ? 95f : 0f) + rarity;
                 case DraftKind.UpgradeWeapon: return 70f + rarity;
                 case DraftKind.NewPassive: return (loadout.Passives.Count < loadout.PassiveSlots ? 55f : 0f) + rarity;
