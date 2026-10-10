@@ -26,6 +26,14 @@ namespace OldGods.Runtime
 
         public event Action<BossController> Defeated;
 
+        /// <summary>The attack being telegraphed or performed now, or null between attacks.</summary>
+        public BossAttackDef? Current { get; private set; }
+        /// <summary>Where the current slam or volley lands; its circles have radius Current.Size.</summary>
+        public readonly System.Collections.Generic.List<Vector3> Marks = new System.Collections.Generic.List<Vector3>();
+        /// <summary>The current charge's direction; the current shockwave's ring radius (negative before it starts).</summary>
+        public Vector3 ChargeDir { get; private set; }
+        public float ShockRadius { get; private set; } = -1f;
+
         HordeManager horde;
         PlayerMotor player;
         PlayerHealth playerHealth;
@@ -216,11 +224,15 @@ namespace OldGods.Runtime
         {
             attacking = true;
             velocity = Vector3.zero;
+            Current = a;
+            Marks.Clear();
+            ShockRadius = -1f;
             switch (a.Attack)
             {
                 case BossAttack.Slam:
                 {
                     Vector3 at = Ground.Snap(player.transform.position);
+                    Marks.Add(at);
                     Effects.Burst(Fx.Disc(), at + Vector3.up * 0.1f, Quaternion.identity, Vector3.one * a.Size * 0.2f, Vector3.one * a.Size, Warning, a.Telegraph);
                     yield return Lean(a.Telegraph, -12f);
                     HitPlayerIfInside(at, a.Size, a.Damage);
@@ -235,6 +247,7 @@ namespace OldGods.Runtime
                     dir.y = 0f;
                     dir = dir.sqrMagnitude > 0.01f ? dir.normalized : transform.forward;
                     transform.rotation = Quaternion.LookRotation(dir);
+                    ChargeDir = dir;
                     Vector3 mid = transform.position + dir * a.Size * 0.5f + Vector3.up * 0.1f;
                     Effects.Burst(Fx.Cube(), mid, Quaternion.LookRotation(dir), new Vector3(Def.Radius * 2f, 0.05f, a.Size * 0.2f),
                         new Vector3(Def.Radius * 2f, 0.05f, a.Size), Warning, a.Telegraph);
@@ -268,6 +281,7 @@ namespace OldGods.Runtime
                     while (r < a.Size)
                     {
                         r += speed * Time.deltaTime;
+                        ShockRadius = r;
                         if (Time.frameCount % 3 == 0)
                             Effects.Burst(Fx.Ring(0.9f, 48), c + Vector3.up * 0.25f, Quaternion.identity, Vector3.one * r, Vector3.one * (r + 0.6f), accent, 0.15f);
                         Vector3 d = player.transform.position - c;
@@ -302,6 +316,7 @@ namespace OldGods.Runtime
                     {
                         Vector2 off = i == 0 ? Vector2.zero : new Vector2(rng.Range(-6f, 6f), rng.Range(-6f, 6f));
                         points[i] = Ground.Snap(player.transform.position + new Vector3(off.x, 0f, off.y));
+                        Marks.Add(points[i]);
                         Effects.Burst(Fx.Disc(), points[i] + Vector3.up * 0.1f, Quaternion.identity, Vector3.one * a.Size * 0.2f, Vector3.one * a.Size, Warning, a.Telegraph);
                     }
                     yield return Lean(a.Telegraph, -10f);
@@ -316,6 +331,9 @@ namespace OldGods.Runtime
             }
             pattern.Finished(Time.time, HealthFraction);
             attacking = false;
+            Current = null;
+            Marks.Clear();
+            ShockRadius = -1f;
         }
 
         /// <summary>Winds up by leaning the model, which reads as a telegraph on the body too.</summary>
