@@ -15,6 +15,8 @@ namespace OldGods.Runtime
         public CapeTuning Tuning = CapeTuning.Default;
         [Tooltip("Air moving past in world space, metres per second.")]
         public Vector3 Wind;
+        [Tooltip("How far the shoulders are bent forward of the model in radians (a slide's waist bend); set by DodgeLook.")]
+        public float TorsoPitch;
 
         static readonly int CapeId = Shader.PropertyToID("_CapeSwing");
         Renderer[] renderers;
@@ -51,8 +53,13 @@ namespace OldGods.Runtime
             Vector3 accel = (smoothed - velocity) / dt;
             velocity = smoothed;
 
-            var toLocal = Quaternion.Inverse(transform.rotation);
-            Vector3 a = toLocal * accel, v = toLocal * (velocity - Wind);
+            // Work in the shoulders' frame. When that frame is tipped (a lean, a bend at the waist),
+            // gravity no longer points down it; CapeSim assumes it does, so the difference goes in
+            // as an acceleration and a cape on a back bent level lies along the back.
+            var torso = transform.rotation * Quaternion.Euler(TorsoPitch * Mathf.Rad2Deg, 0f, 0f);
+            var toLocal = Quaternion.Inverse(torso);
+            Vector3 tilt = new Vector3(0f, -CapeSim.Gravity, 0f) - toLocal * new Vector3(0f, -CapeSim.Gravity, 0f);
+            Vector3 a = toLocal * accel + tilt, v = toLocal * (velocity - Wind);
             var t = Tuning;
             float scale = Mathf.Max(0.1f, transform.lossyScale.y);
             t.Length *= scale;

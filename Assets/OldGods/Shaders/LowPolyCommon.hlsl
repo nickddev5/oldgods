@@ -24,6 +24,11 @@ CBUFFER_START(UnityPerMaterial)
     half _PixelAmount;
     half _TexelsPerMeter;
     float4 _CapeSwing; // x: backward lift, y: sideways swing (radians), z: ripple 0..1; set by CapeSway
+    // The slide pose at full blend (DodgePose, set per renderer by DodgeLook; defaults are the plain slide).
+    float4 _DodgeLeg;   // hip left, hip right, knee left, knee right
+    float4 _DodgeArm;   // shoulder left, shoulder right, raise left, raise right
+    float4 _DodgeMisc;  // elbow left, elbow right, waist, nod
+    float4 _DodgeExtra; // gallop, hip height
 CBUFFER_END
 
 TEXTURE2D(_OG_PixelTex);
@@ -123,22 +128,24 @@ void BendCape(inout float3 p, inout float3 n, float drop, float3 joint, float3 c
 // Procedural motion from body parts baked into the mesh: legs swing in opposite phase and
 // bend at the knee as they come forward; arms counter-swing with bent elbows; the body leans
 // into the run and bobs twice per stride; the head nods a little; a cape bends back by the
-// cape angles. air and slide (0..1) blend in a jumping pose (knees tucked, arms out) and a
-// sliding pose (legs forward, arms back).
+// cape angles. air and slide (0..1) blend in a jumping pose (knees tucked, arms out) and the
+// god's slide pose (_Dodge*): limb angles, a bend at the waist and a galloping swing.
 void Animate(inout float3 p, inout float3 n, float2 part, float3 joint, float phase, float swing, float air, float slide, float3 cape)
 {
     float id = part.x;
     if (id > 5.5) BendCape(p, n, part.y, joint, cape);
     if (swing <= 0.0 && air <= 0.0 && slide <= 0.0) return;
     float bend = part.y;
+    float gallop = sin(phase) * _DodgeExtra.x * slide;
     if (id > 0.5 && id < 2.5)
     {
         bool left = id < 1.5;
         float legPhase = phase + (left ? 0.0 : PI);
         float knee = swing * (0.5 + 3.0 * saturate(-cos(legPhase)));
-        knee += air * (left ? 1.4 : 0.7) + slide * (left ? 0.25 : 1.5);
+        knee += air * (left ? 1.4 : 0.7) + slide * (left ? _DodgeLeg.z : _DodgeLeg.w);
+        knee += _DodgeExtra.x * slide * saturate(cos(phase)) * 0.8;
         BendLimb(p, n, bend, joint, knee);
-        float hip = sin(legPhase) * swing * 2.6 - air * (left ? 0.85 : 0.35) - slide * (left ? 1.4 : 1.15);
+        float hip = sin(legPhase) * swing * 2.6 - air * (left ? 0.85 : 0.35) + slide * (left ? _DodgeLeg.x : _DodgeLeg.y) + gallop;
         p = SwingX(p, joint, hip);
         n = SwingX(n, float3(0, 0, 0), hip);
     }
@@ -147,12 +154,12 @@ void Animate(inout float3 p, inout float3 n, float2 part, float3 joint, float ph
         bool left = id < 3.5;
         // The right hand usually carries a weapon, so that arm swings and bends less.
         float carry = left ? 1.0 : 0.5;
-        float elbow = -(0.15 + (swing * 2.8 + air * 0.6 + slide * 0.3) * carry);
+        float elbow = -(0.15 + (swing * 2.8 + air * 0.6) * carry) + slide * (left ? _DodgeMisc.x : _DodgeMisc.y);
         BendLimb(p, n, bend, joint, elbow);
-        float shoulder = sin(phase + (left ? PI : 0.0)) * swing * 1.8 * carry + slide * 0.6 - air * 0.3 * carry;
+        float shoulder = sin(phase + (left ? PI : 0.0)) * swing * 1.8 * carry + slide * (left ? _DodgeArm.x : _DodgeArm.y) - air * 0.3 * carry - gallop;
         p = SwingX(p, joint, shoulder);
         n = SwingX(n, float3(0, 0, 0), shoulder);
-        float raise = (air * 0.95 + slide * 0.35) * (left ? -1.0 : 0.6);
+        float raise = air * 0.95 * (left ? -1.0 : 0.6) + slide * (left ? _DodgeArm.z : _DodgeArm.w);
         if (raise != 0.0)
         {
             p = SwingZ(p, joint, raise);
@@ -161,15 +168,27 @@ void Animate(inout float3 p, inout float3 n, float2 part, float3 joint, float ph
     }
     else if (id > 4.5 && id < 5.5)
     {
-        float nod = sin(phase * 2.0) * swing * 0.25 - air * 0.12;
+        float nod = sin(phase * 2.0) * swing * 0.25 - air * 0.12 + slide * _DodgeMisc.w;
         p = SwingX(p, joint, nod);
         n = SwingX(n, float3(0, 0, 0), nod);
+    }
+    // Bend at the waist: arms and head turn whole, the body from the hips up, and capes hung
+    // above the hips (a cape on the shoulders, not a banner on the belt).
+    float waist = slide * (_DodgeMisc.z + gallop * 0.12);
+    if (waist != 0.0 && !(id > 0.5 && id < 2.5))
+    {
+        float hipY = _DodgeExtra.y;
+        float w = id < 0.5 ? saturate((p.y - hipY) / 0.12 + 0.5)
+                : id > 5.5 ? saturate((joint.y - hipY) / 0.1 + 0.5)
+                : 1.0;
+        p = SwingX(p, float3(0, hipY, 0), waist * w);
+        n = SwingX(n, float3(0, 0, 0), waist * w);
     }
     // Lean into the run, from the feet.
     float lean = swing * 0.35;
     p = SwingX(p, float3(0, 0, 0), lean);
     n = SwingX(n, float3(0, 0, 0), lean);
-    p.y += abs(sin(phase)) * swing * 0.2;
+    p.y += abs(sin(phase)) * swing * 0.2 + abs(gallop) * 0.15;
 }
 
 // Object space to world space for both ordinary renderers and horde instances.

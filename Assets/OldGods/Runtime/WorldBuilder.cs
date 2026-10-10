@@ -1,3 +1,4 @@
+using OldGods.Rules;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -92,7 +93,7 @@ namespace OldGods.Runtime
             return go;
         }
 
-        public static PlayerMotor CreatePlayer(GameAssets assets, Vector3 position, Color robe, Transform parent, Mesh body = null, Color mark = default, GameObject prefab = null, float prefabScale = 1f)
+        public static PlayerMotor CreatePlayer(GameAssets assets, Vector3 position, Color robe, Transform parent, Mesh body = null, Color mark = default, GameObject prefab = null, float prefabScale = 1f, DodgeStyle dodge = DodgeStyle.Slide)
         {
             var go = new GameObject("Player");
             go.transform.SetParent(parent, false);
@@ -127,6 +128,10 @@ namespace OldGods.Runtime
             walk.Tracked = go.transform;
             walk.Motor = motor;
             visual.AddComponent<CapeSway>();
+            motor.Dodge = Dodges.Pose(dodge);
+            var look = visual.AddComponent<DodgeLook>();
+            look.Style = dodge;
+            look.Motor = motor;
             if (mark != default)
             {
                 var gem = new GameObject("Mark");

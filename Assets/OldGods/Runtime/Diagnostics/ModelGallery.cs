@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -19,6 +20,9 @@ namespace OldGods.Runtime
             string d = CommandLine.Value("-gallery");
             if (string.IsNullOrEmpty(d) || FindAnyObjectByType<ModelGallery>() != null) return;
             Application.runInBackground = true;
+            // The gallery only takes pictures: keep it silent.
+            AudioListener.volume = 0f;
+            AudioListener.pause = true;
             var go = new GameObject("Model Gallery");
             DontDestroyOnLoad(go);
             go.AddComponent<ModelGallery>().dir = d;
@@ -108,6 +112,10 @@ namespace OldGods.Runtime
                 yield return null;
             }
 
+            // Each god's own slide: all seven side by side, then each one sliding past.
+            if (Effects.Instance == null) new GameObject("Effects").AddComponent<Effects>();
+            yield return Dodges(cam, white);
+
             var enemies = new GameObject("Enemies").transform;
             int n = System.Enum.GetValues(typeof(EnemyModel)).Length;
             for (int i = 0; i < n; i++)
@@ -135,6 +143,77 @@ namespace OldGods.Runtime
 
             yield return new WaitForSecondsRealtime(0.5f);
             Application.Quit(0);
+        }
+
+        /// <summary>
+        /// The gods in their slide poses (DodgeLook) with what they ride on: a row of all seven, then
+        /// each one sliding past the camera with its trail and cape moving, side on and from the front quarter.
+        /// </summary>
+        IEnumerator Dodges(Camera cam, Material white)
+        {
+            const float speed = 12f;
+            var row = new GameObject("Dodges").transform;
+            var gods = new List<(Transform root, Transform visual, DodgeLook look)>();
+            for (int i = 0; i < 7; i++)
+            {
+                var look = (GodLook)i;
+                var root = new GameObject($"Dodge {look}").transform;
+                root.SetParent(row, false);
+                root.position = new Vector3((i - 3) * 2.3f, 0f, 0f);
+                var visual = WorldBuilder.CreateProp($"Dodge {look} model", GodModels.Get(look), white, root.position, Quaternion.identity, Vector3.one, root, false).transform;
+                var dodge = visual.gameObject.AddComponent<DodgeLook>();
+                dodge.Style = GodModels.Dodge(look);
+                dodge.ManualBlend = 1f;
+                dodge.ManualVelocity = new Vector3(speed, 0f, 0f);
+                visual.gameObject.AddComponent<CapeSway>();
+                gods.Add((root, visual, dodge));
+            }
+            yield return null;
+            float phase = 0f;
+            void Pose(float dt)
+            {
+                phase += dt * 9f;
+                foreach (var g in gods)
+                {
+                    var p = g.look.Pose;
+                    g.visual.localPosition = new Vector3(0f, p.Height, 0f);
+                    g.visual.localRotation = Quaternion.Euler(p.Pitch, 90f + p.Yaw, p.Roll);
+                    var r = g.visual.GetComponent<MeshRenderer>();
+                    var block = new MaterialPropertyBlock();
+                    r.GetPropertyBlock(block);
+                    block.SetFloat("_AnimPhase", phase);
+                    block.SetFloat("_WalkSwing", 0.03f);
+                    r.SetPropertyBlock(block);
+                }
+            }
+            Pose(0f);
+            yield return null;
+            Pose(0f);
+            yield return Shoot(cam, new Vector3(0f, 2.2f, -22f), new Vector3(0f, 0.8f, 0f), "dodges");
+
+            // One at a time, sliding along x past the camera; the shot is taken as it passes x = 0.
+            foreach (var g in gods)
+            {
+                foreach (var o in gods) o.root.gameObject.SetActive(o.root == g.root);
+                string name = g.root.name.Substring(6);
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    g.root.position = new Vector3(-speed * 0.9f, 0f, 0f);
+                    while (g.root.position.x < 0f)
+                    {
+                        float dt = Mathf.Min(Time.deltaTime, 1f / 30f);
+                        g.root.position += new Vector3(speed * dt, 0f, 0f);
+                        Pose(dt);
+                        yield return null;
+                    }
+                    var at = g.root.position;
+                    if (pass == 0) yield return Shoot(cam, at + new Vector3(0f, 1.3f, -6f), at + new Vector3(-0.4f, 0.9f, 0f), $"dodge_{name}_side");
+                    else yield return Shoot(cam, at + new Vector3(3.9f, 1.8f, -3.9f), at + new Vector3(-0.3f, 0.85f, 0f), $"dodge_{name}_front");
+                }
+                g.root.gameObject.SetActive(false);
+            }
+            Destroy(row.gameObject);
+            yield return new WaitForSecondsRealtime(1f);
         }
 
         /// <summary>A row of one god in shader poses (phase, swing, air, slide), turned to yaw, then a screenshot.</summary>

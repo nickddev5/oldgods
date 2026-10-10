@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using OldGods.Rules;
 using UnityEngine;
 
 namespace OldGods.Runtime
@@ -14,6 +15,25 @@ namespace OldGods.Runtime
 
         public static Mesh Get(GodLook look) => Build(look, false);
         public static Mesh Statue(GodLook look) => Build(look, true);
+
+        /// <summary>
+        /// Each god's own slide (see DodgeLook): Storm rides a cloud, Forge charges, Tide surfs a wave,
+        /// Beast drops to all fours, Ember dives in flame, Earth ploughs through the ground, Elias glides.
+        /// </summary>
+        public static DodgeStyle Dodge(GodLook look)
+        {
+            switch (look)
+            {
+                case GodLook.Storm: return DodgeStyle.StormCloud;
+                case GodLook.Forge: return DodgeStyle.ForgeCharge;
+                case GodLook.Tide: return DodgeStyle.TideWave;
+                case GodLook.Beast: return DodgeStyle.BeastBound;
+                case GodLook.Ember: return DodgeStyle.EmberDive;
+                case GodLook.Earth: return DodgeStyle.EarthBurrow;
+                case GodLook.Elias: return DodgeStyle.EliasGlide;
+                default: return DodgeStyle.Slide;
+            }
+        }
 
         static Mesh Build(GodLook look, bool stone)
         {

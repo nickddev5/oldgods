@@ -9,6 +9,10 @@ Shader "OldGods/LowPoly"
         _AnimPhase ("Anim Phase (set per renderer)", Float) = 0
         _AirPose ("Air Pose (set per renderer)", Range(0, 1)) = 0
         _SlidePose ("Slide Pose (set per renderer)", Range(0, 1)) = 0
+        _DodgeLeg ("Dodge Legs: hips, knees (set per renderer)", Vector) = (-1.4, -1.15, 0.25, 1.5)
+        _DodgeArm ("Dodge Arms: shoulders, raises (set per renderer)", Vector) = (0.6, 0.6, -0.35, 0.21)
+        _DodgeMisc ("Dodge Elbows, Waist, Nod (set per renderer)", Vector) = (-0.3, -0.15, 0, 0)
+        _DodgeExtra ("Dodge Gallop, Hip Height (set per renderer)", Vector) = (0, 0.85, 0, 0)
         _CapeSwing ("Cape Swing (set per renderer by CapeSway)", Vector) = (0, 0, 0, 0)
         _OutlineWidth ("Outline Width (pixels, 0 = none)", Range(0, 4)) = 0
         _PixelAmount ("Pixel Texture Amount", Range(0, 0.6)) = 0

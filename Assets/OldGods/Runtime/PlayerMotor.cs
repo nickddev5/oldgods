@@ -20,6 +20,8 @@ namespace OldGods.Runtime
         public float JumpMultiplier = 1f;
         public int ExtraJumps;
         public bool InputEnabled = true;
+        /// <summary>How the model looks while sliding (the god's own slide). Visual only: the slide's motion is the same for every god.</summary>
+        public DodgePose Dodge = Dodges.Pose(DodgeStyle.Slide);
         /// <summary>Fired with the spot where the player fell out of the world, before they are put back.</summary>
         public event System.Action<Vector3> Rescued;
 
@@ -200,7 +202,7 @@ namespace OldGods.Runtime
 
         /// <summary>
         /// Turns the model toward the motion, leans it into runs and turns, springs it on take-off
-        /// and landing, and lowers it into the slide. The limbs are posed by the shader (WalkAnimator).
+        /// and landing, and moves it into the god's slide pose. The limbs are posed by the shader (WalkAnimator).
         /// </summary>
         void UpdateVisual(float dt, MotorTuning t)
         {
@@ -217,16 +219,16 @@ namespace OldGods.Runtime
             float speed01 = Mathf.Clamp01(horizontal.Magnitude / Mathf.Max(0.1f, t.RunSpeed * SpeedMultiplier));
             float k = 1f - Mathf.Exp(-10f * dt);
             roll = Mathf.Lerp(roll, Mathf.Clamp(-turnRate * 0.025f * speed01, -14f, 14f), k);
-            lean = Mathf.Lerp(lean, speed01 * 7f * (1f - SlideBlend) - SlideBlend * 16f, k);
+            lean = Mathf.Lerp(lean, speed01 * 7f * (1f - SlideBlend) + SlideBlend * Dodge.Pitch, k);
 
             // Squash and stretch on a spring.
             squashVel += (-squash * 260f - squashVel * 18f) * dt;
             squash += squashVel * dt;
             float sq = Mathf.Clamp(squash, -0.2f, 0.3f);
 
-            Visual.localRotation = Quaternion.Euler(lean, yaw - transform.eulerAngles.y, roll);
+            Visual.localRotation = Quaternion.Euler(lean, yaw + SlideBlend * Dodge.Yaw - transform.eulerAngles.y, roll + SlideBlend * Dodge.Roll);
             Visual.localScale = new Vector3(1f + sq * 0.5f, 1f - sq, 1f + sq * 0.5f);
-            Visual.localPosition = new Vector3(0f, -SlideBlend * 0.32f, 0f);
+            Visual.localPosition = new Vector3(0f, SlideBlend * Dodge.Height, 0f);
         }
 
         bool NearGround() => transform.position.y - Ground.Height(transform.position.x, transform.position.z) < 0.35f;
