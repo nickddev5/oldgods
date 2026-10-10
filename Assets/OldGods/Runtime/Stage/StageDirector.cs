@@ -30,6 +30,8 @@ namespace OldGods.Runtime
         public float RunSeconds => RunSecondsAtStart + Elapsed;
         /// <summary>The run-wide difficulty coefficient now (see Difficulty).</summary>
         public float Coefficient => Difficulty.Coefficient(RunSeconds / 60f, StageIndex, Tier);
+        /// <summary>The coefficient when this stage began; damage and numbers read this one.</summary>
+        public float StageCoefficient => Difficulty.Coefficient(RunSecondsAtStart / 60f, StageIndex, Tier);
 
         public float Elapsed { get; private set; }
         public float Remaining => TimelineEvaluator.Remaining(Timeline, Elapsed);
@@ -75,8 +77,8 @@ namespace OldGods.Runtime
         int TypeIndex(string id) => id != null && typeById.TryGetValue(id, out int t) ? t : -1;
 
         float Health() => Difficulty.Health(Coefficient) * (1f + DifficultyBonus);
-        float Damage() => Difficulty.Damage(Coefficient);
-        float Density() => Difficulty.Density(Coefficient);
+        float Damage() => Difficulty.Damage(StageCoefficient);
+        float Density() => Difficulty.Density(StageCoefficient);
 
         public int SpawnEnemy(string id, Vector3 at, float extraHealth = 1f)
         {

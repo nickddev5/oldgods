@@ -62,6 +62,9 @@ namespace OldGods.Rules
     /// the final swarm and The Last Test's stream all read it; run modifiers and Greed multiply
     /// on top. PLACEHOLDER numbers, calibrated so the Grey Steppe plays as it did with the old
     /// per-stage tables (health +18% per stage minute) and later stages climb harder.
+    /// Health follows the live coefficient; damage and numbers read it as it stood when the
+    /// stage began, so they step up between stages and stay flat within one (on the Grey
+    /// Steppe both stay at 1, as before; the first sweep with live damage lost more runs there).
     /// </summary>
     public static class Difficulty
     {
@@ -69,10 +72,10 @@ namespace OldGods.Rules
         public const float TimeRate = 0.18f;
         /// <summary>The coefficient is multiplied by this for each stage cleared.</summary>
         public const float StageGrowth = 1.4f;
-        /// <summary>Share of the coefficient's growth that reaches enemy damage.</summary>
-        public const float DamageShare = 0.15f;
-        /// <summary>Share of the coefficient's growth that reaches how many enemies are kept alive.</summary>
-        public const float DensityShare = 0.06f;
+        /// <summary>Share of the stage-start coefficient's growth that reaches enemy damage.</summary>
+        public const float DamageShare = 0.2f;
+        /// <summary>Share of the stage-start coefficient's growth that reaches how many enemies are kept alive.</summary>
+        public const float DensityShare = 0.1f;
 
         /// <summary>(1 + runMinutes * TimeRate * tier) * StageGrowth^stagesCleared. Tier 1 is the normal time rate.</summary>
         public static float Coefficient(float runMinutes, int stagesCleared, float tier = 1f) =>

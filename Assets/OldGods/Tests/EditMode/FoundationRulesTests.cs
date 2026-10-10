@@ -184,6 +184,17 @@ namespace OldGods.Tests.EditMode
         }
 
         [Test]
+        public void FallsHurtButNeverKill()
+        {
+            var t = new MotorTuning();
+            float hard = t.SafeFallSpeed + 30f;
+            Assert.AreEqual(PlayerRules.FallDamage(hard, t), PlayerRules.FallDamage(hard, t, 500f), 1e-4f, "full damage with health to spare");
+            Assert.AreEqual(39f, PlayerRules.FallDamage(hard, t, 40f), 1e-4f, "leaves 1 health");
+            Assert.AreEqual(0f, PlayerRules.FallDamage(hard, t, 1f), 1e-4f);
+            Assert.AreEqual(0f, PlayerRules.FallDamage(t.SafeFallSpeed - 1f, t, 40f), 1e-4f);
+        }
+
+        [Test]
         public void AirControlIsWeakerThanGround()
         {
             var t = new MotorTuning();

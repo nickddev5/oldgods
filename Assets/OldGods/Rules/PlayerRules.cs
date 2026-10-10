@@ -45,6 +45,14 @@ namespace OldGods.Rules
         }
 
         /// <summary>
+        /// Fall damage with the player at currentHealth: a fall hurts but never kills, leaving at
+        /// least 1 health (as in Risk of Rain 2). Ridges and hill forts on the Grey Steppe ended
+        /// bot runs with a drop alone.
+        /// </summary>
+        public static float FallDamage(float impactSpeed, MotorTuning t, float currentHealth) =>
+            Math.Max(0f, Math.Min(FallDamage(impactSpeed, t), currentHealth - 1f));
+
+        /// <summary>
         /// Horizontal velocity after one step of grounded or airborne control.
         /// input is the desired direction (length 0..1) already in world space.
         /// </summary>

@@ -167,7 +167,7 @@ namespace OldGods.Runtime
 
             if (nowGrounded && !wasGrounded && fallSpeedBefore > 0f)
             {
-                float dmg = PlayerRules.FallDamage(fallSpeedBefore, t);
+                float dmg = health != null ? PlayerRules.FallDamage(fallSpeedBefore, t, health.Health.Current) : 0f;
                 if (dmg > 0f && health != null) health.TakeTrueDamage(dmg, "Fall");
                 if (fallSpeedBefore > 4f) squash = Mathf.Max(squash, Mathf.Clamp(fallSpeedBefore * 0.012f, 0.06f, 0.22f));
             }

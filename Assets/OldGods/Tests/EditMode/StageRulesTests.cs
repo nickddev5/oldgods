@@ -145,6 +145,14 @@ namespace OldGods.Tests.EditMode
             Assert.Greater(Difficulty.Health(Difficulty.Coefficient(17f, 1)), Old(8.5f, 1), "Ash Wood ends harder");
             Assert.Greater(Difficulty.Health(Difficulty.Coefficient(26f, 2)), Old(9.5f, 2), "Drowned Coast ends harder");
             Assert.Greater(Difficulty.Health(Difficulty.Coefficient(26f, 3)), 2f * Old(0f, 3), "The Last Test's stream is tougher");
+
+            // Damage and numbers read the coefficient at stage start: 1 on the Steppe, as the old
+            // tables had; at or above the old 1 + 0.5 x stage damage from the Ash Wood on.
+            Assert.AreEqual(1f, Difficulty.Damage(Difficulty.Coefficient(0f, 0)), 1e-5f);
+            Assert.AreEqual(1f, Difficulty.Density(Difficulty.Coefficient(0f, 0)), 1e-5f);
+            Assert.GreaterOrEqual(Difficulty.Damage(Difficulty.Coefficient(8.5f, 1)), 1.5f);
+            Assert.Greater(Difficulty.Damage(Difficulty.Coefficient(17f, 2)), 2f);
+            Assert.Greater(Difficulty.Damage(Difficulty.Coefficient(26f, 3)), 2.5f);
         }
 
         [Test]
