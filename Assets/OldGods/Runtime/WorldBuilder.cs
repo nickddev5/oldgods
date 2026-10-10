@@ -115,6 +115,13 @@ namespace OldGods.Runtime
             visual.transform.SetParent(go.transform, false);
             visual.layer = Layers.Player;
             motor.Visual = visual.transform;
+            // The god's own slide: the motor's whole-model pose, and the mount and trail. Imported
+            // models get these too; only the built-in models also take the limb pose in the shader.
+            motor.Dodge = Dodges.Pose(dodge);
+            var look = visual.AddComponent<DodgeLook>();
+            look.Style = dodge;
+            look.Motor = motor;
+            look.MountMaterial = Outlined(Tinted(assets.LowPoly, Color.white));
             if (prefab != null)
             {
                 AttachModel(prefab, visual.transform, prefabScale);
@@ -128,10 +135,6 @@ namespace OldGods.Runtime
             walk.Tracked = go.transform;
             walk.Motor = motor;
             visual.AddComponent<CapeSway>();
-            motor.Dodge = Dodges.Pose(dodge);
-            var look = visual.AddComponent<DodgeLook>();
-            look.Style = dodge;
-            look.Motor = motor;
             if (mark != default)
             {
                 var gem = new GameObject("Mark");

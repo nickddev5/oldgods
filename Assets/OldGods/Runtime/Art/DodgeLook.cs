@@ -19,6 +19,8 @@ namespace OldGods.Runtime
         public float ManualBlend = -1f;
         [Tooltip("World velocity to show without a Motor: it turns the mount and drives the trail.")]
         public Vector3 ManualVelocity;
+        [Tooltip("Material for the cloud, wave and broken ground; the model's own material when empty.")]
+        public Material MountMaterial;
 
         static readonly int SlideId = Shader.PropertyToID("_SlidePose");
         static readonly int LegId = Shader.PropertyToID("_DodgeLeg");
@@ -109,7 +111,7 @@ namespace OldGods.Runtime
             go.layer = gameObject.layer;
             go.AddComponent<MeshFilter>().sharedMesh = MountMesh(pose.Mount);
             var r = go.AddComponent<MeshRenderer>();
-            r.sharedMaterial = pose.Mount == DodgeMount.Halo ? Fx.Glow(new Color(1.7f, 1.2f, 0.45f)) : body != null ? body.sharedMaterial : null;
+            r.sharedMaterial = pose.Mount == DodgeMount.Halo ? Fx.Glow(new Color(1.7f, 1.2f, 0.45f)) : MountMaterial != null ? MountMaterial : body != null ? body.sharedMaterial : Fx.Glow(Color.white);
             r.shadowCastingMode = pose.Mount == DodgeMount.Halo ? UnityEngine.Rendering.ShadowCastingMode.Off : UnityEngine.Rendering.ShadowCastingMode.On;
             go.SetActive(false);
             return go.transform;
