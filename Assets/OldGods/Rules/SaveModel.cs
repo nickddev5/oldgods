@@ -10,7 +10,7 @@ namespace OldGods.Rules
     [Serializable]
     public sealed class SaveData
     {
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
 
         public int version = CurrentVersion;
         public int currency;
@@ -84,12 +84,18 @@ namespace OldGods.Rules
         {
             if (data == null) return false;
             if (data.version < 1 || data.version > SaveData.CurrentVersion) return false;
-            // Version steps go here: if (data.version == 1) { ...; data.version = 2; }
             data.unlocked ??= new List<string>();
             data.powerups ??= new List<PowerupLevel>();
             data.quests ??= new List<QuestProgress>();
             data.completedQuests ??= new List<string>();
             data.lastRun ??= new RunRecord();
+            if (data.version == 1)
+            {
+                // The Hunt god became the Beast god (2026-10-10).
+                if (data.unlocked.Remove("god.hunt")) data.Unlock("god.beast");
+                if (data.lastRun.god == "god.hunt") data.lastRun.god = "god.beast";
+                data.version = 2;
+            }
             data.settings ??= new Settings();
             data.lore ??= new List<string>();
             return data.version == SaveData.CurrentVersion;

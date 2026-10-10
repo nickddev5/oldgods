@@ -8,7 +8,7 @@ namespace OldGods.Runtime
     /// faces, hands and their domain's gear. Colours are in the mesh, so the material is white.
     /// Statues use the same shapes in a single stone colour.
     /// </summary>
-    public static class GodModels
+    public static partial class GodModels
     {
         static readonly Dictionary<string, Mesh> cache = new Dictionary<string, Mesh>();
 
@@ -27,7 +27,7 @@ namespace OldGods.Runtime
                 var d = new Color(0.62f, 0.61f, 0.59f);
                 p = new Palette { Skin = g, SkinShade = d, Cloth = g, Cloth2 = d, Leather = d, Metal = g, Trim = g, Hair = d, Eye = g, Pupil = d, Glow = g };
             }
-            Dress(new Figure(k, FigureSpec.Human, p).Layout(), look);
+            Dress(new Figure(k, look == GodLook.Beast ? BeastSpec : FigureSpec.Human, p).Layout(), look);
             m = k.Build("God" + key);
             cache[key] = m;
             return m;
@@ -53,9 +53,13 @@ namespace OldGods.Runtime
                     p.Cloth = new Color(0.2f, 0.55f, 0.55f); p.Cloth2 = new Color(0.82f, 0.86f, 0.84f); p.Trim = new Color(0.95f, 0.92f, 0.82f);
                     p.Hair = new Color(0.12f, 0.25f, 0.28f); p.Skin = new Color(0.8f, 0.72f, 0.66f);
                     break;
-                case GodLook.Hunt:
-                    p.Cloth = new Color(0.32f, 0.48f, 0.27f); p.Cloth2 = new Color(0.4f, 0.32f, 0.24f); p.Trim = new Color(0.88f, 0.84f, 0.72f);
-                    p.Hair = new Color(0.62f, 0.38f, 0.18f);
+                case GodLook.Beast:
+                    // From Nick's concept sheet (2026-10-10): dark reddish-brown skin, crimson hair and cloth, bone and cream fur, gold, glowing red eyes.
+                    p.Skin = new Color(0.44f, 0.25f, 0.19f); p.SkinShade = new Color(0.33f, 0.18f, 0.14f);
+                    p.Cloth = new Color(0.62f, 0.11f, 0.1f); p.Cloth2 = new Color(0.2f, 0.15f, 0.13f); p.Leather = new Color(0.25f, 0.16f, 0.11f);
+                    p.Metal = new Color(0.92f, 0.87f, 0.74f); p.Trim = new Color(0.95f, 0.72f, 0.28f);
+                    p.Hair = new Color(0.66f, 0.12f, 0.1f); p.Glow = new Color(1f, 0.82f, 0.35f);
+                    p.Eye = new Color(1f, 0.45f, 0.35f); p.Pupil = new Color(0.95f, 0.08f, 0.05f);
                     break;
                 case GodLook.Ember:
                     p.Cloth = new Color(0.78f, 0.25f, 0.15f); p.Cloth2 = new Color(0.22f, 0.18f, 0.17f); p.Trim = new Color(1f, 0.7f, 0.25f);
@@ -118,16 +122,8 @@ namespace OldGods.Runtime
                     f.Hood(p.Cloth);
                     f.Weapon("trident", 1.7f, p.Trim, p.Leather);
                     break;
-                case GodLook.Hunt:
-                    // The huntress: tunic, trousers, tall boots, short cloak, antler circlet, quiver strap, spear.
-                    f.Body(p.Cloth2, p.Cloth, p.Skin).Face();
-                    f.Trousers(p.Cloth2, 1.1f).Boots(p.Leather, 0.42f, p.Leather * 0.8f);
-                    f.Tunic(p.Cloth, 0.2f, 1.35f).Sleeves(p.Cloth, true, p.Leather).Gloves(p.Leather);
-                    f.Belt(p.Leather, p.Trim, 3).Strap(p.Leather);
-                    f.Cloak(p.Cloth * 0.85f, 0.55f, p.Cloth2);
-                    f.Hair(p.Hair, 1.02f).Ears(p.Skin, 0.08f);
-                    Antlers(f, p.Trim);
-                    f.Weapon("spear", 1.75f, p.Metal, p.Leather);
+                case GodLook.Beast:
+                    Beast(f);
                     break;
                 case GodLook.Ember:
                     // The flame: red tunic with a dark sash, gauntlets, a crown of fire, a brazier at the belt.
@@ -489,24 +485,6 @@ namespace OldGods.Runtime
                 k.Limb(ring + new Vector3(side * 0.095f, 0f, 0f), ring + new Vector3(side * 0.15f, 0.03f, 0f), 0.014f, 0f, gold, 4);
             k.Limb(ring + Vector3.down * 0.095f, ring + Vector3.down * 0.13f, 0.006f, 0.006f, gold, 4);
             k.Limb(ring + Vector3.down * 0.13f, ring + Vector3.down * 0.22f, 0.012f, 0.022f, navy, 5);
-            k.Body();
-        }
-
-        static void Antlers(Figure f, Color color)
-        {
-            float h = f.Spec.HeadSize;
-            var k = f.Kit;
-            k.Part(BodyPart.Head, f.NeckBase);
-            k.Lathe(f.Head + new Vector3(0f, h * 0.55f, 0f), new[] { new Vector2(0f, h * 0.88f), new Vector2(0.025f, h * 0.9f) }, 14, color);
-            for (int side = -1; side <= 1; side += 2)
-            {
-                var root = f.Head + new Vector3(side * h * 0.6f, h * 0.7f, -h * 0.1f);
-                var a = root + new Vector3(side * 0.08f, 0.14f, -0.03f);
-                var b = a + new Vector3(side * 0.05f, 0.12f, -0.06f);
-                k.Limb(root, a, 0.016f, 0.013f, color, 6);
-                k.Limb(a, b, 0.013f, 0f, color, 6);
-                k.Limb(a, a + new Vector3(side * 0.09f, 0.04f, 0.04f), 0.01f, 0f, color, 5);
-            }
             k.Body();
         }
 

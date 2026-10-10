@@ -44,8 +44,8 @@ namespace OldGods.Editor
                 1, 150, GodLook.Forge, new Color(0.72f, 0.52f, 0.35f), new Color(2.2f, 1.2f, 0.4f), new StatMod(StatId.Armor, 1f), new StatMod(StatId.MaxHealth, 10f));
             GodAsset(l, "Tide", "god.tide", "Tide", "What the tide takes, it returns changed.", "weapon.tidal_wave", "passive.regeneration",
                 2, 300, GodLook.Tide, new Color(0.38f, 0.62f, 0.62f), new Color(0.3f, 1.4f, 1.8f), new StatMod(StatId.Regen, 0.2f));
-            GodAsset(l, "Hunt", "god.hunt", "Hunt", "She has never once missed what she meant to hit.", "weapon.spear_volley", "passive.keen_eye",
-                3, 500, GodLook.Hunt, new Color(0.45f, 0.55f, 0.35f), new Color(1.2f, 1.8f, 0.6f), new StatMod(StatId.CritChance, 0.05f));
+            GodAsset(l, "Beast", "god.beast", "Beast", "All things walk wild in me.", "weapon.spear_volley", "passive.keen_eye",
+                3, 500, GodLook.Beast, new Color(0.6f, 0.24f, 0.2f), new Color(2.2f, 0.5f, 0.3f), new StatMod(StatId.CritChance, 0.05f));
             GodAsset(l, "Ember", "god.ember", "Ember", "A small fire that refused to go out.", "weapon.flame_aura", "passive.fury",
                 4, 750, GodLook.Ember, new Color(0.8f, 0.38f, 0.28f), new Color(2.4f, 0.8f, 0.2f), new StatMod(StatId.Damage, 0.05f));
             GodAsset(l, "Earth", "god.earth", "Earth", "The ground remembers every step.", "weapon.quake", "passive.bulwark",
