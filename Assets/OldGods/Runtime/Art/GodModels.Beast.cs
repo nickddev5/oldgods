@@ -474,7 +474,7 @@ namespace OldGods.Runtime
                 var root = f.Head + new Vector3(i * h * 0.3f, -h * 0.1f, -h * 0.88f);
                 // Out over the collar of fur first, then straight down the back.
                 var mid = root + new Vector3(i * 0.03f, -0.18f, -0.28f + Mathf.Abs(i) * 0.02f);
-                var tip = mid + new Vector3(i * 0.015f, -0.4f + Mathf.Abs(i) * 0.05f, -0.03f);
+                var tip = mid + new Vector3(i * 0.015f, -0.55f + Mathf.Abs(i) * 0.06f, -0.03f);
                 var c = p.Hair * (i % 2 == 0 ? 1f : 0.86f);
                 k.Limb(root, mid, 0.05f, 0.05f, c, 6);
                 k.Limb(mid, tip, 0.05f, 0f, c, 6);
@@ -484,8 +484,8 @@ namespace OldGods.Runtime
                 for (int i = 0; i < 2; i++)
                 {
                     var root = f.Head + new Vector3(side * h * (0.85f + i * 0.1f), -h * 0.1f, -h * (0.1f + i * 0.35f));
-                    var mid = root + new Vector3(side * 0.05f, -0.14f, 0.02f);
-                    var tip = mid + new Vector3(side * 0.03f, -0.16f, 0.02f - i * 0.03f);
+                    var mid = root + new Vector3(side * 0.05f, -0.18f, 0.03f);
+                    var tip = mid + new Vector3(side * 0.02f, -0.24f, 0.03f - i * 0.04f);
                     var c = p.Hair * (i == 0 ? 0.92f : 1f);
                     k.Limb(root, mid, 0.04f, 0.035f, c, 6);
                     k.Limb(mid, tip, 0.035f, 0f, c, 6);
@@ -524,7 +524,7 @@ namespace OldGods.Runtime
             k.Body();
         }
 
-        /// <summary>A gold halo crown behind the head: a ring with spikes all round it, the tallest at the top, and a stone below that spike.</summary>
+        /// <summary>A gold halo crown behind the head: a heavy ring with a tall spike at the top, points either side and small ones below, and a stone under the top spike.</summary>
         static void BeastHalo(Figure f)
         {
             float h = f.Spec.HeadSize;
@@ -533,23 +533,22 @@ namespace OldGods.Runtime
             bool smooth = k.Smooth;
             k.Smooth = false;
             k.Part(BodyPart.Head, f.NeckBase);
-            var c = f.Head + new Vector3(0f, h * 0.35f, -h * 1.2f);
+            var c = f.Head + new Vector3(0f, h * 0.6f, -h * 1.2f);
             var tilt = Quaternion.Euler(-12f, 0f, 0f);
             const float r = 0.2f;
             const int n = 16;
             for (int i = 0; i < n; i++)
             {
                 float a0 = i * Mathf.PI * 2f / n, a1 = (i + 1) * Mathf.PI * 2f / n;
-                k.Limb(c + tilt * new Vector3(Mathf.Cos(a0), Mathf.Sin(a0), 0f) * r, c + tilt * new Vector3(Mathf.Cos(a1), Mathf.Sin(a1), 0f) * r, 0.016f, 0.016f, p.Trim, 4);
-                k.Limb(c + tilt * new Vector3(Mathf.Cos(a0), Mathf.Sin(a0), 0f) * r * 0.78f, c + tilt * new Vector3(Mathf.Cos(a1), Mathf.Sin(a1), 0f) * r * 0.78f, 0.007f, 0.007f, p.Trim * 0.85f, 4);
+                k.Limb(c + tilt * new Vector3(Mathf.Cos(a0), Mathf.Sin(a0), 0f) * r, c + tilt * new Vector3(Mathf.Cos(a1), Mathf.Sin(a1), 0f) * r, 0.022f, 0.022f, p.Trim, 5);
             }
-            // Spikes every 30 degrees from the top: tallest at the top, then long and short in turn.
-            for (int i = 0; i < 12; i++)
+            // As on the sheet: the tall top spike, points up and out either side, flat side points and small ones below.
+            var spikes = new (float deg, float len, float width)[] { (90f, 0.24f, 0.045f), (45f, 0.08f, 0.026f), (135f, 0.08f, 0.026f), (0f, 0.1f, 0.03f), (180f, 0.1f, 0.03f), (-40f, 0.04f, 0.018f), (220f, 0.04f, 0.018f) };
+            foreach (var sp in spikes)
             {
-                float a = Mathf.PI * 0.5f + i * Mathf.PI / 6f;
+                float a = sp.deg * Mathf.Deg2Rad;
                 var d = tilt * new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f);
-                float len = i == 0 ? 0.2f : i == 1 || i == 11 ? 0.1f : i % 2 == 0 ? 0.075f : 0.05f;
-                k.Limb(c + d * (r + 0.005f), c + d * (r + len), i == 0 ? 0.036f : 0.024f, 0f, p.Trim, 4);
+                k.Limb(c + d * (r - 0.01f), c + d * (r + sp.len), sp.width, 0f, p.Trim, 4);
             }
             k.Gem(c + tilt * new Vector3(0f, r * 0.9f, 0.02f), new Vector3(0.02f, 0.028f, 0.014f), p.Glow);
             k.Smooth = smooth;
