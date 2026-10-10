@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using OldGods.Rules;
 using UnityEngine;
+using Goal = OldGods.Rules.BotGoal;
 
 namespace OldGods.Runtime
 {
@@ -21,7 +22,6 @@ namespace OldGods.Runtime
     [DefaultExecutionOrder(-500)]
     public sealed class PlayBot : MonoBehaviour
     {
-        enum Goal { Explore, Gem, Feature, Charge, Gate, Boss, Portal, Arena }
 
         // Options from the command line.
         string godId, outPath;
@@ -51,6 +51,9 @@ namespace OldGods.Runtime
 
         // What the bot is doing now.
         Goal goal = Goal.Explore;
+        BotStance stance = BotStance.Kite;
+        float closeReach = 10f;
+        string goalPath = "", stancePath = "";
         Interactable target;
         Vector3 targetPos;
         float goalSince, rethinkAt, atTargetSince = -1f;
@@ -439,8 +442,12 @@ namespace OldGods.Runtime
                 rethinkAt = now + 0.4f;
                 ChooseGoal(p, hp);
             }
+            Tally(dt);
 
             Vector3 avoid = Avoid(p, out int close);
+            // A close-range kit holds at its weapon's reach from the nearest enemy instead of running.
+            bool engaged = false;
+            Vector3 engage = stance == BotStance.Close ? Engage(p, out engaged) : Vector3.zero;
             Vector3 dodge = Dodge(p, out bool jumpForWave);
             Vector3 seek = Vector3.zero;
             interacting = false;
@@ -490,6 +497,11 @@ namespace OldGods.Runtime
                 case Goal.Explore:
                     seek = PathTo(p, targetPos) * (goal == Goal.Gem ? 1.2f : 1f);
                     break;
+                case Goal.Recover:
+                    // Pick up what is safe to reach, otherwise get away toward open ground in the middle.
+                    seek = Flat(targetPos - p).sqrMagnitude > 1f ? PathTo(p, targetPos) * 0.8f : Vector3.zero;
+                    avoidWeight = 1.8f;
+                    break;
             }
 
             // Hurt, the bot puts staying alive ahead of whatever it was walking to.
@@ -497,6 +509,8 @@ namespace OldGods.Runtime
             if (!interacting) seek *= 1f - 0.5f * danger;
             avoidWeight *= 1f + 1.5f * danger;
             Vector3 dir = seek + avoid * avoidWeight + dodge;
+            if (engaged && !interacting && goal != Goal.Charge && goal != Goal.Boss && goal != Goal.Arena)
+                dir = seek * 0.35f + engage * 1.3f + dodge;
             if (now < detourUntil) dir = detour * 2f + avoid * 0.5f;
             dir = StayInside(p, dir);
             // Standing in blocked ground (the rim, a cliff top) every probe looks blocked, so just walk out.
@@ -606,56 +620,91 @@ namespace OldGods.Runtime
             }
         }
 
+        /// <summary>
+        /// Rethinks: fills in what the bot knows, asks the goal and stance trees (BotTrees, in
+        /// Rules), then finds the thing the chosen goal is about.
+        /// </summary>
         void ChooseGoal(Vector3 p, float hp)
         {
             float now = run.Elapsed;
             // Anything chased for too long is given up on.
             if (target != null && (goal == Goal.Feature || goal == Goal.Charge) && now - goalSince > 45f) skipped.Add(target);
 
-            if (run.IsFinal)
+            var gate = FindAnyObjectByType<BossGate>();
+            var portal = run.BossDefeated ? FindAnyObjectByType<NextPortal>() : null;
+            var freeChest = run.BossDefeated ? Best(p, hp, 45f, freeChestsOnly: true) : null;
+            var feature = hp > BotTrees.HurtBadly ? Best(p, hp, 90f, false) : null;
+            bool gemNear = run.Pickups.Nearest(p, 18f, out var gem) && Flat(Ground.ClampToPlayable(gem, 4f) - gem).sqrMagnitude < 1f;
+            float duration = run.Director.Timeline.Duration;
+            closeReach = ShortestReach(out float baseReach);
+            var s = new BotSituation
             {
-                SetGoal(Goal.Arena, null, BossController.Active != null ? BossController.Active.transform.position : Vector3.zero);
-                return;
-            }
-            if (BossController.Active != null)
-            {
-                SetGoal(Goal.Boss, null, BossController.Active.transform.position);
-                return;
-            }
-            if (run.BossDefeated)
-            {
-                // The guardian's free chest, then onward.
-                var chest = Best(p, hp, 45f, freeChestsOnly: true);
-                if (chest != null) { SetGoal(Goal.Feature, chest, chest.transform.position); return; }
-                var portal = FindAnyObjectByType<NextPortal>();
-                if (portal != null) { SetGoal(Goal.Portal, portal, portal.transform.position); return; }
-            }
+                FinalArena = run.IsFinal,
+                BossAwake = BossController.Active != null,
+                BossDown = run.BossDefeated,
+                FreeChestNear = freeChest != null,
+                PortalOpen = portal != null,
+                GateUsable = gate != null && gate.CanUse && !run.BossDefeated,
+                FeatureWanted = feature != null,
+                FeatureIsCharge = feature is Shrine sh && sh.Kind == ShrineKind.Charge,
+                GemNear = gemNear,
+                Threatened = run.Horde.QueryCircle(p, 4f, near) > 0,
+                Health = hp,
+                StageClock = duration > 0f ? run.Director.Elapsed / duration : 0f,
+                BossAt = bossAtSeconds > 0f && duration > 0f ? bossAtSeconds / duration : bossAtFraction,
+                CloseReach = baseReach,
+                Touching = run.Horde.QueryCircle(p, 3f, near),
+            };
+            var g = BotTrees.Goal.Decide(s, out goalPath);
+            stance = BotTrees.Stance.Decide(s, out stancePath);
 
-            float stageT = run.Director.Elapsed;
-            bool bossTime = bossAtSeconds > 0f ? stageT >= bossAtSeconds : stageT >= run.Director.Timeline.Duration * bossAtFraction;
-            // Hurt, it gathers itself first, unless the final swarm is close.
-            if (hp < 0.5f && stageT < run.Director.Timeline.Duration * 0.92f) bossTime = false;
-            if (bossTime && !run.BossDefeated)
+            switch (g)
             {
-                var gate = FindAnyObjectByType<BossGate>();
-                if (gate != null && gate.CanUse) { SetGoal(Goal.Gate, gate, gate.transform.position); return; }
+                case Goal.Arena:
+                case Goal.Boss:
+                    SetGoal(g, null, BossController.Active != null ? BossController.Active.transform.position : Vector3.zero);
+                    break;
+                case Goal.Feature:
+                case Goal.Charge:
+                {
+                    var it = s.BossDown ? freeChest : feature;
+                    SetGoal(g, it, it.transform.position);
+                    break;
+                }
+                case Goal.Portal: SetGoal(g, portal, portal.transform.position); break;
+                case Goal.Gate: SetGoal(g, gate, gate.transform.position); break;
+                case Goal.Gem: SetGoal(g, null, gem); break;
+                case Goal.Recover: SetGoal(g, null, gemNear && !s.Threatened ? gem : Vector3.zero); break;
+                default: SetGoal(Goal.Explore, null, NextWaypoint(p)); break;
             }
+        }
 
-            var best = hp > 0.3f ? Best(p, hp, 90f, false) : null;
-            if (best != null)
+        /// <summary>The reach of the shortest-reaching weapon held: the one the bot must stand close for.</summary>
+        /// <remarks>
+        /// Whether a weapon is close-range goes by its base numbers, so claws stay claws as Area
+        /// stats grow; how close to stand goes by what it reaches now.
+        /// </remarks>
+        float ShortestReach(out float baseReach)
+        {
+            var c = run.Combat;
+            WeaponState shortest = null;
+            baseReach = float.MaxValue;
+            foreach (var w in c.Loadout.Weapons)
             {
-                bool charge = best is Shrine s && s.Kind == ShrineKind.Charge;
-                SetGoal(charge ? Goal.Charge : Goal.Feature, best, best.transform.position);
-                return;
+                var b = new EffectiveWeapon { Size = w.Def.Base.Size, Range = w.Def.Base.Range };
+                float r = BotTrees.Reach(w.Def.Shape, b);
+                if (r < baseReach) { baseReach = r; shortest = w; }
             }
+            if (shortest == null) { baseReach = 10f; return 10f; }
+            return BotTrees.Reach(shortest.Def.Shape, shortest.Effective(c.Stats));
+        }
 
-            bool threatened = run.Horde.QueryCircle(p, 4f, near) > 0;
-            if (!threatened && run.Pickups.Nearest(p, 18f, out var gem) && Flat(Ground.ClampToPlayable(gem, 4f) - gem).sqrMagnitude < 1f)
-            {
-                SetGoal(Goal.Gem, null, gem);
-                return;
-            }
-            SetGoal(Goal.Explore, null, NextWaypoint(p));
+        /// <summary>Notes how long each branch of the trees ran, for the report.</summary>
+        void Tally(float dt)
+        {
+            if (string.IsNullOrEmpty(goalPath)) return;
+            report.SourceForDecision(goalPath).amount += dt;
+            report.SourceForDecision("Stance: " + stancePath).amount += dt;
         }
 
         Vector3 NextWaypoint(Vector3 p)
@@ -714,6 +763,33 @@ namespace OldGods.Runtime
                 if (score > bestScore) { bestScore = score; best = it; }
             }
             return best;
+        }
+
+        /// <summary>
+        /// The close-range stance: walk to the nearest enemy and hold at the main weapon's reach,
+        /// circling a little so the swings keep finding new targets. Champions get more room.
+        /// </summary>
+        Vector3 Engage(Vector3 p, out bool engaged)
+        {
+            engaged = false;
+            int n = run.Horde.QueryCircle(p, 15f, near);
+            int best = -1;
+            float bestD = float.MaxValue;
+            for (int k = 0; k < n; k++)
+            {
+                int i = near[k];
+                if (run.Horde.Hidden[i]) continue;
+                float d = Flat(run.Horde.Position(i) - p).magnitude;
+                if (d < bestD) { bestD = d; best = i; }
+            }
+            if (best < 0) return Vector3.zero;
+            engaged = true;
+            Vector3 to = Flat(run.Horde.Position(best) - p);
+            Vector3 toward = to.sqrMagnitude > 1e-4f ? to.normalized : Vector3.forward;
+            float hold = BotTrees.HoldDistance(closeReach);
+            if (run.Horde.Def(best).IsElite) hold += 1.5f;
+            Vector3 v = toward * Mathf.Clamp((bestD - hold) * 0.6f, -1.5f, 1.5f);
+            return v + Vector3.Cross(Vector3.up, toward) * 0.4f * orbitSide;
         }
 
         /// <summary>Kite away from nearby enemies, harder the closer they are.</summary>
@@ -798,7 +874,9 @@ namespace OldGods.Runtime
             float d = to.magnitude;
             float reach = 0f;
             foreach (var w in run.Combat.Loadout.Weapons) reach = Mathf.Max(reach, w.Def.Base.Range);
-            float want = Mathf.Clamp(reach * 0.4f, boss.Def.Radius + 3f, 7f);
+            float want = stance == BotStance.Close
+                ? boss.Def.Radius + BotTrees.HoldDistance(closeReach)
+                : Mathf.Clamp(reach * 0.4f, boss.Def.Radius + 3f, 7f);
             Vector3 radial = d > 0.01f ? to / d * Mathf.Clamp((d - want) * 0.4f, -1.5f, 1.5f) : Vector3.zero;
             Vector3 tangent = d > 0.01f ? Vector3.Cross(Vector3.up, to / d) * orbitSide : Vector3.zero;
             // Switch direction now and then so the bot does not run into the same wall.
@@ -919,6 +997,8 @@ namespace OldGods.Runtime
                 foreach (var ps in c.Loadout.Passives) report.passives.Add(new PlayBotReport.Held { id = ps.Def.Id, name = ps.Def.Name, level = ps.Level });
                 foreach (var (item, count) in c.Items.Items) report.items.Add(count > 1 ? $"{item.Name} x{count}" : item.Name);
                 report.damage.Sort((a, b) => b.amount.CompareTo(a.amount));
+                report.decisions.Sort((a, b) => b.amount.CompareTo(a.amount));
+                report.closeReach = closeReach;
                 Line(report.outcome);
             }
             Perf();

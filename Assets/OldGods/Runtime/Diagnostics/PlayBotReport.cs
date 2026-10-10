@@ -25,6 +25,9 @@ namespace OldGods.Runtime
         public List<string> purchases = new List<string>();
         public List<Stage> stages = new List<Stage>();
         public List<Source> damage = new List<Source>();
+        /// <summary>Seconds spent on each branch of the bot's decision trees (amount is seconds).</summary>
+        public List<Source> decisions = new List<Source>();
+        public float closeReach;
         public List<Pick> draft = new List<Pick>();
         public List<Held> weapons = new List<Held>();
         public List<Held> passives = new List<Held>();
@@ -109,6 +112,13 @@ namespace OldGods.Runtime
             public string id = "", name = "", weapon = "";
             public bool unlocked;
             public int cost;
+        }
+
+        public Source SourceForDecision(string name)
+        {
+            var s = decisions.Find(d => d.name == name);
+            if (s == null) decisions.Add(s = new Source { name = name });
+            return s;
         }
 
         public Source SourceFor(string name)

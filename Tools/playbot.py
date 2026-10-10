@@ -212,6 +212,7 @@ def summarise(runs: list[Run]) -> dict[str, Any]:
     s["damage"] = [{"source": k, "amount": round(v), "share": v / total, "hits": hits[k]}
                    for k, v in sorted(damage.items(), key=lambda kv: -kv[1])]
     s["killers"] = dict(Counter(r["killedBy"] for r in finished if r.get("killedBy")).most_common())
+    s["decisions"] = decision_stats(finished)
 
     cards = [p for r in finished for p in r.get("draft", [])]
     restore_from = [min((p["level"] for p in r.get("draft", []) if p.get("kind") == "Restore"), default=None) for r in finished]
@@ -251,6 +252,25 @@ def group(runs: list[Run], key) -> dict[str, list[Run]]:
     for r in runs:
         out[key(r)].append(r)
     return dict(out)
+
+
+def decision_stats(runs: list[Run]) -> dict[str, list[dict[str, Any]]]:
+    """Share of play time on each branch of the bot's goal and stance trees, most used first."""
+    goal: dict[str, float] = defaultdict(float)
+    stance: dict[str, float] = defaultdict(float)
+    for r in runs:
+        for d in r.get("decisions", []):
+            name, seconds = d["name"], d.get("amount", 0.0)
+            if name.startswith("Stance: "):
+                stance[name[len("Stance: "):]] += seconds
+            else:
+                goal[name] += seconds
+
+    def shares(table: dict[str, float]) -> list[dict[str, Any]]:
+        total = sum(table.values()) or 1.0
+        return [{"branch": k, "seconds": round(v), "share": v / total} for k, v in sorted(table.items(), key=lambda kv: -kv[1])]
+
+    return {"goal": shares(goal), "stance": shares(stance)}
 
 
 def weapon_stats(runs: list[Run]) -> dict[str, dict[str, Any]]:
@@ -467,6 +487,16 @@ def render(s: dict[str, Any], tips: list[str], runs: list[Run]) -> str:
         lines.append(f"| {p['name']} | {p['offered']} | {p['taken']} | {p['held']} |")
     lines.append("")
 
+    dec = s.get("decisions", {})
+    if dec.get("goal"):
+        lines += ["## How the bot spent its time", "",
+                  "Each row is a leaf of the bot's goal tree (the last question asked, its answer, and what the bot did).", "",
+                  "| Decision | Share of play time |", "|---|---|"]
+        lines += [f"| {d['branch']} | {pct(d['share'])} |" for d in dec["goal"][:15]]
+        lines += ["", "| Stance toward the horde | Share of play time |", "|---|---|"]
+        lines += [f"| {d['branch']} | {pct(d['share'])} |" for d in dec["stance"]]
+        lines.append("")
+
     e, m, p = s["economy"], s["moves"], s["perf"]
     lines += ["## Economy, movement and performance", "",
               f"- Gold earned {e['avgGoldEarned']:.0f}, left unspent {e['avgGoldLeft']:.0f}; chests {e['avgChests']:.1f}, shrines {e['avgShrines']:.1f}, items {e['avgItems']:.1f}; Embers {e['avgEmbers']:.0f} per run.",
@@ -480,7 +510,7 @@ def render(s: dict[str, Any], tips: list[str], runs: list[Run]) -> str:
     if s["fellOut"]:
         lines.append("- Fell out of the world: " + "; ".join(f"{c['biome']} ({c['x']}, {c['z']}) x{c['count']}" for c in s["fellOut"]) + ".")
     lines.append("")
-    lines += ["The bot is a steady, careful player, not a skilled one: it kites, takes the best-looking card, opens what it can afford, "
+    lines += ["The bot is a steady, careful player, not a skilled one: it kites (or, holding a close-range weapon, stays at that weapon's reach), takes the best-looking card, opens what it can afford, "
               "leaves Greed, Curse and Challenge shrines alone and wakes each boss at 70% of the stage clock (later if below half health). Read its numbers as a floor.", ""]
     return "\n".join(lines)
 
