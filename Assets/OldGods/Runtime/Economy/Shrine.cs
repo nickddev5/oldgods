@@ -103,7 +103,7 @@ namespace OldGods.Runtime
             switch (Kind)
             {
                 case ShrineKind.Item:
-                    run.PlayerHealth.TakeTrueDamage(run.PlayerHealth.Health.Max * ShrineRules.ItemShrineHealthCost);
+                    run.PlayerHealth.TakeTrueDamage(run.PlayerHealth.Health.Max * ShrineRules.ItemShrineHealthCost, "Shrine of Gifts");
                     if (run.IsOver) return;
                     eco.Grant(eco.RollItem(Rarity.Uncommon));
                     break;

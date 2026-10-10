@@ -37,6 +37,10 @@ The horde never uses a Rigidbody, NavMesh agent or Animator per enemy: see [ADR 
 
 Tools under `Tools/` use the Python standard library only, so they run with a bare `python` or `uv run --no-project python`. Each tool has a `test_*.py` beside it; run `uv run --no-project python -B -m unittest discover -s Tools`.
 
+## Play-testing with the bot
+
+To check balance, flow or a level change across whole runs, build the player (`python Tools/build_windows.py`) and run `python Tools/playbot.py`. It plays every god from the menu to The Last Test faster than real time and writes `TestResults/playbot/<time>/report.md` with suggestions. Options and what the bot does: [gameBible/05-tech.md](gameBible/05-tech.md#play-bot-whole-runs-report-and-suggestions). The bot reads gods, weapons and map features from the game, so new content needs no bot change unless it adds a new kind of interactable or boss attack.
+
 ## Process
 
 - One branch per milestone (`milestone-N-name`), PR to `main`. Nick play-tests in his Editor before merge.

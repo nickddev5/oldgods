@@ -234,7 +234,7 @@ namespace OldGods.Runtime
             if (EventSystem.current != null && first != null) EventSystem.current.SetSelectedGameObject(first.gameObject);
         }
 
-        void Select(string id)
+        public void Select(string id)
         {
             selected = id;
             var g = Content.God(id);

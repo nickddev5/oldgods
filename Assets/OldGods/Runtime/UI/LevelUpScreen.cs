@@ -36,6 +36,10 @@ namespace OldGods.Runtime
         public bool IsOpen => root != null && root.gameObject.activeSelf;
         /// <summary>Test and smoke hook: picks the first card automatically.</summary>
         public static bool AutoPick;
+        /// <summary>Play-bot hook: chooses a card from the dealt options. Wins over AutoPick.</summary>
+        public static System.Func<IReadOnlyList<DraftOption>, int> Picker;
+        /// <summary>Every card taken: the options dealt and the one taken.</summary>
+        public static event System.Action<IReadOnlyList<DraftOption>, DraftOption> Taken;
 
         public static LevelUpScreen Create(PlayerCombat combat, Rng draftRng)
         {
@@ -96,6 +100,7 @@ namespace OldGods.Runtime
                 if (combat.PendingLevelUps > 0 && !ChoiceScreen.IsOpen && !ReadScreen.IsOpen && !(RunController.Instance != null && RunController.Instance.IsOver)) Open();
                 return;
             }
+            if (Picker != null) { Take(Picker(dealt)); return; }
             if (AutoPick) { Take(0); return; }
             var kb = Keyboard.current;
             if (kb != null)
@@ -201,6 +206,7 @@ namespace OldGods.Runtime
         void Take(int index)
         {
             var o = dealt[Mathf.Clamp(index, 0, dealt.Count - 1)];
+            Taken?.Invoke(dealt, o);
             DraftRules.Apply(combat.Loadout, o, combat.Content.Weapons, combat.Content.Passives);
             if (o.Kind == DraftKind.Restore)
             {

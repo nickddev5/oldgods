@@ -21,6 +21,8 @@ namespace OldGods.Runtime
         public bool IsDead => Health != null && Health.IsDead;
 
         public event Action<float> Damaged;
+        /// <summary>Every hit that lands: amount dealt, where it came from, and a source name for true damage (fall, shrine).</summary>
+        public event Action<float, Vector3, string> Hurt;
         public event Action Died;
 
         float regenBank;
@@ -57,20 +59,21 @@ namespace OldGods.Runtime
                 Health.Guard();
                 return;
             }
-            Apply(Mathf.Max(1f, amount - Armor), false);
+            Apply(Mathf.Max(1f, amount - Armor), false, from, null);
         }
 
         /// <summary>Damage that ignores armour, evasion and invulnerability (falls, curses).</summary>
-        public void TakeTrueDamage(float amount)
+        public void TakeTrueDamage(float amount, string source = null)
         {
             if (Health == null || IsDead || Invincible) return;
-            Apply(amount, true);
+            Apply(amount, true, transform.position, source);
         }
 
-        void Apply(float amount, bool ignoreInvulnerability)
+        void Apply(float amount, bool ignoreInvulnerability, Vector3 from, string source)
         {
             float dealt = Health.Damage(amount, ignoreInvulnerability);
             if (dealt <= 0f) return;
+            Hurt?.Invoke(dealt, from, source);
             Audio.Play(Health.IsDead ? Sfx.Death : Sfx.Hurt, 0.8f, 0.05f);
             CameraShake.Kick(Mathf.Clamp(dealt / 25f, 0.25f, 0.8f));
             Damaged?.Invoke(dealt);
