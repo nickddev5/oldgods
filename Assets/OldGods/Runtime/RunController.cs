@@ -378,7 +378,7 @@ namespace OldGods.Runtime
             for (int i = 0; i < count; i++)
             {
                 Vector3 offset = i == 0 ? Vector3.zero : Quaternion.Euler(0f, i * 360f / count, 0f) * Vector3.forward * 10f;
-                var boss = BossController.Spawn(Biome.Boss, at + offset, StageIndex, BossCurses, Assets, Horde, Player, Seed.Stream("boss", StageIndex * 10 + i));
+                var boss = BossController.Spawn(Biome.Boss, at + offset, StageIndex, BossCurses, Director.Coefficient, Assets, Horde, Player, Seed.Stream("boss", StageIndex * 10 + i));
                 boss.Defeated += OnBossDefeated;
             }
             Announce(Biome.Boss.DisplayName, count > 1 ? $"{count} of them wake" : Biome.Boss.Epithet);

@@ -17,7 +17,7 @@
 - **Gold:** dropped by most enemies (each type has a gold chance: common foes 25%, brutes 50%, hulks and shell brutes 60%, champions always, ghosts never), 1 gold per drop times (stage + 1), 12 from elites, times Gold Gain. Spent on chests, the merchant and the duplicator. Their prompts show the price even when you cannot afford it yet. Gold is never kept between runs.
 - **Chests:** about 10 per map. The nth paid chest costs round((12 + 12 x n^1.35) x (1 + 0.25 x stage)). Bosses, cursed bosses and champions drop free chests. A chest gives one item.
 - **Items:** stack without slots; rarity weights 55/28/12/4/1 shifted by Luck. Twelve PLACEHOLDER items, all stat changes except Bloodstone (8% chance per kill to heal 2).
-- **Merchant:** one per map, sells one item (Uncommon or better) for 1.2 + 0.45 x rarity tier times the chest price. It restocks once after a sale, so it sells two items in all.
+- **Merchant:** one per map, sells one item (Uncommon or better) for 1.2 + 0.45 x rarity tier times the chest price. It restocks after each of its first two sales, so it sells three items in all.
 - **Duplicator:** one per map, copies the last item found for the chest price, once.
 - **Drops:** common enemies drop a healing morsel (20 health) 0.6% of the time and a magnet that pulls every gem 0.15% of the time.
 - **Shrines (8 per map, each kind at least once):**
@@ -27,7 +27,7 @@
   - Curse (Boss Curse): one more boss wakes at the gate, and each boss drops a chest.
   - Challenge: calls a champion now; champions drop a chest.
   - Drawing (Magnet): pulls every gem and coin on the map to you.
-- **Shrine of Offering (one per map, besides the eight):** give gold for a chance at an item. The first offering costs 60% of the next chest's price and each one after costs 40% more; about half the offerings give nothing. It goes quiet after giving two items. The gold sink for late runs (Risk of Rain 2's Shrine of Chance pattern; PLACEHOLDER numbers).
+- **Shrine of Offering (one per map, besides the eight):** give gold for a chance at an item. The first offering costs 60% of the next chest's price and each one after costs 40% more; about half the offerings give nothing. It goes quiet after giving four items. The gold sink for late runs (Risk of Rain 2's Shrine of Chance pattern; PLACEHOLDER numbers).
 
 ## Between runs
 

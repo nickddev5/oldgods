@@ -131,21 +131,22 @@ namespace OldGods.Tests.EditMode
         }
 
         [Test]
-        public void AboutHalfTheOfferingsPayAndTheShrineStopsAfterTwoItems()
+        public void AboutHalfTheOfferingsPayAndTheShrineStopsAfterFourItems()
         {
             var rng = new Rng(11);
             int paid = 0;
             for (int i = 0; i < 4000; i++) if (OfferingRules.Pays(rng)) paid++;
             Assert.That(paid / 4000f, Is.InRange(0.45f, 0.55f));
-            Assert.IsFalse(OfferingRules.Spent(1));
-            Assert.IsTrue(OfferingRules.Spent(2));
+            Assert.IsFalse(OfferingRules.Spent(3));
+            Assert.IsTrue(OfferingRules.Spent(4));
         }
 
         [Test]
-        public void MerchantRestocksOnce()
+        public void MerchantRestocksTwice()
         {
             Assert.IsTrue(EconomyRules.MerchantRestocksAfter(1));
-            Assert.IsFalse(EconomyRules.MerchantRestocksAfter(2));
+            Assert.IsTrue(EconomyRules.MerchantRestocksAfter(2));
+            Assert.IsFalse(EconomyRules.MerchantRestocksAfter(3));
         }
     }
 }

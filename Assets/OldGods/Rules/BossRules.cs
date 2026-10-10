@@ -76,8 +76,19 @@ namespace OldGods.Rules
     /// <summary>Boss strength by stage. PLACEHOLDER.</summary>
     public static class BossScaling
     {
-        public static float Health(BossDef def, int stageIndex, int extraCurses) =>
-            def.MaxHealth * (1f + stageIndex * 1.4f) * (1f + extraCurses * 0.5f);
+        /// <summary>Coefficient at which the difficulty starts to add boss health.</summary>
+        public const float DifficultyPivot = 2f;
+
+        /// <summary>
+        /// Extra boss health from the run's difficulty coefficient when the boss wakes:
+        /// sqrt(coefficient / 2), never below 1. About 1 on the Grey Steppe, 1.7 in the Ash Wood,
+        /// 2.3 on the Drowned Coast and 3 in The Last Test. Aimed weapons take the boss first, so
+        /// without this the late fights ended in 20-35 s and The Last Test stopped being a test.
+        /// </summary>
+        public static float DifficultyFactor(float coefficient) => (float)Math.Max(1.0, Math.Sqrt(Math.Max(0f, coefficient) / DifficultyPivot));
+
+        public static float Health(BossDef def, int stageIndex, int extraCurses, float coefficient = 1f) =>
+            def.MaxHealth * (1f + stageIndex * 1.4f) * (1f + extraCurses * 0.5f) * DifficultyFactor(coefficient);
 
         public static float Damage(float baseDamage, int stageIndex) => baseDamage * (1f + stageIndex * 0.4f);
     }

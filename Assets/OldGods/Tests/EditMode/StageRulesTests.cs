@@ -242,5 +242,22 @@ namespace OldGods.Tests.EditMode
             Assert.Greater(BossScaling.Health(def, 0, 1), BossScaling.Health(def, 0, 0));
             Assert.Greater(BossScaling.Damage(10f, 2), 10f);
         }
+
+        [Test]
+        public void BossHealthFollowsTheDifficultyFromTheAshWoodOn()
+        {
+            var def = Def();
+            Assert.AreEqual(1f, BossScaling.DifficultyFactor(1f), 1e-5f, "never below 1");
+            Assert.AreEqual(1f, BossScaling.DifficultyFactor(BossScaling.DifficultyPivot), 1e-5f);
+            Assert.Less(BossScaling.DifficultyFactor(Difficulty.Coefficient(7f, 0)), 1.1f, "the Stone Warden stays as it was");
+            Assert.AreEqual(3f, BossScaling.DifficultyFactor(18f), 1e-4f, "about The Last Test");
+            Assert.AreEqual(BossScaling.Health(def, 2, 0) * 2f, BossScaling.Health(def, 2, 0, 8f), 1e-2f);
+            float prev = 0f;
+            for (float c = 1f; c < 100f; c += 5f)
+            {
+                Assert.GreaterOrEqual(BossScaling.DifficultyFactor(c), prev);
+                prev = BossScaling.DifficultyFactor(c);
+            }
+        }
     }
 }

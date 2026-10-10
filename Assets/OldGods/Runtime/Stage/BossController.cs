@@ -48,17 +48,17 @@ namespace OldGods.Runtime
         Vector3 velocity;
         float damageScale;
 
-        public static BossController Spawn(BossDefinition asset, Vector3 at, int stageIndex, int curses, GameAssets assets,
+        public static BossController Spawn(BossDefinition asset, Vector3 at, int stageIndex, int curses, float coefficient, GameAssets assets,
             HordeManager horde, PlayerMotor player, Rng rng)
         {
             var go = new GameObject("Boss " + asset.DisplayName);
             go.transform.position = Ground.Snap(at);
             var boss = go.AddComponent<BossController>();
-            boss.Init(asset, stageIndex, curses, assets, horde, player, rng);
+            boss.Init(asset, stageIndex, curses, coefficient, assets, horde, player, rng);
             return boss;
         }
 
-        void Init(BossDefinition asset, int stageIndex, int curses, GameAssets assets, HordeManager h, PlayerMotor p, Rng r)
+        void Init(BossDefinition asset, int stageIndex, int curses, float coefficient, GameAssets assets, HordeManager h, PlayerMotor p, Rng r)
         {
             Asset = asset;
             Def = asset.ToDef();
@@ -75,7 +75,7 @@ namespace OldGods.Runtime
             var enemyDef = new EnemyDef { Id = Def.Id, DisplayName = Def.Name, MaxHealth = Def.MaxHealth, MoveSpeed = 0f, Radius = Def.Radius / Def.Scale, Scale = Def.Scale, XpValue = 0, IsElite = true };
             int type = h.TypeOf(enemyDef);
             if (type < 0) type = h.RegisterType(enemyDef, EnemyModels.Get(EnemyModel.Husk), Color.white);
-            MaxHealth = BossScaling.Health(Def, stageIndex, curses);
+            MaxHealth = BossScaling.Health(Def, stageIndex, curses, coefficient);
             Slot = h.Spawn(type, transform.position, MaxHealth / Def.MaxHealth);
             if (Slot < 0)
             {

@@ -196,7 +196,7 @@ namespace OldGods.Runtime
             if (sold || item == null || !RunEconomy.Instance.TryBuy(Price)) return;
             RunEconomy.Instance.Grant(item);
             sales++;
-            // Restocks once: a second item goes on the stall after the first sale.
+            // Restocks after each of the first two sales: three items in all.
             if (EconomyRules.MerchantRestocksAfter(sales)) item = RunEconomy.Instance.RollItem(Rarity.Uncommon);
             else sold = true;
         }
