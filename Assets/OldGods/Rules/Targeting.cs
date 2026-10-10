@@ -7,9 +7,18 @@ namespace OldGods.Rules
     /// </summary>
     public static class Targeting
     {
+        /// <summary>
+        /// A foe this close (metres) is shot before the boss: the player defends first. Without
+        /// this the first boss-first sweep let the horde walk in during boss fights (Grey Steppe
+        /// boss damage 3 to 16).
+        /// </summary>
+        public const float SelfDefenceRange = 3.5f;
+
+        /// <summary>Whether a boss in range should be aimed at, given how far the nearest foe is.</summary>
+        public static bool AimAtBoss(int boss, float nearestDistance) => boss >= 0 && nearestDistance > SelfDefenceRange;
+
         /// <summary>The boss slot when one is in range (boss &gt;= 0), otherwise the nearest foe.</summary>
         public static int Choose(int nearest, int boss) => boss >= 0 ? boss : nearest;
-
         /// <summary>
         /// Puts the boss first in a nearest-first list of count slots: moved up if it is already
         /// listed, otherwise inserted (dropping the farthest when the list is full). Returns the

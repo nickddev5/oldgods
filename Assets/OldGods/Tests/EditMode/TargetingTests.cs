@@ -14,6 +14,15 @@ namespace OldGods.Tests.EditMode
         }
 
         [Test]
+        public void AFoeOnTopOfThePlayerComesBeforeTheBoss()
+        {
+            Assert.IsTrue(Targeting.AimAtBoss(7, Targeting.SelfDefenceRange + 0.1f));
+            Assert.IsTrue(Targeting.AimAtBoss(7, float.MaxValue), "no foe close");
+            Assert.IsFalse(Targeting.AimAtBoss(7, Targeting.SelfDefenceRange - 0.1f));
+            Assert.IsFalse(Targeting.AimAtBoss(-1, 100f), "no boss");
+        }
+
+        [Test]
         public void BossFirstMovesAListedBossToTheFront()
         {
             var list = new[] { 4, 5, 9, 6 };

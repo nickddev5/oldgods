@@ -758,7 +758,8 @@ namespace OldGods.Runtime
                         case ShrineKind.Charge: return run.Horde.QueryCircle(s.transform.position, 6f, near) < 6 ? 3.5f : 0f;
                         case ShrineKind.Item: return s.CanUse && hp > 0.85f ? 2.5f : 0f;
                         case ShrineKind.Magnet: return s.CanUse && run.Pickups.Count > 40 ? 1.5f : 0f;
-                        case ShrineKind.Offering: return s.CanUse ? 2f : 0f; // after chests: gold left over goes here
+                        // Only spare gold: what is left above the next chest price, so offerings never cost the bot a chest.
+                        case ShrineKind.Offering: return s.CanUse && run.Economy.Wallet.Gold >= run.Economy.ChestPrice + s.OfferingPrice ? 2f : 0f;
                         default: return 0f; // Greed, the Curse and Challenge are left alone
                     }
                 default: return 0f;
