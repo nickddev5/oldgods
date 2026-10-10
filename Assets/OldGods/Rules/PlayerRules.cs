@@ -2,6 +2,19 @@ using System;
 
 namespace OldGods.Rules
 {
+    /// <summary>
+    /// Look input arrives either as a distance (mouse delta, already per frame) or as a held
+    /// rate (a stick). A rate is scaled by elapsed time so the camera turns at the same speed at
+    /// any frame rate; 60 frames per second keeps the existing tuning.
+    /// </summary>
+    public static class LookScale
+    {
+        public const float ReferenceFrameRate = 60f;
+
+        public static float PerFrame(bool isRate, float deltaTime) =>
+            isRate ? Math.Max(0f, deltaTime) * ReferenceFrameRate : 1f;
+    }
+
     /// <summary>Movement tuning for the player. PLACEHOLDER numbers for play-testing.</summary>
     [Serializable]
     public sealed class MotorTuning

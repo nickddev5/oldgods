@@ -71,6 +71,8 @@ namespace OldGods.Rules
         public float verticalSensitivity = 1f;
         public float screenShake = 1f;
         public bool invertY;
+        /// <summary>Old saves without this field load with the default, so players start fullscreen.</summary>
+        public bool fullscreen = true;
     }
 
     public static class SaveMigration

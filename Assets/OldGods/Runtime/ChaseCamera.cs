@@ -1,3 +1,4 @@
+using OldGods.Rules;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -57,7 +58,7 @@ namespace OldGods.Runtime
             float ease = bossBlend * bossBlend * (3f - 2f * bossBlend);
             Orbit.Radius = Mathf.Lerp(NormalRadius, BossRadius, ease);
 
-            Vector2 look = GameInput.LookValue * Sensitivity;
+            Vector2 look = GameInput.LookValue * (Sensitivity * LookScale.PerFrame(GameInput.LookIsRate, dt));
             if (look.sqrMagnitude > 0.0001f)
             {
                 idle = 0f;
