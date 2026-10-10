@@ -36,7 +36,7 @@ DEFAULT_SEEDS = ["1111", "2222"]
 # Each run opens a game window. A sweep over this many asks for --max-runs, so nobody's
 # desktop fills with windows for an hour by accident.
 MAX_RUNS = 24
-MAX_JOBS = 2
+MAX_JOBS = 3
 
 Run = dict[str, Any]
 

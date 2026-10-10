@@ -76,7 +76,7 @@ class CommandTests(unittest.TestCase):
 
 class CapTests(unittest.TestCase):
     def test_sweeps_are_capped(self):
-        self.assertIsNone(playbot.too_many(14, 2, playbot.MAX_RUNS))
+        self.assertIsNone(playbot.too_many(14, 3, playbot.MAX_RUNS))
         self.assertIn("--max-runs 56", playbot.too_many(56, 1, playbot.MAX_RUNS))
         self.assertIsNone(playbot.too_many(56, 1, 56))
         self.assertIn("game windows at once", playbot.too_many(10, 4, playbot.MAX_RUNS))

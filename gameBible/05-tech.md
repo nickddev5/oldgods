@@ -56,7 +56,7 @@ Its choices come from two decision trees in `Rules/BotTree.cs` (`BotTrees`, test
 The report's "How the bot spent its time" tables give the share of play time on each branch, so a change to the trees shows up in the numbers.
 
 - `python Tools/playbot.py`: every god in the game data (asked from the player, so new gods are picked up), seeds 1111 and 2222, all content unlocked.
-- `--gods god.storm,god.forge --seeds 1111,2222,3333` or `--runs 3`; `--jobs 2` runs two players at once. Every run opens its own game window, so a sweep is capped at 24 runs and 2 windows at once; pass `--max-runs N` for a bigger sweep on purpose.
+- `--gods god.storm,god.forge --seeds 1111,2222,3333` or `--runs 3`; `--jobs 2` runs two players at once. Every run opens its own game window, so a sweep is capped at 24 runs and 3 windows at once; pass `--max-runs N` for a bigger sweep on purpose.
 - `--campaign 8`: eight runs on one fresh save; between runs the bot spends Embers (next god first, then the cheapest unlock or powerup with what is left above the next god's price) and plays its newest god.
 - `--picks smart|first|random`: smart weighs card kind and rarity with a seeded tie-break, so seeds try different builds.
 - `--summarise DIR` rebuilds the report from saved runs.
