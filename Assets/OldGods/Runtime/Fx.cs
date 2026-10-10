@@ -54,6 +54,33 @@ namespace OldGods.Runtime
             return k.Build("Ring");
         });
 
+        /// <summary>
+        /// Three parallel claw marks on the ground plane: crescent bands out to radius 1, spanning
+        /// arcDegrees centred on +z and tapering to points at each end. Visible from above and below.
+        /// </summary>
+        public static Mesh ClawMarks(float arcDegrees) => Cached($"claws{Mathf.Round(arcDegrees)}", () =>
+        {
+            var k = new MeshKit();
+            const int segments = 16;
+            float half = Mathf.Min(arcDegrees, 340f) * 0.5f * Mathf.Deg2Rad;
+            foreach (var (inner, outer) in new[] { (0.5f, 0.6f), (0.68f, 0.8f), (0.88f, 1f) })
+            {
+                Vector3 P(float a, float r) => new Vector3(Mathf.Sin(a), 0f, Mathf.Cos(a)) * r;
+                for (int i = 0; i < segments; i++)
+                {
+                    float t0 = i / (float)segments, t1 = (i + 1) / (float)segments;
+                    float a0 = Mathf.Lerp(-half, half, t0), a1 = Mathf.Lerp(-half, half, t1);
+                    // Thickest in the middle, a point at each end.
+                    float w0 = Mathf.Sin(t0 * Mathf.PI), w1 = Mathf.Sin(t1 * Mathf.PI);
+                    float m = (inner + outer) * 0.5f, h = (outer - inner) * 0.5f;
+                    Vector3 i0 = P(a0, m - h * w0), o0 = P(a0, m + h * w0), i1 = P(a1, m - h * w1), o1 = P(a1, m + h * w1);
+                    k.Quad(o0, o1, i1, i0, Color.white);
+                    k.Quad(i0, i1, o1, o0, Color.white);
+                }
+            }
+            return k.Build("ClawMarks");
+        });
+
         /// <summary>A flat disc of radius 1 on the ground plane.</summary>
         public static Mesh Disc(int segments = 32) => Cached($"disc{segments}", () =>
         {

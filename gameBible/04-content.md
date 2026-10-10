@@ -13,14 +13,14 @@
 | 1 | Storm | Chain Lightning | Swiftness |
 | 2 | Forge | Hammer Orbit | Iron Skin |
 | 3 | Tide | Tidal Wave | Regeneration |
-| 4 | Hunt | Spear Volley | Keen Eye |
+| 4 | Beast | Rending Claws | Keen Eye |
 | 5 | Ember | Flame Aura | Fury |
 | 6 | Earth | Quake | Bulwark |
 | 7 | Elias (last unlock) | Crown Light | Resolve |
 
-Kits (PLACEHOLDER): Storm +5% move speed; Forge +1 armour, +10 health; Tide +0.2 regeneration; Hunt +5% crit; Ember +5% damage; Earth +25 health, -5% move speed; Elias +10% XP. Unlock costs in Embers, in order: Forge 150, Tide 300, Hunt 500, Ember 750, Earth 1000, then Elias 1500 once all six are unlocked. Storm is free.
+Kits (PLACEHOLDER): Storm +5% move speed; Forge +1 armour, +10 health; Tide +0.2 regeneration; Beast +5% crit; Ember +5% damage; Earth +25 health, -5% move speed; Elias +10% XP. Unlock costs in Embers, in order: Forge 150, Tide 300, Beast 500, Ember 750, Earth 1000, then Elias 1500 once all six are unlocked. Storm is free.
 
-Lore lines (PLACEHOLDER): Storm, "The sky's anger, patient until it is not." Forge, "Every blade began in his fire." Tide, "What the tide takes, it returns changed." Hunt, "She has never once missed what she meant to hit." Ember, "A small fire that refused to go out." Earth, "The ground remembers every step." Elias, "The last to come, and the one who ends it."
+Lore lines (PLACEHOLDER): Storm, "The sky's anger, patient until it is not." Forge, "Every blade began in his fire." Tide, "What the tide takes, it returns changed." Beast, "All things walk wild in me." Ember, "A small fire that refused to go out." Earth, "The ground remembers every step." Elias, "The last to come, and the one who ends it."
 
 ## Weapon shapes
 
@@ -46,6 +46,7 @@ All three stages use the standard ten-minute timeline with the biome's own basic
 | Hammer Orbit | Orbit | 12 | 0.5 s per foe | 2 hammers, heavy knockback |
 | Tidal Wave | Projectile | 14 | 2.2 s | wide, pierces everything |
 | Spear Volley | Projectile | 13 | 1.0 s | 2 spears, pierce 1 |
+| Rending Claws | Swipe | 16 | 0.9 s | 140-degree arc, 2.6 m reach toward the nearest foe; +1 count adds a swipe behind |
 | Flame Aura | Aura | 4 | 0.45 s tick | 3 m ring |
 | Quake | Area (on self) | 20 | 2.5 s | 5.5 m, big knockback |
 | Crown Light | Area | 30 | 1.6 s | smites a nearby foe |

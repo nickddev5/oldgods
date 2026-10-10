@@ -11,6 +11,7 @@ namespace OldGods.Rules
         Orbit,      // objects circle the player and hit what they touch
         Pull,       // a vortex drags enemies in and damages them
         Chain,      // hits the nearest enemy, then jumps to the next
+        Swipe,      // a close arc toward the nearest enemy; Size is the reach, Range the arc width in degrees
     }
 
     /// <summary>Weapon numbers. What an upgrade amount means depends on the stat; see WeaponState.Effective.</summary>

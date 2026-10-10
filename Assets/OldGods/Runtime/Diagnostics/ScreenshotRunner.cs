@@ -23,6 +23,9 @@ namespace OldGods.Runtime
             // Scripted runs never touch the real save.
             SaveStore.FolderOverride = System.IO.Path.Combine(Application.temporaryCachePath, "shots-save");
             if (CommandLine.Has("-elias")) RunSetup.GodId = OldGods.Rules.LastTest.EliasId;
+            // -god ID plays a run as that god, for example -god god.beast, unlocked in the scratch save.
+            string god = CommandLine.Value("-god");
+            if (!string.IsNullOrEmpty(god)) { RunSetup.GodId = god; SaveStore.Current.Unlock(god); }
             // Keep running when the window loses focus, so scripted checks do not stall.
             Application.runInBackground = true;
             var go = new GameObject("Screenshot Runner");

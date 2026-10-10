@@ -29,7 +29,7 @@ From *The Empty Throne*'s bible, "Before the throne: the old gods" (decided by N
 | Storm | The sky gathers behind you. |
 | Forge | The fire in your hands has never gone out. |
 | Tide | The water remembers where it is going. |
-| Hunt | You have already chosen your mark. |
+| Beast | The wild walks where you walk. |
 | Ember | A small flame, walking a long road. |
 | Earth | Each step is a promise to the ground. |
 | Elias | You believe the throne should be taken. You walk to take it. |

@@ -164,7 +164,8 @@ namespace OldGods.Runtime
             f.Belt(p.Leather, p.Metal, 3).Strap(p.Leather);
             // Bracers and one heavy pauldron.
             f.ArmPart(false);
-            k.Ball(f.ShoulderR + new Vector3(0.06f, 0.08f, 0f), new Vector3(0.17f, 0.1f, 0.17f), p.Metal, 12, 5, Quaternion.Euler(0f, 0f, -25f));
+            k.Block(f.ShoulderR + new Vector3(0.07f, 0.08f, 0f), new Vector3(0.36f, 0.09f, 0.34f), p.Metal, 0.5f, Quaternion.Euler(0f, 0f, -25f));
+            k.Block(f.ShoulderR + new Vector3(0.13f, 0.0f, 0f), new Vector3(0.3f, 0.08f, 0.3f), p.Metal * 0.85f, 0.5f, Quaternion.Euler(0f, 0f, -42f));
             for (int side = 0; side < 2; side++)
             {
                 bool left = side == 0;

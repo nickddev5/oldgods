@@ -7,7 +7,7 @@ namespace OldGods.Runtime
     /// <summary>
     /// Started by -gallery DIR. Lines up every built-in model under even light and saves close
     /// screenshots of the gods, the enemies and the bosses, front and three-quarter, then quits.
-    /// For reviewing art without playing.
+    /// For reviewing art without playing. Add -galleryTurn NAME for one god's front, side and back.
     /// </summary>
     public sealed class ModelGallery : MonoBehaviour
     {
@@ -62,6 +62,18 @@ namespace OldGods.Runtime
                 foreach (Transform t in gods) t.rotation = Quaternion.Euler(0f, 160f, 0f);
                 var x = (i - 3) * 1.1f;
                 yield return Shoot(cam, new Vector3(x, 1.25f, -3.2f), new Vector3(x, 1.0f, 0f), $"god_{(GodLook)i}");
+            }
+            // -galleryTurn NAME: that god alone, front, side and back.
+            if (System.Enum.TryParse<GodLook>(CommandLine.Value("-galleryTurn"), out var turn))
+            {
+                foreach (Transform t in gods) t.gameObject.SetActive(t.name == $"God {turn}");
+                var x = ((int)turn - 3) * 1.1f;
+                var views = new (float yaw, string name)[] { (180f, "front"), (90f, "side"), (0f, "back"), (135f, "three_quarter") };
+                foreach (var v in views)
+                {
+                    foreach (Transform t in gods) t.rotation = Quaternion.Euler(0f, v.yaw, 0f);
+                    yield return Shoot(cam, new Vector3(x, 1.2f, -4.6f), new Vector3(x, 1.0f, 0f), $"turn_{turn}_{v.name}");
+                }
             }
             Destroy(gods.gameObject);
 

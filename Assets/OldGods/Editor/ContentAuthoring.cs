@@ -44,8 +44,8 @@ namespace OldGods.Editor
                 1, 150, GodLook.Forge, new Color(0.72f, 0.52f, 0.35f), new Color(2.2f, 1.2f, 0.4f), new StatMod(StatId.Armor, 1f), new StatMod(StatId.MaxHealth, 10f));
             GodAsset(l, "Tide", "god.tide", "Tide", "What the tide takes, it returns changed.", "weapon.tidal_wave", "passive.regeneration",
                 2, 300, GodLook.Tide, new Color(0.38f, 0.62f, 0.62f), new Color(0.3f, 1.4f, 1.8f), new StatMod(StatId.Regen, 0.2f));
-            GodAsset(l, "Hunt", "god.hunt", "Hunt", "She has never once missed what she meant to hit.", "weapon.spear_volley", "passive.keen_eye",
-                3, 500, GodLook.Hunt, new Color(0.45f, 0.55f, 0.35f), new Color(1.2f, 1.8f, 0.6f), new StatMod(StatId.CritChance, 0.05f));
+            GodAsset(l, "Beast", "god.beast", "Beast", "All things walk wild in me.", "weapon.rending_claws", "passive.keen_eye",
+                3, 500, GodLook.Beast, new Color(0.6f, 0.24f, 0.2f), new Color(2.2f, 0.5f, 0.3f), new StatMod(StatId.CritChance, 0.05f));
             GodAsset(l, "Ember", "god.ember", "Ember", "A small fire that refused to go out.", "weapon.flame_aura", "passive.fury",
                 4, 750, GodLook.Ember, new Color(0.8f, 0.38f, 0.28f), new Color(2.4f, 0.8f, 0.2f), new StatMod(StatId.Damage, 0.05f));
             GodAsset(l, "Earth", "god.earth", "Earth", "The ground remembers every step.", "weapon.quake", "passive.bulwark",
@@ -307,6 +307,10 @@ namespace OldGods.Editor
                 WeaponShape.Projectile, Stats(13f, 1f, 2f, 1f, 26f, 1.1f, 26f, 2f, 1f),
                 Ups((WeaponStat.Damage, 3f), (WeaponStat.Count, 1f), (WeaponStat.Pierce, 1f), (WeaponStat.Cooldown, 0.1f)),
                 new Color(0.85f, 0.8f, 0.65f), new Color(1.6f, 1.5f, 1.1f), new Vector3(0.8f, 0.8f, 2.2f));
+            Weapon(l, "RendingClaws", "weapon.rending_claws", "Rending Claws", "The beast arm rakes everything in front of you.",
+                WeaponShape.Swipe, Stats(16f, 0.9f, 1f, 2.6f, 0f, 0.18f, 140f, 3f),
+                Ups((WeaponStat.Damage, 4f), (WeaponStat.Size, 0.12f), (WeaponStat.Count, 1f), (WeaponStat.Cooldown, 0.1f)),
+                new Color(0.75f, 0.15f, 0.12f), new Color(2.2f, 0.35f, 0.25f), Vector3.one);
             Weapon(l, "FlameAura", "weapon.flame_aura", "Flame Aura", "A ring of fire burns everything close to you.",
                 WeaponShape.Aura, Stats(4f, 0.45f, 1f, 3f, 0f, 0f, 0f, 0.5f),
                 Ups((WeaponStat.Damage, 1.5f), (WeaponStat.Size, 0.15f), (WeaponStat.Cooldown, 0.1f)),
