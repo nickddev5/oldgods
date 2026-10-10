@@ -4,6 +4,38 @@ using OldGods.Rules;
 
 namespace OldGods.Tests.EditMode
 {
+    public class LookScaleTests
+    {
+        [Test]
+        public void MouseDeltaIsNotScaledByFrameTime()
+        {
+            Assert.AreEqual(1f, LookScale.PerFrame(false, 1f / 120f));
+            Assert.AreEqual(1f, LookScale.PerFrame(false, 1f / 30f));
+        }
+
+        [Test]
+        public void StickTurnsTheSameDistancePerSecondAtAnyFrameRate()
+        {
+            float at60 = 60 * LookScale.PerFrame(true, 1f / 60f);
+            float at120 = 120 * LookScale.PerFrame(true, 1f / 120f);
+            Assert.AreEqual(at60, at120, 1e-4f);
+            Assert.AreEqual(1f, LookScale.PerFrame(true, 1f / 60f), 1e-6f, "60 fps keeps the existing tuning");
+        }
+    }
+
+    public class SettingsSaveTests
+    {
+        [Test]
+        public void FullscreenIsSavedAndOldSavesDefaultToFullscreen()
+        {
+            Assert.IsTrue(new Settings().fullscreen);
+            var old = UnityEngine.JsonUtility.FromJson<Settings>("{\"masterVolume\":0.5}");
+            Assert.IsTrue(old.fullscreen);
+            var windowed = UnityEngine.JsonUtility.FromJson<Settings>(UnityEngine.JsonUtility.ToJson(new Settings { fullscreen = false }));
+            Assert.IsFalse(windowed.fullscreen);
+        }
+    }
+
     public class RunSeedTests
     {
         [Test]
