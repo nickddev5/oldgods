@@ -214,7 +214,7 @@ namespace OldGods.Runtime
 
             Player.Teleport(Ground.Snap(Vector3.zero) + Vector3.up * 0.3f);
             Camera.SnapBehind();
-            Director.Begin(Biome.Timeline, stage, Horde, Seed.Stream(RunSeed.Spawns, stage));
+            Director.Begin(Biome.Timeline, stage, Horde, Seed.Stream(RunSeed.Spawns, stage), Elapsed);
             Minimap.SetGround(field, Biome.Palette, profile.HillHeight);
             StageStarted?.Invoke(stage);
             if (final)

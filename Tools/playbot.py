@@ -170,7 +170,8 @@ def summarise(runs: list[Run]) -> dict[str, Any]:
             e = stages.setdefault(name, {"order": st.get("index", 0), "boss": st.get("boss", ""), "reached": 0, "cleared": 0,
                                          "deaths": 0, "deathsToBoss": 0, "seconds": [], "damage": [], "lowest": [],
                                          "bossSeconds": [], "bossDamage": [], "woke": 0, "chests": [], "level": [],
-                                         "stuck": 0, "fellOut": 0, "swarm": 0, "peakAlive": 0, "bossUnfinished": 0})
+                                         "stuck": 0, "fellOut": 0, "swarm": 0, "peakAlive": 0, "bossUnfinished": 0,
+                                         "difficultyStart": [], "difficultyEnd": []})
             e["reached"] += 1
             e["cleared"] += 1 if st.get("cleared") else 0
             e["seconds"].append(st.get("seconds", 0))
@@ -178,6 +179,9 @@ def summarise(runs: list[Run]) -> dict[str, Any]:
             e["lowest"].append(st.get("lowestHealth", 1))
             e["chests"].append(st.get("chestsOpened", 0))
             e["level"].append(st.get("levelAtEnd", 0))
+            if "difficultyStart" in st:
+                e["difficultyStart"].append(st["difficultyStart"])
+                e["difficultyEnd"].append(st.get("difficultyEnd", st["difficultyStart"]))
             e["stuck"] += st.get("stuck", 0)
             e["fellOut"] += st.get("fellOut", 0)
             e["swarm"] += 1 if st.get("reachedSwarm") else 0
@@ -194,7 +198,7 @@ def summarise(runs: list[Run]) -> dict[str, Any]:
                 if boss_of(r.get("killedBy", "")) == st.get("boss"):
                     e["deathsToBoss"] += 1
     for e in stages.values():
-        for k in ("seconds", "damage", "lowest", "bossSeconds", "bossDamage", "chests", "level"):
+        for k in ("seconds", "damage", "lowest", "bossSeconds", "bossDamage", "chests", "level", "difficultyStart", "difficultyEnd"):
             e["avg" + k[0].upper() + k[1:]] = mean(e.pop(k))
     s["stages"] = dict(sorted(stages.items(), key=lambda kv: kv[1]["order"]))
 
@@ -441,11 +445,12 @@ def render(s: dict[str, Any], tips: list[str], runs: list[Run]) -> str:
         lines.append(f"| {g} | {e['runs']} | {pct(e['winRate'])} | {e['avgStagesCleared']:.1f} | {e['avgLevel']:.1f} | {e['avgKills']:.0f} |")
     lines.append("")
 
-    lines += ["## Stages", "", "| Stage | Reached | Cleared | Deaths (boss) | Time | Lowest health | Boss fight | Boss damage | Chests | Level at end | Stuck |",
-              "|---|---|---|---|---|---|---|---|---|---|---|"]
+    lines += ["## Stages", "", "| Stage | Reached | Cleared | Deaths (boss) | Time | Lowest health | Boss fight | Boss damage | Chests | Level at end | Difficulty | Stuck |",
+              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for name, e in s["stages"].items():
+        difficulty = f"{e['avgDifficultyStart']:.1f} to {e['avgDifficultyEnd']:.1f}" if e.get("avgDifficultyEnd") else ""
         lines.append(f"| {name} | {e['reached']} | {e['cleared']} | {e['deaths']} ({e['deathsToBoss']}) | {clock(e['avgSeconds'])} | {pct(e['avgLowest'])} | "
-                     f"{e['avgBossSeconds']:.0f}s | {e['avgBossDamage']:.0f} | {e['avgChests']:.1f} | {e['avgLevel']:.1f} | {e['stuck']} |")
+                     f"{e['avgBossSeconds']:.0f}s | {e['avgBossDamage']:.0f} | {e['avgChests']:.1f} | {e['avgLevel']:.1f} | {difficulty} | {e['stuck']} |")
     lines.append("")
 
     lines += ["## Damage taken by source", "", "| Source | Damage | Share | Hits |", "|---|---|---|---|"]

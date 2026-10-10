@@ -43,6 +43,8 @@ namespace OldGods.Runtime
             public string biome = "", biomeName = "", boss = "";
             public bool final, cleared, reachedSwarm;
             public float startedAt, seconds, bossWokeAt = -1f, bossSeconds = -1f, damageTaken, bossDamageTaken, lowestHealth = 1f;
+            /// <summary>The run's difficulty coefficient when the stage began and when it ended.</summary>
+            public float difficultyStart, difficultyEnd;
             public int levelAtEnd, kills, chestsOpened, shrinesUsed, goldAtEnd, stuck, fellOut, peakAlive;
         }
 

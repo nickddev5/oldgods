@@ -252,6 +252,8 @@ namespace OldGods.Runtime
                 biomeName = run.Biome != null ? run.Biome.DisplayName : "",
                 boss = run.Biome != null && run.Biome.Boss != null ? run.Biome.Boss.DisplayName : "",
                 startedAt = run.Elapsed,
+                difficultyStart = run.Director.Coefficient,
+                difficultyEnd = run.Director.Coefficient,
             };
             report.stages.Add(cur);
             killsAtStart = run.Kills;
@@ -410,6 +412,7 @@ namespace OldGods.Runtime
             {
                 var h = run.PlayerHealth.Health;
                 cur.lowestHealth = Mathf.Min(cur.lowestHealth, h.Current / Mathf.Max(1f, h.Max));
+                cur.difficultyEnd = run.Director.Coefficient;
                 if (!run.IsFinal && run.Director.InFinalSwarm) cur.reachedSwarm = true;
                 if (BossController.Active != null && cur.bossWokeAt < 0f) cur.bossWokeAt = run.Director.Elapsed;
                 if (run.BossDefeated && cur.bossWokeAt >= 0f && cur.bossSeconds < 0f) cur.bossSeconds = run.Director.Elapsed - cur.bossWokeAt;
