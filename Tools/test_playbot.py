@@ -74,6 +74,14 @@ class CommandTests(unittest.TestCase):
         self.assertEqual(playbot.seeds_for(None, 3), ["1111", "2222", "3333"])
 
 
+class CapTests(unittest.TestCase):
+    def test_sweeps_are_capped(self):
+        self.assertIsNone(playbot.too_many(14, 2, playbot.MAX_RUNS))
+        self.assertIn("--max-runs 56", playbot.too_many(56, 1, playbot.MAX_RUNS))
+        self.assertIsNone(playbot.too_many(56, 1, 56))
+        self.assertIn("game windows at once", playbot.too_many(10, 4, playbot.MAX_RUNS))
+
+
 class RunCheckTests(unittest.TestCase):
     def test_reports_that_never_started_are_rejected(self):
         self.assertIn("no god", playbot.rejected({"outcome": "error", "note": "no god with id god.typo"}, 3))
