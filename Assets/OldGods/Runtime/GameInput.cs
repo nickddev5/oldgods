@@ -25,6 +25,19 @@ namespace OldGods.Runtime
         /// <summary>Scripted input for tests and the smoke runner; overrides the devices when set.</summary>
         public static Vector2? MoveOverride;
 
+        /// <summary>Actions held down by script (the play bot), with the frame each went down.</summary>
+        static readonly System.Collections.Generic.Dictionary<InputAction, int> scripted = new System.Collections.Generic.Dictionary<InputAction, int>();
+
+        /// <summary>Holds or releases an action by script. Pressed fires on the frame it goes down.</summary>
+        public static void Script(InputAction action, bool held)
+        {
+            if (action == null) return;
+            if (!held) scripted.Remove(action);
+            else if (!scripted.ContainsKey(action)) scripted[action] = Time.frameCount;
+        }
+
+        public static void ClearScripted() => scripted.Clear();
+
         public static bool Ready => asset != null;
 
         public static void Ensure()
@@ -71,13 +84,14 @@ namespace OldGods.Runtime
         public static bool Pressed(InputAction action)
         {
             Ensure();
-            return action != null && action.WasPressedThisFrame();
+            if (action == null) return false;
+            return action.WasPressedThisFrame() || (scripted.TryGetValue(action, out int frame) && frame == Time.frameCount);
         }
 
         public static bool Held(InputAction action)
         {
             Ensure();
-            return action != null && action.IsPressed();
+            return action != null && (action.IsPressed() || scripted.ContainsKey(action));
         }
 
         public static void SetCursorLocked(bool locked)

@@ -26,7 +26,10 @@ python Tools/build_windows.py
 python Tools/smoke.py
 python Tools/smoke.py --probe
 python Tools/smoke.py --shots TestResults/shots
-python Tools/smoke.py --autoplay TestResults/autoplay.json -- -speed 4
+python Tools/smoke.py --autoplay TestResults/autoplay.json
+python Tools/playbot.py
 ```
+
+`Tools/playbot.py` plays whole runs for every god and writes a report with balance suggestions to `TestResults/playbot/`.
 
 The Windows player is written to `Builds/Windows/TheOldGods.exe`. A fresh save starts with Storm; win runs to earn Embers and unlock the rest of the gods, Elias last. Development builds have debug keys (gameBible/09-ui.md).

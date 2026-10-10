@@ -61,6 +61,8 @@ namespace OldGods.Runtime
         float savedScale = 1f;
 
         public static bool IsOpen => instance != null && instance.root.gameObject.activeSelf;
+        /// <summary>Play-bot hook: closes every page as soon as it opens.</summary>
+        public static bool AutoClose;
 
         public static void Show(string heading, string text)
         {
@@ -106,7 +108,7 @@ namespace OldGods.Runtime
 
         void Update()
         {
-            if (IsOpen && (LevelUpScreen.AutoPick || GameInput.Pressed(GameInput.Pause))) Close();
+            if (IsOpen && (LevelUpScreen.AutoPick || AutoClose || GameInput.Pressed(GameInput.Pause))) Close();
         }
 
         void Close()
