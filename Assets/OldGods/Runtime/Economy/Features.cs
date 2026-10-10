@@ -61,6 +61,7 @@ namespace OldGods.Runtime
                 case ShrineKind.Greed: return new Color(1.8f, 1.1f, 0.2f);
                 case ShrineKind.BossCurse: return new Color(1.8f, 0.3f, 0.3f);
                 case ShrineKind.Challenge: return new Color(1.5f, 0.5f, 1.8f);
+                case ShrineKind.Offering: return new Color(1.9f, 1.6f, 0.7f);
                 default: return new Color(1.4f, 1.4f, 1.6f);
             }
         }
@@ -93,8 +94,9 @@ namespace OldGods.Runtime
                     break;
                 }
                 case FeatureKind.Shrine:
+                case FeatureKind.OfferingShrine:
                 {
-                    var kind = ShrineRules.KindFor(p.Index);
+                    var kind = p.Kind == FeatureKind.OfferingShrine ? ShrineKind.Offering : ShrineRules.KindFor(p.Index);
                     var go = WorldBuilder.CreateProp($"Shrine {kind}", PedestalMesh(), WorldBuilder.Tinted(lowPoly, new Color(0.6f, 0.6f, 0.62f)), at, rot, Vector3.one * 1.2f, parent, true);
                     var shrine = go.AddComponent<Shrine>();
                     shrine.Kind = kind;
@@ -172,6 +174,7 @@ namespace OldGods.Runtime
     {
         ItemDef item;
         bool sold;
+        int sales;
 
         public void Stock(ItemDef i) => item = i;
 
@@ -191,8 +194,11 @@ namespace OldGods.Runtime
         public override void Use(PlayerCombat player)
         {
             if (sold || item == null || !RunEconomy.Instance.TryBuy(Price)) return;
-            sold = true;
             RunEconomy.Instance.Grant(item);
+            sales++;
+            // Restocks once: a second item goes on the stall after the first sale.
+            if (EconomyRules.MerchantRestocksAfter(sales)) item = RunEconomy.Instance.RollItem(Rarity.Uncommon);
+            else sold = true;
         }
     }
 

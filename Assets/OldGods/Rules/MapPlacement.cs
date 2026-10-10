@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace OldGods.Rules
 {
-    public enum FeatureKind { BossGate, Chest, Shrine, Merchant, Duplicator, LorePickup }
+    public enum FeatureKind { BossGate, Chest, Shrine, Merchant, Duplicator, LorePickup, OfferingShrine }
 
     public struct FeatureRequest
     {

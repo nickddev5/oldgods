@@ -419,6 +419,7 @@ namespace OldGods.Runtime
                 if (!run.IsFinal && run.Director.InFinalSwarm) cur.reachedSwarm = true;
                 if (BossController.Active != null && cur.bossWokeAt < 0f) cur.bossWokeAt = run.Director.Elapsed;
                 if (run.BossDefeated && cur.bossWokeAt >= 0f && cur.bossSeconds < 0f) cur.bossSeconds = run.Director.Elapsed - cur.bossWokeAt;
+                if (Time.frameCount % 30 == 0) CountUnopened();
             }
             if (run.Elapsed >= nextLog)
             {
@@ -723,6 +724,21 @@ namespace OldGods.Runtime
         /// <summary>Whether the bot still wants to use this feature, before distance is weighed.</summary>
         bool Wanted(Interactable it) => Value(it, run.PlayerHealth.Health.Current / Mathf.Max(1f, run.PlayerHealth.Health.Max)) > 0f;
 
+        /// <summary>Paid chests still closed on this map, and how many of those the bot has found.</summary>
+        void CountUnopened()
+        {
+            int closed = 0, found = 0;
+            foreach (var it in Interactable.All)
+            {
+                if (!(it is Chest c) || c.Free || !c.Shown) continue;
+                closed++;
+                if (c.Discovered) found++;
+            }
+            cur.chestsUnopened = closed;
+            cur.chestsUnopenedFound = found;
+            cur.offerings = run.Economy.Offerings;
+        }
+
         float Value(Interactable it, float hp)
         {
             switch (it)
@@ -738,6 +754,7 @@ namespace OldGods.Runtime
                         case ShrineKind.Charge: return run.Horde.QueryCircle(s.transform.position, 6f, near) < 6 ? 3.5f : 0f;
                         case ShrineKind.Item: return s.CanUse && hp > 0.85f ? 2.5f : 0f;
                         case ShrineKind.Magnet: return s.CanUse && run.Pickups.Count > 40 ? 1.5f : 0f;
+                        case ShrineKind.Offering: return s.CanUse ? 2f : 0f; // after chests: gold left over goes here
                         default: return 0f; // Greed, the Curse and Challenge are left alone
                     }
                 default: return 0f;

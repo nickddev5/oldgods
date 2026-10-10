@@ -48,6 +48,8 @@ namespace OldGods.Runtime
             public float startedAt, seconds, bossWokeAt = -1f, bossSeconds = -1f, damageTaken, bossDamageTaken, lowestHealth = 1f;
             /// <summary>The run's difficulty coefficient when the stage began and when it ended.</summary>
             public float difficultyStart, difficultyEnd;
+            /// <summary>Paid chests left closed on the map (and how many of them the bot had seen), and gold offerings made.</summary>
+            public int chestsUnopened, chestsUnopenedFound, offerings;
             public int levelAtEnd, kills, chestsOpened, shrinesUsed, goldAtEnd, stuck, fellOut, peakAlive;
         }
 

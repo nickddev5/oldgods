@@ -18,6 +18,11 @@ namespace OldGods.Runtime
         bool used;
         float charge;
         MaterialPropertyBlock ringProps;
+        int offerings, offeringItems;
+        Rng offeringRng;
+
+        /// <summary>Gold the next offering costs at a Shrine of Offering.</summary>
+        public int OfferingPrice => OfferingRules.Price(RunEconomy.Instance.ChestPrice, offerings);
 
         public override string Prompt
         {
@@ -30,12 +35,17 @@ namespace OldGods.Runtime
                     case ShrineKind.BossCurse: return "Shrine of the Curse: another guardian, another chest";
                     case ShrineKind.Challenge: return "Shrine of Challenge: call a champion";
                     case ShrineKind.Magnet: return "Shrine of Drawing: pull in every gem";
+                    case ShrineKind.Offering:
+                        return RunEconomy.Instance.Wallet.Gold >= OfferingPrice
+                            ? $"Shrine of Offering: give {OfferingPrice} gold for a chance at an item"
+                            : $"Shrine of Offering: {OfferingPrice} gold (you have {RunEconomy.Instance.Wallet.Gold})";
                     default: return "";
                 }
             }
         }
 
-        public override bool CanUse => !used && Kind != ShrineKind.Charge && (Kind != ShrineKind.BossCurse || !RunController.Instance.BossActive);
+        public override bool CanUse => !used && Kind != ShrineKind.Charge && (Kind != ShrineKind.BossCurse || !RunController.Instance.BossActive)
+            && (Kind != ShrineKind.Offering || RunEconomy.Instance.Wallet.Gold >= OfferingPrice);
         public override string MapLabel => used ? null : "Shrine";
         public override Color MapColor => Features.ShrineColor(Kind) * 0.6f;
 
@@ -87,6 +97,24 @@ namespace OldGods.Runtime
             Spent();
         }
 
+        /// <summary>One offering: the gold is taken either way; about half the time an item is given.</summary>
+        void Offer(RunController run, RunEconomy eco)
+        {
+            if (!eco.TryBuy(OfferingPrice)) return;
+            offerings++;
+            eco.Offerings++;
+            offeringRng ??= run.Seed.Stream(RunSeed.Shrines, 7919 + Mathf.RoundToInt(transform.position.x * 31 + transform.position.z));
+            if (offerings == 1) eco.NoteShrine(Kind);
+            if (OfferingRules.Pays(offeringRng))
+            {
+                offeringItems++;
+                eco.Grant(eco.RollItem());
+                Audio.Play(Sfx.Shrine, 0.8f, 0f);
+            }
+            else run.Announce("The shrine is silent", null);
+            if (OfferingRules.Spent(offeringItems)) Spent();
+        }
+
         void Spent()
         {
             used = true;
@@ -123,6 +151,9 @@ namespace OldGods.Runtime
                 case ShrineKind.Magnet:
                     run.Pickups.MagnetAll();
                     break;
+                case ShrineKind.Offering:
+                    Offer(run, eco);
+                    return;
             }
             eco.NoteShrine(Kind);
             Spent();

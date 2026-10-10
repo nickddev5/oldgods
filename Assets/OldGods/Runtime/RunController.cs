@@ -265,6 +265,7 @@ namespace OldGods.Runtime
             new FeatureRequest(FeatureKind.BossGate, 1, 0f),
             new FeatureRequest(FeatureKind.Merchant, 1, 0f),
             new FeatureRequest(FeatureKind.Duplicator, 1, 0f),
+            new FeatureRequest(FeatureKind.OfferingShrine, 1, 0f),
             new FeatureRequest(FeatureKind.Shrine, 8, 24f),
             new FeatureRequest(FeatureKind.Chest, 10, 22f),
             new FeatureRequest(FeatureKind.LorePickup, 1, 0f),
