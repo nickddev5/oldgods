@@ -48,6 +48,13 @@ After the level pass (landmarks, flow field, ground clutter), seed 1111 stage 1:
 
 `python Tools/playbot.py` plays whole runs in the Windows player and writes `TestResults/playbot/<time>/report.md` (and `report.json`, plus one `run-*.json` per run). Each run starts at the menu, picks the god at character select and goes through every biome, its boss and The Last Test. The bot explores, kites the horde, collects gems and gold, opens chests it can afford, uses Charge, Gifts and Drawing shrines, buys from the merchant, reads lore stones, wakes each boss at 70% of the stage clock (later if below half health) (`-botBossAt`), circles bosses at its weapons' reach, steps out of telegraphed circles and charge lines, jumps shockwaves and steps, slides out of crowds and down long slopes, and walks round walls. It knows where the gate is; everything else it must find.
 
+Its choices come from two decision trees in `Rules/BotTree.cs` (`BotTrees`, tested in `BotTreeTests`), asked every 0.4 s. Thresholds are PLACEHOLDER.
+
+- **Goal tree (where to go):** in The Last Test, fight the last boss. If a boss is awake, fight it. If the boss is down, open its free chest, then take the portal. Below 30% health, recover (safe gems, else open ground in the middle). At 70% of the stage clock, with the gate usable and health at least half (or the final swarm close), wake the boss. Otherwise use a wanted feature (charge shrines by standing in the ring), collect gems when no enemy is on top, or explore.
+- **Stance tree (how to treat the horde):** holding a close-range weapon (base reach under 5 m: Rending Claws, Flame Aura, Hammer Orbit, Bone Ring), the bot stays close to the nearest enemy at about two thirds of that weapon's reach, with extra room for champions, and fights bosses from just outside their body. It backs off to kiting below half health or with four enemies touching it. With only ranged weapons it kites.
+
+The report's "How the bot spent its time" tables give the share of play time on each branch, so a change to the trees shows up in the numbers.
+
 - `python Tools/playbot.py`: every god in the game data (asked from the player, so new gods are picked up), seeds 1111 and 2222, all content unlocked.
 - `--gods god.storm,god.forge --seeds 1111,2222,3333` or `--runs 4`; `--jobs 2` runs two players at once.
 - `--campaign 8`: eight runs on one fresh save; between runs the bot spends Embers (next god first, then the cheapest unlock or powerup with what is left above the next god's price) and plays its newest god.

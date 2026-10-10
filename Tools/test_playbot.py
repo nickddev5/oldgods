@@ -187,6 +187,21 @@ class SuggestionTests(unittest.TestCase):
         self.assertIn("unlocking every god (150 Embers) takes about 3 runs", self.tips([run()]))
 
 
+class DecisionTests(unittest.TestCase):
+    def test_time_per_branch_and_stance(self):
+        r = run()
+        r["decisions"] = [{"name": "Gems close and no enemy on top yes: collect", "amount": 300}, {"name": "Boss awake yes: fight the boss", "amount": 100},
+                          {"name": "Stance: Hurt or swarmed no: stay close", "amount": 300}, {"name": "Stance: kite", "amount": 100}]
+        d = playbot.summarise([r])["decisions"]
+        self.assertEqual(d["goal"][0]["branch"], "Gems close and no enemy on top yes: collect")
+        self.assertAlmostEqual(d["goal"][0]["share"], 0.75)
+        self.assertAlmostEqual(d["stance"][0]["share"], 0.75)
+        with tempfile.TemporaryDirectory() as folder:
+            playbot.write_report(Path(folder), [r])
+            md = (Path(folder) / "report.md").read_text(encoding="utf-8")
+            self.assertIn("| Hurt or swarmed no: stay close | 75% |", md)
+
+
 class ReportTests(unittest.TestCase):
     def test_writes_markdown_and_json(self):
         with tempfile.TemporaryDirectory() as d:
