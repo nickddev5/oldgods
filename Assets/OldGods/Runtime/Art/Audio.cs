@@ -26,6 +26,8 @@ namespace OldGods.Runtime
         System.Random rng = new System.Random(5);
 
         public static float Master = 0.8f, MusicVolume = 0.6f, SfxVolume = 0.8f;
+        /// <summary>Silences the game whatever the settings say (the play bot sets it).</summary>
+        public static bool Muted;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Boot()
@@ -56,12 +58,13 @@ namespace OldGods.Runtime
             Master = s.masterVolume;
             MusicVolume = s.musicVolume;
             SfxVolume = s.sfxVolume;
-            AudioListener.volume = Master;
+            AudioListener.volume = Muted ? 0f : Master;
         }
 
         public static void Play(Sfx sfx, float volume = 1f, float pitchJitter = 0.06f)
         {
             if (instance == null) return;
+            if (Muted) return;
             instance.PlayInternal(sfx, volume, pitchJitter);
         }
 
@@ -83,7 +86,7 @@ namespace OldGods.Runtime
         /// <summary>Crossfades to a biome's drone; key is the biome id or "menu".</summary>
         public static void Music(string key)
         {
-            if (instance == null) return;
+            if (instance == null || Muted) return;
             instance.MusicInternal(key);
         }
 
