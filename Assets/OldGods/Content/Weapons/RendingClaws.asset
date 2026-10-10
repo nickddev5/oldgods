@@ -17,7 +17,7 @@ MonoBehaviour:
   Description: The beast arm rakes everything in front of you.
   Shape: 6
   Base:
-    Damage: 16
+    Damage: 19
     Cooldown: 0.9
     Count: 1
     Size: 2.6

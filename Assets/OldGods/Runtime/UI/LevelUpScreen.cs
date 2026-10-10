@@ -36,6 +36,10 @@ namespace OldGods.Runtime
         public bool IsOpen => root != null && root.gameObject.activeSelf;
         /// <summary>Test and smoke hook: picks the first card automatically.</summary>
         public static bool AutoPick;
+        /// <summary>Play-bot hook: chooses a card from the dealt options. Wins over AutoPick.</summary>
+        public static System.Func<IReadOnlyList<DraftOption>, int> Picker;
+        /// <summary>Every card taken: the options dealt and the one taken.</summary>
+        public static event System.Action<IReadOnlyList<DraftOption>, DraftOption> Taken;
 
         public static LevelUpScreen Create(PlayerCombat combat, Rng draftRng)
         {
@@ -96,6 +100,7 @@ namespace OldGods.Runtime
                 if (combat.PendingLevelUps > 0 && !ChoiceScreen.IsOpen && !ReadScreen.IsOpen && !(RunController.Instance != null && RunController.Instance.IsOver)) Open();
                 return;
             }
+            if (Picker != null) { Take(Picker(dealt)); return; }
             if (AutoPick) { Take(0); return; }
             var kb = Keyboard.current;
             if (kb != null)
@@ -135,7 +140,7 @@ namespace OldGods.Runtime
         void Deal(ICollection<string> exclude)
         {
             dealt = DraftRules.Roll(combat.Loadout, Available(combat.Content.Weapons), Available(combat.Content.Passives),
-                rng, combat.Stats.Value(StatId.Luck), 3, exclude);
+                rng, combat.Stats.Value(StatId.Luck), 3, exclude, combat.Xp.Level);
             ShowCards();
         }
 
@@ -177,7 +182,7 @@ namespace OldGods.Runtime
             if (EventSystem.current != null && cards.Count > 0) EventSystem.current.SetSelectedGameObject(cards[0].gameObject);
         }
 
-        static string KindLabel(DraftKind k) => k == DraftKind.NewWeapon ? "New Weapon" : k == DraftKind.NewPassive ? "New Passive" : "Restore";
+        static string KindLabel(DraftKind k) => k == DraftKind.NewWeapon ? "New Weapon" : k == DraftKind.NewPassive ? "New Passive" : k == DraftKind.Boon ? "Boon" : "Restore";
 
         void Choose(int index)
         {
@@ -189,7 +194,7 @@ namespace OldGods.Runtime
                     banishing = false;
                     var keep = dealt.Where((_, i) => i != index).Select(d => d.Id).ToList();
                     var replacement = DraftRules.Roll(combat.Loadout, Available(combat.Content.Weapons), Available(combat.Content.Passives),
-                        rng, combat.Stats.Value(StatId.Luck), 1, keep);
+                        rng, combat.Stats.Value(StatId.Luck), 1, keep, combat.Xp.Level);
                     dealt[index] = replacement[0];
                     ShowCards();
                 }
@@ -201,12 +206,15 @@ namespace OldGods.Runtime
         void Take(int index)
         {
             var o = dealt[Mathf.Clamp(index, 0, dealt.Count - 1)];
+            Taken?.Invoke(dealt, o);
             DraftRules.Apply(combat.Loadout, o, combat.Content.Weapons, combat.Content.Passives);
             if (o.Kind == DraftKind.Restore)
             {
                 var h = combat.GetComponent<PlayerHealth>();
-                if (h != null) h.Health.Heal(h.Health.Max * 0.3f);
+                if (h != null) h.Health.Heal(h.Health.Max * BoonRules.RestoreFraction);
             }
+            if (o.Gold > 0 && RunController.Instance != null && RunController.Instance.Economy != null)
+                RunController.Instance.Economy.Wallet.Add(o.Gold);
             combat.SyncDrivers();
             combat.RecomputeStats();
             Next();

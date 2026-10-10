@@ -20,6 +20,8 @@ namespace OldGods.Runtime
         public float JumpMultiplier = 1f;
         public int ExtraJumps;
         public bool InputEnabled = true;
+        /// <summary>Fired with the spot where the player fell out of the world, before they are put back.</summary>
+        public event System.Action<Vector3> Rescued;
 
         public bool Grounded { get; private set; }
         public bool IsSliding { get; private set; }
@@ -165,8 +167,8 @@ namespace OldGods.Runtime
 
             if (nowGrounded && !wasGrounded && fallSpeedBefore > 0f)
             {
-                float dmg = PlayerRules.FallDamage(fallSpeedBefore, t);
-                if (dmg > 0f && health != null) health.TakeTrueDamage(dmg);
+                float dmg = health != null ? PlayerRules.FallDamage(fallSpeedBefore, t, health.Health.Current) : 0f;
+                if (dmg > 0f && health != null) health.TakeTrueDamage(dmg, "Fall");
                 if (fallSpeedBefore > 4f) squash = Mathf.Max(squash, Mathf.Clamp(fallSpeedBefore * 0.012f, 0.06f, 0.22f));
             }
             if ((flags & CollisionFlags.Above) != 0 && verticalSpeed > 0f) verticalSpeed = 0f;
@@ -186,7 +188,10 @@ namespace OldGods.Runtime
 
             // Out of the world: put the player back on the ground inside the map.
             if (transform.position.y < Ground.Height(transform.position.x, transform.position.z) - 10f)
+            {
+                Rescued?.Invoke(transform.position);
                 Teleport(Ground.Snap(Ground.ClampToPlayable(transform.position, 2f)) + Vector3.up * 1.5f);
+            }
 
             if (horizontal.SqrMagnitude > 0.25f)
                 Facing = new Vector3(horizontal.X, 0f, horizontal.Z).normalized;

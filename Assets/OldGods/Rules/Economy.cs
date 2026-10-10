@@ -67,6 +67,12 @@ namespace OldGods.Rules
 
         public static int DuplicatorPrice(int paidChestsOpened, int stageIndex) => ChestPrice(paidChestsOpened, stageIndex);
 
+        /// <summary>Times a merchant restocks after a sale: it sells Restocks + 1 items in all.</summary>
+        public const int MerchantRestocks = 2;
+
+        /// <summary>Whether a merchant that has made this many sales puts out another item.</summary>
+        public static bool MerchantRestocksAfter(int sold) => sold <= MerchantRestocks;
+
         /// <summary>Gold dropped by one enemy, before Gold Gain.</summary>
         public static int GoldDrop(bool elite, int stageIndex) => (elite ? 12 : 1) * (1 + stageIndex);
 
@@ -128,7 +134,29 @@ namespace OldGods.Rules
         }
     }
 
-    public enum ShrineKind { Charge, Item, Greed, BossCurse, Challenge, Magnet }
+    public enum ShrineKind { Charge, Item, Greed, BossCurse, Challenge, Magnet, Offering }
+
+    /// <summary>
+    /// The Shrine of Offering, one per map: pay gold for a chance at an item. About half the
+    /// offerings return nothing, the price rises 40% with every offering, and the shrine goes
+    /// quiet after it has given four items (the pattern of Risk of Rain 2's Shrine of Chance).
+    /// PLACEHOLDER numbers.
+    /// </summary>
+    public static class OfferingRules
+    {
+        /// <summary>The first offering costs this fraction of the next chest's price.</summary>
+        public const float BaseFraction = 0.6f;
+        public const float PriceGrowth = 1.4f;
+        public const float PayChance = 0.5f;
+        public const int MaxItems = 4;
+
+        public static int Price(int chestPrice, int offeringsMade) =>
+            Math.Max(1, (int)Math.Round(chestPrice * BaseFraction * Math.Pow(PriceGrowth, Math.Max(0, offeringsMade))));
+
+        public static bool Pays(Rng rng) => rng.Chance(PayChance);
+
+        public static bool Spent(int itemsGiven) => itemsGiven >= MaxItems;
+    }
 
     public static class ShrineRules
     {

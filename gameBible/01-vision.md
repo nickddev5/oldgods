@@ -8,7 +8,7 @@ You are one of the old gods in the last days before the throne. Survive ~10-minu
 
 ## Pillars
 
-1. **Movement is the skill.** Weapons aim themselves; the player wins by where they run, jump and slide. A slide builds speed downhill, and jumping out of it keeps that speed in the air. Releasing jump early gives a short hop, and falls are faster than rises.
+1. **Movement is the skill.** Weapons aim themselves; the player wins by where they run, jump and slide. A slide builds speed downhill, and jumping out of it keeps that speed in the air. Releasing jump early gives a short hop, and falls are faster than rises. A long drop hurts but never kills: it leaves at least 1 health.
 2. **Every level-up is a choice.** Three options, real trade-offs, a few rerolls.
 3. **Short runs, long arc.** A run is ~30 minutes; the pantheon takes many runs to unlock.
 4. **A straight myth.** The tone is serious and spare. No meme humour.

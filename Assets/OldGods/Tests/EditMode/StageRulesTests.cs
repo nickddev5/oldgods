@@ -104,13 +104,55 @@ namespace OldGods.Tests.EditMode
             int prev = -1;
             for (float t = 0f; t < def.Duration; t += 15f)
             {
-                int n = TimelineEvaluator.TargetAlive(def, t, 0);
+                int n = TimelineEvaluator.TargetAlive(def, t, 1f);
                 Assert.GreaterOrEqual(n, prev, $"at {t}");
                 prev = n;
             }
-            Assert.Greater(TimelineEvaluator.TargetAlive(def, 100f, 2), TimelineEvaluator.TargetAlive(def, 100f, 0));
-            Assert.Greater(TimelineEvaluator.HealthMultiplier(def, 300f, 0), TimelineEvaluator.HealthMultiplier(def, 0f, 0));
-            Assert.Greater(TimelineEvaluator.HealthMultiplier(def, 0f, 1), TimelineEvaluator.HealthMultiplier(def, 0f, 0));
+            Assert.Greater(TimelineEvaluator.TargetAlive(def, 100f, Difficulty.Density(Difficulty.Coefficient(20f, 2))),
+                TimelineEvaluator.TargetAlive(def, 100f, Difficulty.Density(Difficulty.Coefficient(2f, 0))));
+        }
+
+        [Test]
+        public void DifficultyClimbsWithTimeAndStagesWithoutCap()
+        {
+            Assert.AreEqual(1f, Difficulty.Coefficient(0f, 0), 1e-5f);
+            Assert.AreEqual(1f + 5f * Difficulty.TimeRate, Difficulty.Coefficient(5f, 0), 1e-4f);
+            Assert.AreEqual((1f + 5f * Difficulty.TimeRate) * Difficulty.StageGrowth * Difficulty.StageGrowth, Difficulty.Coefficient(5f, 2), 1e-4f);
+            Assert.AreEqual(1f + 5f * Difficulty.TimeRate * 2f, Difficulty.Coefficient(5f, 0, 2f), 1e-4f, "tier scales the time rate");
+            float prev = 0f;
+            for (float m = 0f; m < 300f; m += 10f)
+            {
+                float c = Difficulty.Coefficient(m, (int)(m / 9f));
+                Assert.Greater(c, prev, $"minute {m}");
+                prev = c;
+            }
+            Assert.Greater(prev, 1000f, "no cap");
+            Assert.AreEqual(1f, Difficulty.Damage(1f), 1e-5f);
+            Assert.AreEqual(1f, Difficulty.Density(1f), 1e-5f);
+            Assert.Greater(Difficulty.Damage(3f), Difficulty.Damage(2f));
+            Assert.Greater(Difficulty.Density(3f), Difficulty.Density(2f));
+        }
+
+        [Test]
+        public void GreySteppePlaysAsBeforeAndLaterStagesClimbHarder()
+        {
+            // The old tables: health (1 + 0.18 * stage minutes) * (1 + 1.1 * stage).
+            float Old(float stageMinutes, int stage) => (1f + 0.18f * stageMinutes) * (1f + 1.1f * stage);
+            for (float m = 0f; m <= 10f; m += 1f)
+                Assert.AreEqual(Old(m, 0), Difficulty.Health(Difficulty.Coefficient(m, 0)), 0.05f, $"Steppe minute {m}");
+            // A typical run: about 8.5 minutes per stage.
+            Assert.Greater(Difficulty.Health(Difficulty.Coefficient(8.5f, 1)), Old(0f, 1), "Ash Wood starts harder");
+            Assert.Greater(Difficulty.Health(Difficulty.Coefficient(17f, 1)), Old(8.5f, 1), "Ash Wood ends harder");
+            Assert.Greater(Difficulty.Health(Difficulty.Coefficient(26f, 2)), Old(9.5f, 2), "Drowned Coast ends harder");
+            Assert.Greater(Difficulty.Health(Difficulty.Coefficient(26f, 3)), 2f * Old(0f, 3), "The Last Test's stream is tougher");
+
+            // Damage and numbers read the coefficient at stage start: 1 on the Steppe, as the old
+            // tables had; at or above the old 1 + 0.5 x stage damage from the Ash Wood on.
+            Assert.AreEqual(1f, Difficulty.Damage(Difficulty.Coefficient(0f, 0)), 1e-5f);
+            Assert.AreEqual(1f, Difficulty.Density(Difficulty.Coefficient(0f, 0)), 1e-5f);
+            Assert.GreaterOrEqual(Difficulty.Damage(Difficulty.Coefficient(8.5f, 1)), 1.5f);
+            Assert.Greater(Difficulty.Damage(Difficulty.Coefficient(17f, 2)), 2f);
+            Assert.Greater(Difficulty.Damage(Difficulty.Coefficient(26f, 3)), 2.5f);
         }
 
         [Test]
@@ -142,8 +184,10 @@ namespace OldGods.Tests.EditMode
         [Test]
         public void FinalSwarmClimbsAndPaysMore()
         {
-            Assert.Greater(FinalSwarm.TargetAlive(60f, 0), FinalSwarm.TargetAlive(0f, 0));
-            Assert.Greater(FinalSwarm.HealthMultiplier(60f, 0), FinalSwarm.HealthMultiplier(0f, 0));
+            Assert.Greater(FinalSwarm.TargetAlive(60f, 1f), FinalSwarm.TargetAlive(0f, 1f));
+            Assert.Greater(FinalSwarm.HealthMultiplier(60f, 2.8f), FinalSwarm.HealthMultiplier(0f, 2.8f));
+            // On the Grey Steppe (coefficient 2.8 at ten minutes) the swarm matches the old 1.5 + s / 20.
+            Assert.AreEqual(1.5f + 60f / 20f, FinalSwarm.HealthMultiplier(60f, Difficulty.Coefficient(10f, 0)), 0.1f);
             Assert.AreEqual(1f, FinalSwarm.SurvivalMultiplier(29f));
             Assert.AreEqual(1.25f, FinalSwarm.SurvivalMultiplier(30f));
             Assert.AreEqual(1.5f, FinalSwarm.SurvivalMultiplier(75f));
@@ -197,6 +241,23 @@ namespace OldGods.Tests.EditMode
             Assert.Greater(BossScaling.Health(def, 1, 0), BossScaling.Health(def, 0, 0));
             Assert.Greater(BossScaling.Health(def, 0, 1), BossScaling.Health(def, 0, 0));
             Assert.Greater(BossScaling.Damage(10f, 2), 10f);
+        }
+
+        [Test]
+        public void BossHealthFollowsTheDifficultyFromTheAshWoodOn()
+        {
+            var def = Def();
+            Assert.AreEqual(1f, BossScaling.DifficultyFactor(1f), 1e-5f, "never below 1");
+            Assert.AreEqual(1f, BossScaling.DifficultyFactor(BossScaling.DifficultyPivot), 1e-5f);
+            Assert.Less(BossScaling.DifficultyFactor(Difficulty.Coefficient(7f, 0)), 1.1f, "the Stone Warden stays as it was");
+            Assert.AreEqual(3f, BossScaling.DifficultyFactor(18f), 1e-4f, "about The Last Test");
+            Assert.AreEqual(BossScaling.Health(def, 2, 0) * 2f, BossScaling.Health(def, 2, 0, 8f), 1e-2f);
+            float prev = 0f;
+            for (float c = 1f; c < 100f; c += 5f)
+            {
+                Assert.GreaterOrEqual(BossScaling.DifficultyFactor(c), prev);
+                prev = BossScaling.DifficultyFactor(c);
+            }
         }
     }
 }

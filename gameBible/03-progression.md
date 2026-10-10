@@ -4,19 +4,20 @@
 
 ## In a run
 
-- **XP curve:** level n needs `5 + 4 * (n - 1) ^ 1.25` XP, rounded (PLACEHOLDER; flattened 2026-10-09 after the autoplay balance check showed level 6 at eight minutes).
+- **XP curve:** level n needs `(5 + 4 * (n - 1) ^ 1.25) * (1 + (n / 50) ^ 6)` XP, rounded (PLACEHOLDER). The first 30 levels cost what they did after the 2026-10-09 flattening; the second factor steepens after level 45 so the 64-card draft fills around the Drowned Coast (about minute 20) instead of the middle of the Ash Wood, and runs end near level 70 instead of 120 (balance pass, 2026-10-10).
 - **Level-up draft:** the game pauses and offers 3 choices: a new weapon, a new passive, or a level for one already owned.
   - Slots: 4 weapons, 4 passives (PLACEHOLDER).
   - Weapons and passives max at level 8.
   - Rarity: Common, Uncommon, Rare, Epic, Legendary, with base weights 60/25/10/4/1. An upgrade's step is multiplied by 1, 1.25, 1.6, 2 or 2.6; Epic and Legendary weapon upgrades roll two stats. Whole-number stats (count, pierce) give +1, or +2 at Epic and above. Luck multiplies each tier's weight by (1 + luck)^(1.5 x tier).
   - New weapons and passives are always Common; owned items that can still level are three times as likely to be dealt as new ones.
-  - When nothing can be dealt, a single Restore card heals 30% of max health.
+  - The draft stream depends on the run seed and the god, so two gods on one seed are dealt different cards.
+  - When nothing can be dealt, three boons are dealt instead: Restore (heal 30% of max health), Spoils (10 + 2 x level gold) and one stat boon at random: Strength (damage, cap +40%), Endurance (max health, cap +80) or Quickness (attack speed, cap +30%). Stat boons stack hyperbolically, cap x (1 - 1 / (1 + 0.1 x taken)), so they never reach the cap. Boons cannot be banished (PLACEHOLDER).
   - Charges per run: 2 Refresh (reroll all three, never dealing the same three again), 2 Skip (take nothing, gain 20% of the level's XP), 1 Banish (remove one card's item from the rest of the run and deal a replacement).
   - Controls: click, 1-3, or gamepad to pick; R / Y to refresh, Q / LB to skip, X / RB then a card to banish.
 - **Gold:** dropped by most enemies (each type has a gold chance: common foes 25%, brutes 50%, hulks and shell brutes 60%, champions always, ghosts never), 1 gold per drop times (stage + 1), 12 from elites, times Gold Gain. Spent on chests, the merchant and the duplicator. Their prompts show the price even when you cannot afford it yet. Gold is never kept between runs.
 - **Chests:** about 10 per map. The nth paid chest costs round((12 + 12 x n^1.35) x (1 + 0.25 x stage)). Bosses, cursed bosses and champions drop free chests. A chest gives one item.
 - **Items:** stack without slots; rarity weights 55/28/12/4/1 shifted by Luck. Twelve PLACEHOLDER items, all stat changes except Bloodstone (8% chance per kill to heal 2).
-- **Merchant:** one per map, sells one item (Uncommon or better) for 1.2 + 0.45 x rarity tier times the chest price.
+- **Merchant:** one per map, sells one item (Uncommon or better) for 1.2 + 0.45 x rarity tier times the chest price. It restocks after each of its first two sales, so it sells three items in all.
 - **Duplicator:** one per map, copies the last item found for the chest price, once.
 - **Drops:** common enemies drop a healing morsel (20 health) 0.6% of the time and a magnet that pulls every gem 0.15% of the time.
 - **Shrines (8 per map, each kind at least once):**
@@ -26,6 +27,7 @@
   - Curse (Boss Curse): one more boss wakes at the gate, and each boss drops a chest.
   - Challenge: calls a champion now; champions drop a chest.
   - Drawing (Magnet): pulls every gem and coin on the map to you.
+- **Shrine of Offering (one per map, besides the eight):** give gold for a chance at an item. The first offering costs 60% of the next chest's price and each one after costs 40% more; about half the offerings give nothing. It goes quiet after giving four items. The gold sink for late runs (Risk of Rain 2's Shrine of Chance pattern; PLACEHOLDER numbers).
 
 ## Between runs
 

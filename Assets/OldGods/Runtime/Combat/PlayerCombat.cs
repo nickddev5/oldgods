@@ -169,6 +169,18 @@ namespace OldGods.Runtime
         protected Color GlowColor => Asset != null ? Asset.Glow : Color.white;
         protected HordeManager Horde => HordeManager.Instance;
 
+        /// <summary>The boss to aim at from here, or -1: none in range, or a foe is too close to ignore (Targeting.AimAtBoss).</summary>
+        readonly int[] nearBoss = new int[64];
+
+        protected int BossTarget(Vector3 from, float range)
+        {
+            int boss = Horde.NearestBoss(from, range);
+            if (boss < 0) return -1;
+            // Its own buffer: callers may still be using Found.
+            int n = Horde.QueryCircle(from, Targeting.SelfDefenceRange, nearBoss);
+            return Targeting.BossToAim(boss, nearBoss, n, i => Vector3.Distance(Horde.Position(i), from));
+        }
+
         public static WeaponDriver Create(PlayerCombat owner, WeaponState state, WeaponDefinition asset)
         {
             switch (state.Def.Shape)
@@ -243,7 +255,7 @@ namespace OldGods.Runtime
             if (proj == null) return true;
             Vector3 origin = Owner.Chest;
             if (targets.Length != Mathf.Max(1, e.Count)) targets = new int[Mathf.Max(1, e.Count)];
-            int n = Horde.NearestN(origin, e.Range, targets);
+            int n = Targeting.BossFirst(targets, Horde.NearestN(origin, e.Range, targets), BossTarget(origin, e.Range));
             if (n == 0) return false;
             var info = Info(e);
             for (int k = 0; k < e.Count; k++)
@@ -324,12 +336,14 @@ namespace OldGods.Runtime
                 }
                 return true;
             }
-            int n = Horde.NearestN(Owner.transform.position, e.Range, Found);
+            int boss = BossTarget(Owner.transform.position, e.Range);
+            int n = Targeting.BossFirst(Found, Horde.NearestN(Owner.transform.position, e.Range, Found), boss);
             if (n == 0) return false;
             n = Mathf.Min(n, 24);
             for (int k = 0; k < e.Count; k++)
             {
-                int target = Found[(int)(Owner.Roll() * n) % n];
+                // The first strike goes to a boss in range; the rest scatter over the nearest foes.
+                int target = k == 0 && boss >= 0 ? boss : Found[(int)(Owner.Roll() * n) % n];
                 Queue(Horde.Position(target), delay, e);
             }
             return true;
@@ -432,7 +446,8 @@ namespace OldGods.Runtime
         protected override bool Fire(in EffectiveWeapon e)
         {
             last = e;
-            int n = Horde.NearestN(Owner.transform.position, e.Range, Found);
+            Vector3 feet = Owner.transform.position;
+            int n = Targeting.BossFirst(Found, Horde.NearestN(feet, e.Range, Found), BossTarget(feet, e.Range));
             if (n == 0) return false;
             for (int k = 0; k < e.Count; k++)
             {
@@ -523,7 +538,8 @@ namespace OldGods.Runtime
 
         protected override bool Fire(in EffectiveWeapon e)
         {
-            int first = Horde.Nearest(Owner.transform.position, e.Range);
+            Vector3 feet = Owner.transform.position;
+            int first = Targeting.Choose(Horde.Nearest(feet, e.Range), BossTarget(feet, e.Range));
             if (first < 0) return false;
             chain.Clear();
             chain.Add(first);

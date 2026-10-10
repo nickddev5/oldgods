@@ -108,6 +108,16 @@ namespace OldGods.Rules
         /// <summary>A stream for a sub-part, such as the map of stage 2.</summary>
         public Rng Stream(string name, int index) => new Rng(Value ^ Hash(name) ^ ((ulong)(uint)index * 0xD6E8FEB86659FD93UL));
 
+        /// <summary>A stream that also depends on a key, such as the god's id.</summary>
+        public Rng Stream(string name, string key) => string.IsNullOrEmpty(key) ? Stream(name) : Stream(name + "/" + key);
+
+        /// <summary>
+        /// The level-up draft. It depends on the god too: with the run seed alone, every god on
+        /// the same seed was dealt the same cards, so a weapon that seed never dealt was never
+        /// seen by any god.
+        /// </summary>
+        public Rng DraftStream(string godId) => Stream(Draft, godId);
+
         /// <summary>FNV-1a 64-bit, stable across platforms and runtimes.</summary>
         public static ulong Hash(string text)
         {

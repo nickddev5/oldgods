@@ -52,19 +52,43 @@ namespace OldGods.Rules
         public float Duration = 600f;
         public List<SpawnPhase> Phases = new List<SpawnPhase>();
         public List<StageEvent> Events = new List<StageEvent>();
-        /// <summary>Enemy health grows by this fraction per minute of stage time.</summary>
-        public float HealthPerMinute = 0.18f;
         /// <summary>Ghost enemy used for the final swarm.</summary>
         public string SwarmEnemyId = "enemy.ghost";
+    }
+
+    /// <summary>
+    /// Run-wide difficulty, shaped like Risk of Rain 2's: it climbs with every minute of the run
+    /// and jumps with every stage cleared, and it has no cap. Enemy health, damage and numbers,
+    /// the final swarm and The Last Test's stream all read it; run modifiers and Greed multiply
+    /// on top. PLACEHOLDER numbers, calibrated so the Grey Steppe plays as it did with the old
+    /// per-stage tables (health +18% per stage minute) and later stages climb harder.
+    /// Health follows the live coefficient; damage and numbers read it as it stood when the
+    /// stage began, so they step up between stages and stay flat within one (on the Grey
+    /// Steppe both stay at 1, as before; the first sweep with live damage lost more runs there).
+    /// </summary>
+    public static class Difficulty
+    {
+        /// <summary>Coefficient gained per run minute, before the tier scalar.</summary>
+        public const float TimeRate = 0.18f;
+        /// <summary>The coefficient is multiplied by this for each stage cleared.</summary>
+        public const float StageGrowth = 1.4f;
+        /// <summary>Share of the stage-start coefficient's growth that reaches enemy damage.</summary>
+        public const float DamageShare = 0.2f;
+        /// <summary>Share of the stage-start coefficient's growth that reaches how many enemies are kept alive.</summary>
+        public const float DensityShare = 0.1f;
+
+        /// <summary>(1 + runMinutes * TimeRate * tier) * StageGrowth^stagesCleared. Tier 1 is the normal time rate.</summary>
+        public static float Coefficient(float runMinutes, int stagesCleared, float tier = 1f) =>
+            (1f + Math.Max(0f, runMinutes) * TimeRate * Math.Max(0f, tier)) * (float)Math.Pow(StageGrowth, Math.Max(0, stagesCleared));
+
+        public static float Health(float coefficient) => coefficient;
+        public static float Damage(float coefficient) => 1f + DamageShare * (coefficient - 1f);
+        public static float Density(float coefficient) => 1f + DensityShare * (coefficient - 1f);
     }
 
     /// <summary>Answers "what should be happening now" for a stage timeline.</summary>
     public static class TimelineEvaluator
     {
-        /// <summary>Per-stage difficulty: later stages have more and tougher enemies.</summary>
-        public static float StageHealth(int stageIndex) => 1f + stageIndex * 1.1f;
-        public static float StageDensity(int stageIndex) => 1f + stageIndex * 0.3f;
-        public static float StageDamage(int stageIndex) => 1f + stageIndex * 0.5f;
 
         public static SpawnPhase PhaseAt(StageTimelineDef def, float t)
         {
@@ -77,19 +101,16 @@ namespace OldGods.Rules
             return last;
         }
 
-        /// <summary>Enemies to keep alive at time t, interpolated across the phase and scaled by stage.</summary>
-        public static int TargetAlive(StageTimelineDef def, float t, int stageIndex)
+        /// <summary>Enemies to keep alive at time t, interpolated across the phase and scaled by density (Difficulty.Density).</summary>
+        public static int TargetAlive(StageTimelineDef def, float t, float density)
         {
             var p = PhaseAt(def, t);
             if (p == null) return 0;
             float span = Math.Max(1f, p.End - p.Start);
             float k = Math.Max(0f, Math.Min(1f, (t - p.Start) / span));
             float alive = p.AliveFrom + (p.AliveTo - p.AliveFrom) * k;
-            return (int)Math.Round(alive * StageDensity(stageIndex));
+            return (int)Math.Round(alive * density);
         }
-
-        public static float HealthMultiplier(StageTimelineDef def, float t, int stageIndex) =>
-            (1f + def.HealthPerMinute * t / 60f) * StageHealth(stageIndex);
 
         /// <summary>Events with At in (from, to]. Call once per frame with the previous and current time.</summary>
         public static List<StageEvent> EventsBetween(StageTimelineDef def, float from, float to)
@@ -137,13 +158,17 @@ namespace OldGods.Rules
     /// <summary>The endless ghost waves after the stage clock runs out.</summary>
     public static class FinalSwarm
     {
-        /// <summary>Enemies kept alive: starts high and keeps climbing.</summary>
-        public static int TargetAlive(float secondsInSwarm, int stageIndex) =>
-            (int)Math.Round((120f + secondsInSwarm * 4f) * TimelineEvaluator.StageDensity(stageIndex));
+        /// <summary>Enemies kept alive: starts high and keeps climbing. density is Difficulty.Density.</summary>
+        public static int TargetAlive(float secondsInSwarm, float density) =>
+            (int)Math.Round((120f + secondsInSwarm * 4f) * density);
 
-        /// <summary>Ghost health climbs fast so the swarm always wins eventually.</summary>
-        public static float HealthMultiplier(float secondsInSwarm, int stageIndex) =>
-            TimelineEvaluator.StageHealth(stageIndex) * (1.5f + secondsInSwarm / 20f);
+        /// <summary>
+        /// Ghost health climbs fast so the swarm always wins eventually: the run's coefficient
+        /// (still rising with time) times a factor that starts near 0.55 and gains 1 every 55 s.
+        /// On the Grey Steppe this matches the old 1.5 + s/20.
+        /// </summary>
+        public static float HealthMultiplier(float secondsInSwarm, float coefficient) =>
+            coefficient * (0.55f + Math.Max(0f, secondsInSwarm) / 55f);
 
         /// <summary>Currency multiplier for surviving: +25% per full 30 seconds.</summary>
         public static float SurvivalMultiplier(float secondsInSwarm) => 1f + (float)Math.Floor(Math.Max(0f, secondsInSwarm) / 30f) * 0.25f;
@@ -176,7 +201,7 @@ namespace OldGods.Rules
         /// <summary>The Last Test: no clock, a thin stream of ghosts and husks around the fight.</summary>
         public static StageTimelineDef FinalArena()
         {
-            var def = new StageTimelineDef { Duration = 3600f, HealthPerMinute = 0.1f };
+            var def = new StageTimelineDef { Duration = 3600f };
             def.Phases.Add(new SpawnPhase { Start = 0f, End = 3600f, AliveFrom = 20, AliveTo = 60, Rate = 4f, Mix = { new MixEntry("enemy.ghost", 2f), new MixEntry("enemy.husk", 1f) } });
             return def;
         }

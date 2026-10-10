@@ -137,7 +137,7 @@ namespace OldGods.Runtime
             var interaction = Player.gameObject.AddComponent<InteractionDriver>();
             interaction.Player = Combat;
 
-            LevelUpScreen.Create(Combat, Seed.Stream(RunSeed.Draft));
+            LevelUpScreen.Create(Combat, Seed.DraftStream(GodId));
             new GameObject("Damage Numbers").AddComponent<DamageNumbers>();
             Hud = Hud.Create(this);
             Minimap = Minimap.Create(Hud.Root);
@@ -214,7 +214,7 @@ namespace OldGods.Runtime
 
             Player.Teleport(Ground.Snap(Vector3.zero) + Vector3.up * 0.3f);
             Camera.SnapBehind();
-            Director.Begin(Biome.Timeline, stage, Horde, Seed.Stream(RunSeed.Spawns, stage));
+            Director.Begin(Biome.Timeline, stage, Horde, Seed.Stream(RunSeed.Spawns, stage), Elapsed);
             Minimap.SetGround(field, Biome.Palette, profile.HillHeight);
             StageStarted?.Invoke(stage);
             if (final)
@@ -265,6 +265,7 @@ namespace OldGods.Runtime
             new FeatureRequest(FeatureKind.BossGate, 1, 0f),
             new FeatureRequest(FeatureKind.Merchant, 1, 0f),
             new FeatureRequest(FeatureKind.Duplicator, 1, 0f),
+            new FeatureRequest(FeatureKind.OfferingShrine, 1, 0f),
             new FeatureRequest(FeatureKind.Shrine, 8, 24f),
             new FeatureRequest(FeatureKind.Chest, 10, 22f),
             new FeatureRequest(FeatureKind.LorePickup, 1, 0f),
@@ -377,7 +378,7 @@ namespace OldGods.Runtime
             for (int i = 0; i < count; i++)
             {
                 Vector3 offset = i == 0 ? Vector3.zero : Quaternion.Euler(0f, i * 360f / count, 0f) * Vector3.forward * 10f;
-                var boss = BossController.Spawn(Biome.Boss, at + offset, StageIndex, BossCurses, Assets, Horde, Player, Seed.Stream("boss", StageIndex * 10 + i));
+                var boss = BossController.Spawn(Biome.Boss, at + offset, StageIndex, BossCurses, Director.Coefficient, Assets, Horde, Player, Seed.Stream("boss", StageIndex * 10 + i));
                 boss.Defeated += OnBossDefeated;
             }
             Announce(Biome.Boss.DisplayName, count > 1 ? $"{count} of them wake" : Biome.Boss.Epithet);

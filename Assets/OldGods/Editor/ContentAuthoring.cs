@@ -83,7 +83,7 @@ namespace OldGods.Editor
             Enemy(library, "Brute", e =>
             {
                 e.Id = "enemy.brute"; e.DisplayName = "Brute";
-                e.MaxHealth = 55f; e.MoveSpeed = 2.6f; e.Radius = 0.5f; e.ContactDamage = 9f; e.XpValue = 4; e.Scale = 1.5f;
+                e.MaxHealth = 55f; e.MoveSpeed = 2.6f; e.Radius = 0.5f; e.ContactDamage = 7f; e.XpValue = 4; e.Scale = 1.5f;
                 e.Color = new Color(0.32f, 0.3f, 0.36f); e.GoldChance = 0.5f;
             });
             Enemy(library, "Champion", e =>
@@ -308,7 +308,7 @@ namespace OldGods.Editor
                 Ups((WeaponStat.Damage, 3f), (WeaponStat.Count, 1f), (WeaponStat.Pierce, 1f), (WeaponStat.Cooldown, 0.1f)),
                 new Color(0.85f, 0.8f, 0.65f), new Color(1.6f, 1.5f, 1.1f), new Vector3(0.8f, 0.8f, 2.2f));
             Weapon(l, "RendingClaws", "weapon.rending_claws", "Rending Claws", "The beast arm rakes everything in front of you.",
-                WeaponShape.Swipe, Stats(16f, 0.9f, 1f, 2.6f, 0f, 0.18f, 140f, 3f),
+                WeaponShape.Swipe, Stats(19f, 0.9f, 1f, 2.6f, 0f, 0.18f, 140f, 3f),
                 Ups((WeaponStat.Damage, 4f), (WeaponStat.Size, 0.12f), (WeaponStat.Count, 1f), (WeaponStat.Cooldown, 0.1f)),
                 new Color(0.75f, 0.15f, 0.12f), new Color(2.2f, 0.35f, 0.25f), Vector3.one);
             Weapon(l, "FlameAura", "weapon.flame_aura", "Flame Aura", "A ring of fire burns everything close to you.",
@@ -442,6 +442,16 @@ namespace OldGods.Editor
                     EditorUtility.SetDirty(b);
                 }
                 assets.ContentVersion = 5;
+                EditorUtility.SetDirty(assets);
+            }
+            if (assets.ContentVersion < 6)
+            {
+                // Balance pass 2026-10-10: the Brute killed most early runs; the Beast's claws lagged.
+                foreach (var e in l.Enemies)
+                    if (e != null && e.Id == "enemy.brute") { e.ContactDamage = 7f; EditorUtility.SetDirty(e); }
+                foreach (var w in l.Weapons)
+                    if (w != null && w.Id == "weapon.rending_claws") { w.Base.Damage = 19f; EditorUtility.SetDirty(w); }
+                assets.ContentVersion = 6;
                 EditorUtility.SetDirty(assets);
             }
         }

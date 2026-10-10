@@ -23,6 +23,15 @@ namespace OldGods.Runtime
         public float StageDifficulty;
         /// <summary>Extra enemy density and health: 0.3 is +30%.</summary>
         public float DifficultyBonus => RunDifficulty + StageDifficulty;
+        /// <summary>Scales how fast the run's difficulty climbs with time; 1 is normal.</summary>
+        public float Tier = 1f;
+        /// <summary>Run seconds when this stage began, so the difficulty keeps the run's clock.</summary>
+        public float RunSecondsAtStart { get; private set; }
+        public float RunSeconds => RunSecondsAtStart + Elapsed;
+        /// <summary>The run-wide difficulty coefficient now (see Difficulty).</summary>
+        public float Coefficient => Difficulty.Coefficient(RunSeconds / 60f, StageIndex, Tier);
+        /// <summary>The coefficient when this stage began; damage and numbers read this one.</summary>
+        public float StageCoefficient => Difficulty.Coefficient(RunSecondsAtStart / 60f, StageIndex, Tier);
 
         public float Elapsed { get; private set; }
         public float Remaining => TimelineEvaluator.Remaining(Timeline, Elapsed);
@@ -45,8 +54,10 @@ namespace OldGods.Runtime
             if (Instance == this) Instance = null;
         }
 
-        public void Begin(StageTimelineDef timeline, int stageIndex, HordeManager horde, Rng rng)
+        /// <summary>stageIndex counts the stages cleared before this one; The Last Test follows them all.</summary>
+        public void Begin(StageTimelineDef timeline, int stageIndex, HordeManager horde, Rng rng, float runSeconds)
         {
+            RunSecondsAtStart = runSeconds;
             Timeline = timeline;
             StageIndex = stageIndex;
             Horde = horde;
@@ -65,8 +76,9 @@ namespace OldGods.Runtime
 
         int TypeIndex(string id) => id != null && typeById.TryGetValue(id, out int t) ? t : -1;
 
-        float Health() => TimelineEvaluator.HealthMultiplier(Timeline, Mathf.Min(Elapsed, Timeline.Duration), StageIndex) * (1f + DifficultyBonus);
-        float Damage() => TimelineEvaluator.StageDamage(StageIndex);
+        float Health() => Difficulty.Health(Coefficient) * (1f + DifficultyBonus);
+        float Damage() => Difficulty.Damage(StageCoefficient);
+        float Density() => Difficulty.Density(StageCoefficient);
 
         public int SpawnEnemy(string id, Vector3 at, float extraHealth = 1f)
         {
@@ -100,15 +112,15 @@ namespace OldGods.Runtime
                     Announce?.Invoke("The final swarm", "Survive, or leave through the portal");
                     FinalSwarmStarted?.Invoke();
                 }
-                Keep(FinalSwarm.TargetAlive(SwarmSeconds, StageIndex), 40f, () =>
-                    Horde.SpawnOnRing(TypeIndex(Timeline.SwarmEnemyId), FinalSwarm.HealthMultiplier(SwarmSeconds, StageIndex), 1.15f, Damage()), dt);
+                Keep(FinalSwarm.TargetAlive(SwarmSeconds, Density()), 40f, () =>
+                    Horde.SpawnOnRing(TypeIndex(Timeline.SwarmEnemyId), FinalSwarm.HealthMultiplier(SwarmSeconds, Coefficient), 1.15f, Damage()), dt);
                 return;
             }
 
             var phase = TimelineEvaluator.PhaseAt(Timeline, Elapsed);
             if (phase == null) return;
-            int target = Mathf.RoundToInt(TimelineEvaluator.TargetAlive(Timeline, Elapsed, StageIndex) * (1f + DifficultyBonus));
-            Keep(target, phase.Rate * TimelineEvaluator.StageDensity(StageIndex), () => SpawnOnRing(TimelineEvaluator.PickEnemy(phase, Rng)), dt);
+            int target = Mathf.RoundToInt(TimelineEvaluator.TargetAlive(Timeline, Elapsed, Density()) * (1f + DifficultyBonus));
+            Keep(target, phase.Rate * Density(), () => SpawnOnRing(TimelineEvaluator.PickEnemy(phase, Rng)), dt);
         }
 
         void Keep(int target, float rate, Func<int> spawn, float dt)

@@ -27,6 +27,9 @@ namespace OldGods.Runtime
         float savedScale = 1f;
 
         public static bool IsOpen => instance != null && instance.root.gameObject.activeSelf;
+        /// <summary>Play-bot hook: chooses an option. Wins over LevelUpScreen.AutoPick.</summary>
+        public static Func<IList<Option>, int> Picker;
+        IList<Option> shown;
 
         public static void Show(string title, IList<Option> options, Action<int> pick)
         {
@@ -64,6 +67,7 @@ namespace OldGods.Runtime
         void Open(string title, IList<Option> options, Action<int> pick)
         {
             onPick = pick;
+            shown = options;
             header.text = title;
             foreach (var b in buttons) Destroy(b.gameObject);
             buttons.Clear();
@@ -88,6 +92,7 @@ namespace OldGods.Runtime
         void Update()
         {
             if (!IsOpen) return;
+            if (Picker != null) { Pick(Picker(shown)); return; }
             if (LevelUpScreen.AutoPick) { Pick(0); return; }
             var kb = Keyboard.current;
             if (kb == null) return;

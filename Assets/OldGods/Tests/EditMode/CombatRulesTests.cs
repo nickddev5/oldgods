@@ -160,6 +160,15 @@ namespace OldGods.Tests.EditMode
         }
 
         [Test]
+        public void CurveSteepensLate()
+        {
+            // Early levels cost about what they did (5 + 4(l-1)^1.25); level 60 costs about four times as much.
+            int Old(int l) => (int)System.Math.Round(5.0 + 4.0 * System.Math.Pow(l - 1, 1.25));
+            for (int l = 1; l <= 25; l++) Assert.LessOrEqual(XpRules.Required(l), Old(l) * 1.02f + 1f, $"level {l}");
+            Assert.Greater(XpRules.Required(60), Old(60) * 3.5f);
+        }
+
+        [Test]
         public void TrackerCarriesOverflow()
         {
             var t = new XpTracker();
@@ -220,8 +229,9 @@ namespace OldGods.Tests.EditMode
             l.AddWeapon(weapons[0]);
             l.Weapons[0].Level = 2;
             var cards = DraftRules.Roll(l, weapons, new List<PassiveDef>(), new Rng(1), 0f);
-            Assert.AreEqual(1, cards.Count);
+            Assert.AreEqual(3, cards.Count, "three boons when nothing is left");
             Assert.AreEqual(DraftKind.Restore, cards[0].Kind);
+            Assert.IsTrue(cards.Skip(1).All(c => c.Kind == DraftKind.Boon));
 
             var l2 = new Loadout();
             var charges = new DraftCharges();
@@ -229,6 +239,43 @@ namespace OldGods.Tests.EditMode
             Assert.IsFalse(DraftRules.Banish(l2, charges, "w0"), "only one banish");
             for (int seed = 0; seed < 30; seed++)
                 Assert.IsFalse(DraftRules.Roll(l2, weapons, new List<PassiveDef>(), new Rng((ulong)seed), 0f).Any(c => c.Id == "w1"));
+        }
+
+        [Test]
+        public void DryDraftDealsRestoreGoldAndAStatBoon()
+        {
+            var l = new Loadout { WeaponSlots = 0, PassiveSlots = 0 };
+            var cards = DraftRules.Roll(l, TestContent.Weapons(2), TestContent.Passives(2), new Rng(5), 0f, 3, null, 40);
+            CollectionAssert.AreEqual(new[] { BoonRules.RestoreId, BoonRules.SpoilsId }, cards.Take(2).Select(c => c.Id));
+            Assert.AreEqual(BoonRules.SpoilsGold(40), cards[1].Gold);
+            Assert.IsTrue(BoonRules.StatBoons.Any(b => b.Id == cards[2].Id));
+            Assert.IsFalse(DraftRules.Banish(l, new DraftCharges(), cards[2].Id), "boons cannot be banished");
+
+            var refreshed = DraftRules.Roll(l, TestContent.Weapons(2), TestContent.Passives(2), new Rng(6), 0f, 3, cards.Select(c => c.Id).ToList(), 40);
+            Assert.AreEqual(2, refreshed.Count, "a refresh deals the two other stat boons");
+            Assert.IsFalse(refreshed.Any(c => cards.Any(d => d.Id == c.Id)));
+        }
+
+        [Test]
+        public void StatBoonsStackHyperbolically()
+        {
+            var b = BoonRules.StatBoons.First(x => x.Stat == StatId.Damage);
+            var l = new Loadout();
+            float prevTotal = 0f, prevStep = float.MaxValue;
+            for (int n = 1; n <= 200; n++)
+            {
+                Assert.IsTrue(DraftRules.Apply(l, new DraftOption { Kind = DraftKind.Boon, Id = b.Id }, new List<WeaponDef>(), new List<PassiveDef>()));
+                float total = BoonRules.Total(b, n);
+                Assert.Greater(total, prevTotal);
+                Assert.Less(total - prevTotal, prevStep, "each boon adds less");
+                Assert.Less(total, b.Cap, "never reaches the cap");
+                prevStep = total - prevTotal;
+                prevTotal = total;
+            }
+            Assert.AreEqual(b.Cap * (1f - 1f / (1f + b.Rate)), BoonRules.Total(b, 1), 1e-5f);
+            var s = StatBlock.Default();
+            s.ApplyAll(l.PassiveMods());
+            Assert.AreEqual(1f + BoonRules.Total(b, 200), s.Value(StatId.Damage), 1e-4f);
         }
 
         [Test]

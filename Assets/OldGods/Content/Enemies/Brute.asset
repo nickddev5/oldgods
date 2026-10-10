@@ -17,7 +17,7 @@ MonoBehaviour:
   MaxHealth: 55
   MoveSpeed: 2.6
   Radius: 0.5
-  ContactDamage: 9
+  ContactDamage: 7
   XpValue: 4
   Scale: 1.5
   GoldChance: 0.5

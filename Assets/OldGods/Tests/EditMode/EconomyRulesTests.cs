@@ -120,5 +120,33 @@ namespace OldGods.Tests.EditMode
             Assert.AreEqual(1, ShrineRules.BossesForCurses(0));
             Assert.AreEqual(3, ShrineRules.BossesForCurses(2));
         }
+
+        [Test]
+        public void OfferingPriceRisesFortyPercentPerUse()
+        {
+            Assert.AreEqual(60, OfferingRules.Price(100, 0));
+            Assert.AreEqual(84, OfferingRules.Price(100, 1));
+            Assert.AreEqual(118, OfferingRules.Price(100, 2));
+            Assert.GreaterOrEqual(OfferingRules.Price(1, 0), 1);
+        }
+
+        [Test]
+        public void AboutHalfTheOfferingsPayAndTheShrineStopsAfterFourItems()
+        {
+            var rng = new Rng(11);
+            int paid = 0;
+            for (int i = 0; i < 4000; i++) if (OfferingRules.Pays(rng)) paid++;
+            Assert.That(paid / 4000f, Is.InRange(0.45f, 0.55f));
+            Assert.IsFalse(OfferingRules.Spent(3));
+            Assert.IsTrue(OfferingRules.Spent(4));
+        }
+
+        [Test]
+        public void MerchantRestocksTwice()
+        {
+            Assert.IsTrue(EconomyRules.MerchantRestocksAfter(1));
+            Assert.IsTrue(EconomyRules.MerchantRestocksAfter(2));
+            Assert.IsFalse(EconomyRules.MerchantRestocksAfter(3));
+        }
     }
 }

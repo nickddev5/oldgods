@@ -20,6 +20,8 @@ namespace OldGods.Runtime
         public readonly HashSet<ShrineKind> ShrineKindsUsed = new HashSet<ShrineKind>();
         /// <summary>Extra gold multiplier from Greed shrines this stage.</summary>
         public float GreedGold { get; set; }
+        /// <summary>Gold offerings made at Shrines of Offering this run.</summary>
+        public int Offerings { get; set; }
 
         RunController run;
         Rng loot;

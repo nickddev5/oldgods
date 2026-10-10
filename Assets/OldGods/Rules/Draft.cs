@@ -6,7 +6,7 @@ namespace OldGods.Rules
 {
     public enum Rarity { Common, Uncommon, Rare, Epic, Legendary }
 
-    public enum DraftKind { NewWeapon, NewPassive, UpgradeWeapon, UpgradePassive, Restore }
+    public enum DraftKind { NewWeapon, NewPassive, UpgradeWeapon, UpgradePassive, Restore, Boon }
 
     /// <summary>One card in the level-up draft. Upgrades are rolled when the card is dealt, so the card can show them.</summary>
     public sealed class DraftOption
@@ -17,6 +17,8 @@ namespace OldGods.Rules
         public int NextLevel;
         public readonly List<WeaponUpgrade> WeaponRolls = new List<WeaponUpgrade>();
         public StatMod PassiveRoll;
+        /// <summary>Gold a Spoils boon pays.</summary>
+        public int Gold;
         public string Title;
         public string Description;
 
@@ -32,6 +34,10 @@ namespace OldGods.Rules
         public readonly List<WeaponState> Weapons = new List<WeaponState>();
         public readonly List<PassiveState> Passives = new List<PassiveState>();
         public readonly HashSet<string> Banished = new HashSet<string>();
+        /// <summary>Boons taken this run, by boon id.</summary>
+        public readonly Dictionary<string, int> Boons = new Dictionary<string, int>();
+
+        public int BoonCount(string id) => Boons.TryGetValue(id, out int n) ? n : 0;
 
         public WeaponState Weapon(string id) => Weapons.FirstOrDefault(w => w.Def.Id == id);
         public PassiveState Passive(string id) => Passives.FirstOrDefault(p => p.Def.Id == id);
@@ -46,10 +52,16 @@ namespace OldGods.Rules
             if (Passive(def.Id) == null) Passives.Add(new PassiveState(def));
         }
 
+        /// <summary>Every stat change from passives and from stat boons.</summary>
         public IEnumerable<StatMod> PassiveMods()
         {
             foreach (var p in Passives)
                 foreach (var m in p.Mods) yield return m;
+            foreach (var b in BoonRules.StatBoons)
+            {
+                int n = BoonCount(b.Id);
+                if (n > 0) yield return new StatMod(b.Stat, BoonRules.Total(b, n));
+            }
         }
     }
 
@@ -85,10 +97,10 @@ namespace OldGods.Rules
         /// <summary>
         /// Deals up to count distinct cards. Owned items that can still level are three times as
         /// likely as new ones. New items need a free slot and must not be banished or excluded.
-        /// When nothing is left to offer, a single Restore card is dealt.
+        /// When nothing is left to offer, small boons are dealt instead (see BoonRules).
         /// </summary>
         public static List<DraftOption> Roll(Loadout loadout, IReadOnlyList<WeaponDef> weapons, IReadOnlyList<PassiveDef> passives,
-            Rng rng, float luck, int count = 3, ICollection<string> exclude = null)
+            Rng rng, float luck, int count = 3, ICollection<string> exclude = null, int level = 1)
         {
             var candidates = new List<(DraftKind kind, string id, float weight)>();
             foreach (var w in loadout.Weapons)
@@ -117,8 +129,7 @@ namespace OldGods.Rules
                 var c = candidates[pick];
                 result.Add(Deal(c.kind, c.id, loadout, weapons, passives, rng, luck));
             }
-            if (result.Count == 0)
-                result.Add(new DraftOption { Kind = DraftKind.Restore, Id = "restore", Title = "Restore", Description = "Heal 30% of max health", Rarity = Rarity.Common });
+            if (result.Count == 0) result.AddRange(BoonRules.Deal(loadout, rng, count, level, exclude));
             return result;
         }
 
@@ -246,6 +257,9 @@ namespace OldGods.Rules
                 }
                 case DraftKind.Restore:
                     return true;
+                case DraftKind.Boon:
+                    loadout.Boons[o.Id] = loadout.BoonCount(o.Id) + 1;
+                    return true;
             }
             return false;
         }
@@ -253,20 +267,101 @@ namespace OldGods.Rules
         /// <summary>Removes an item from the rest of the run's drafts.</summary>
         public static bool Banish(Loadout loadout, DraftCharges charges, string id)
         {
-            if (charges.Banish <= 0 || string.IsNullOrEmpty(id) || id == "restore") return false;
+            if (charges.Banish <= 0 || string.IsNullOrEmpty(id) || BoonRules.IsBoon(id)) return false;
             charges.Banish--;
             loadout.Banished.Add(id);
             return true;
         }
     }
 
+    /// <summary>A stat boon: each one taken adds less, and all of them together never reach Cap.</summary>
+    public sealed class StatBoonDef
+    {
+        public string Id, Name;
+        public StatId Stat;
+        /// <summary>The most these boons can ever add, however many are taken.</summary>
+        public float Cap;
+        /// <summary>How fast the total nears Cap: total = Cap * (1 - 1 / (1 + Rate * taken)).</summary>
+        public float Rate;
+    }
+
+    /// <summary>
+    /// Small rewards dealt once every slot is full and every item maxed, so late level-ups still
+    /// count without letting the build run away. PLACEHOLDER names and numbers.
+    /// </summary>
+    public static class BoonRules
+    {
+        public const string RestoreId = "restore";
+        public const string SpoilsId = "boon.spoils";
+        public const float RestoreFraction = 0.3f;
+
+        public static readonly IReadOnlyList<StatBoonDef> StatBoons = new[]
+        {
+            new StatBoonDef { Id = "boon.strength", Name = "Strength", Stat = StatId.Damage, Cap = 0.4f, Rate = 0.1f },
+            new StatBoonDef { Id = "boon.endurance", Name = "Endurance", Stat = StatId.MaxHealth, Cap = 80f, Rate = 0.1f },
+            new StatBoonDef { Id = "boon.quickness", Name = "Quickness", Stat = StatId.AttackSpeed, Cap = 0.3f, Rate = 0.1f },
+        };
+
+        public static bool IsBoon(string id) => id == RestoreId || (id != null && id.StartsWith("boon.", StringComparison.Ordinal));
+
+        /// <summary>Hyperbolic stacking: what n of this boon add in all. Never reaches Cap.</summary>
+        public static float Total(StatBoonDef b, int taken) => taken <= 0 ? 0f : b.Cap * (1f - 1f / (1f + b.Rate * taken));
+
+        /// <summary>Gold a Spoils boon pays at this level.</summary>
+        public static int SpoilsGold(int level) => 10 + 2 * Math.Max(1, level);
+
+        /// <summary>
+        /// Up to count boons: Restore, Spoils and one stat boon at random, then the other stat
+        /// boons if more are asked for. Excluded ids are left out.
+        /// </summary>
+        public static List<DraftOption> Deal(Loadout loadout, Rng rng, int count, int level, ICollection<string> exclude = null)
+        {
+            var stats = new List<StatBoonDef>(StatBoons);
+            rng.Shuffle(stats);
+            var order = new List<DraftOption> { Restore(), Spoils(level) };
+            foreach (var b in stats) order.Add(Stat(loadout, b));
+            var dealt = order.Where(o => exclude == null || !exclude.Contains(o.Id)).Take(Math.Max(1, count)).ToList();
+            if (dealt.Count == 0) dealt.Add(Restore());
+            return dealt;
+        }
+
+        static DraftOption Restore() => new DraftOption
+        {
+            Kind = DraftKind.Restore, Id = RestoreId, Rarity = Rarity.Common,
+            Title = "Restore", Description = $"Heal {RestoreFraction * 100f:0}% of max health",
+        };
+
+        static DraftOption Spoils(int level)
+        {
+            int gold = SpoilsGold(level);
+            return new DraftOption { Kind = DraftKind.Boon, Id = SpoilsId, Rarity = Rarity.Common, Gold = gold, Title = "Spoils", Description = $"+{gold} gold" };
+        }
+
+        static DraftOption Stat(Loadout loadout, StatBoonDef b)
+        {
+            int n = loadout.BoonCount(b.Id);
+            float now = Total(b, n), next = Total(b, n + 1);
+            var step = new StatMod(b.Stat, next - now);
+            return new DraftOption
+            {
+                Kind = DraftKind.Boon, Id = b.Id, Rarity = Rarity.Common, PassiveRoll = step,
+                Title = b.Name, Description = $"{StatText.Describe(step)} ({StatText.Describe(new StatMod(b.Stat, next))} in all)",
+            };
+        }
+    }
+
     public static class XpRules
     {
-        /// <summary>XP needed to go from level to level + 1. PLACEHOLDER curve: 5 + 4 * (level - 1)^1.25.</summary>
+        /// <summary>
+        /// XP needed to go from level to level + 1. PLACEHOLDER curve:
+        /// (5 + 4 * (level - 1)^1.25) * (1 + (level / 50)^6). The second factor stays near 1 for
+        /// the first 30 levels and steepens after 45, so the 64-card draft fills around the
+        /// Drowned Coast rather than in the middle of the Ash Wood.
+        /// </summary>
         public static int Required(int level)
         {
             if (level < 1) level = 1;
-            return (int)Math.Round(5.0 + 4.0 * Math.Pow(level - 1, 1.25));
+            return (int)Math.Round((5.0 + 4.0 * Math.Pow(level - 1, 1.25)) * (1.0 + Math.Pow(level / 50.0, 6)));
         }
 
         /// <summary>XP a Skip in the draft grants: a fifth of the current level's requirement.</summary>
