@@ -44,9 +44,26 @@ After the level pass (landmarks, flow field, ground clutter), seed 1111 stage 1:
 
 **Decision (2026-10-09):** the single-threaded C# loop is far inside budget (0.44 ms for 1000 enemies), so the hot loop stays on the main thread; Jobs and Burst are not used. Re-run the probe after real enemy art and weapons land (milestones 2 and 9); revisit if horde CPU passes 4 ms at 1000.
 
-## Balance checks (autoplay bot)
+## Play bot (whole runs, report and suggestions)
 
-`python Tools/smoke.py --autoplay TestResults/autoplay.json --seed 1111 -- -speed 4` runs a simple bot through stage 1 at four times speed: it kites away from enemies and bosses, collects gems when nothing is close, takes the first draft card, and goes for the boss gate at 8:00. It is a floor, not a player: it never dodges telegraphs on purpose.
+`python Tools/playbot.py` plays whole runs in the Windows player and writes `TestResults/playbot/<time>/report.md` (and `report.json`, plus one `run-*.json` per run). Each run starts at the menu, picks the god at character select and goes through every biome, its boss and The Last Test. The bot explores, kites the horde, collects gems and gold, opens chests it can afford, uses Charge, Gifts and Drawing shrines, buys from the merchant, reads lore stones, wakes each boss at 70% of the stage clock (later if below half health) (`-botBossAt`), circles bosses at its weapons' reach, steps out of telegraphed circles and charge lines, jumps shockwaves and steps, slides out of crowds and down long slopes, and walks round walls. It knows where the gate is; everything else it must find.
+
+Its choices come from two decision trees in `Rules/BotTree.cs` (`BotTrees`, tested in `BotTreeTests`), asked every 0.4 s. Thresholds are PLACEHOLDER.
+
+- **Goal tree (where to go):** in The Last Test, fight the last boss. If a boss is awake, fight it. If the boss is down, open its free chest, then take the portal. Below 30% health, recover (safe gems, else open ground in the middle). At 70% of the stage clock, with the gate usable and health at least half (or the final swarm close), wake the boss. Otherwise use a wanted feature (charge shrines by standing in the ring), collect gems when no enemy is on top, or explore.
+- **Stance tree (how to treat the horde):** holding a close-range weapon (base reach under 5 m: Rending Claws, Flame Aura, Hammer Orbit, Bone Ring), the bot stays close to the nearest enemy at about two thirds of that weapon's reach, with extra room for champions, and fights bosses from just outside their body. It backs off to kiting below half health or with four enemies touching it. With only ranged weapons it kites.
+
+The report's "How the bot spent its time" tables give the share of play time on each branch, so a change to the trees shows up in the numbers.
+
+- `python Tools/playbot.py`: every god in the game data (asked from the player, so new gods are picked up), seeds 1111 and 2222, all content unlocked.
+- `--gods god.storm,god.forge --seeds 1111,2222,3333` or `--runs 4`; `--jobs 2` runs two players at once.
+- `--campaign 8`: eight runs on one fresh save; between runs the bot spends Embers (next god first, then the cheapest unlock or powerup with what is left above the next god's price) and plays its newest god.
+- `--picks smart|first|random`: smart weighs card kind and rarity with a seeded tie-break, so seeds try different builds.
+- `--summarise DIR` rebuilds the report from saved runs.
+
+Runs go faster than real time: the player steps the game a fixed 1/30 s per frame (`--step`) without waiting for the clock, so the speed-up is the frame rate over 30. Reports carry time per stage, deaths and what killed the bot, damage taken by source (each boss attack by name), level-up offers and picks, win rate per god and weapon, weapon damage shares, chests, shrines, gold, Embers, stuck spots, falls out of the world, jumps, slides, dodges and frame rate. The suggestions are plain rules over those numbers (a boss that kills most runs, a stage that never hurts, a weapon never offered or doing little damage, a god far behind the others, repeated stuck spots, holes in the ground, 1% lows under 30 fps, unspent gold, runs needed to unlock every god); they point at things to look at, not decisions.
+
+The bot is a steady player, not a skilled one: read its numbers as a floor. `python Tools/smoke.py --autoplay TestResults/autoplay.json --seed 1111` still runs the old stage-1 check (the same bot, first card, stopping after stage 1). The table below is from the earlier, simpler stage-1 bot.
 
 | Date | Change | Seed | Result |
 |---|---|---|---|
