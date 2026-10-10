@@ -144,7 +144,7 @@ namespace OldGods.Runtime
             if (string.IsNullOrEmpty(report.god)) { report.god = run.GodId ?? ""; report.godName = run.God != null ? run.God.Name : ""; }
             if (report.content.gods.Count == 0) Catalogue(run.Content);
             report.seed = run.Seed.ToString();
-            draftRng = run.Seed.Stream("playbot.draft");
+            draftRng = run.Seed.Stream("playbot.draft", run.GodId);
             moveRng = run.Seed.Stream("playbot.move");
             run.PlayerHealth.Hurt += OnHurt;
             run.Player.Rescued += OnRescued;

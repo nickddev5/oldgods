@@ -137,7 +137,7 @@ namespace OldGods.Runtime
             var interaction = Player.gameObject.AddComponent<InteractionDriver>();
             interaction.Player = Combat;
 
-            LevelUpScreen.Create(Combat, Seed.Stream(RunSeed.Draft));
+            LevelUpScreen.Create(Combat, Seed.DraftStream(GodId));
             new GameObject("Damage Numbers").AddComponent<DamageNumbers>();
             Hud = Hud.Create(this);
             Minimap = Minimap.Create(Hud.Root);
