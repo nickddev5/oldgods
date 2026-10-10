@@ -78,20 +78,16 @@ namespace OldGods.Runtime
             Destroy(gods.gameObject);
 
             // Poses, side on: standing, two moments of the run, the jump and the slide.
-            var poses = new GameObject("Poses").transform;
             var posed = new (float phase, float swing, float air, float slide)[] { (0f, 0.02f, 0f, 0f), (1.57f, 0.2f, 0f, 0f), (4.71f, 0.2f, 0f, 0f), (0f, 0.03f, 1f, 0f), (0f, 0.03f, 0f, 1f) };
-            for (int i = 0; i < posed.Length; i++)
+            yield return Poses(cam, white, GodLook.Storm, posed, 90f, "poses");
+            if (System.Enum.TryParse<GodLook>(CommandLine.Value("-galleryTurn"), out var walker))
             {
-                var go = WorldBuilder.CreateProp($"Pose {i}", GodModels.Get(GodLook.Storm), white, new Vector3((i - 2) * 1.3f, posed[i].slide > 0f ? -0.32f : 0f, 0f), Quaternion.Euler(posed[i].slide > 0f ? -16f : 0f, 90f, 0f), Vector3.one, poses, false);
-                var block = new MaterialPropertyBlock();
-                block.SetFloat("_AnimPhase", posed[i].phase);
-                block.SetFloat("_WalkSwing", posed[i].swing);
-                block.SetFloat("_AirPose", posed[i].air);
-                block.SetFloat("_SlidePose", posed[i].slide);
-                go.GetComponent<MeshRenderer>().SetPropertyBlock(block);
+                // A full stride of that god at run swing, side on and from the front quarter, then the jump and slide.
+                var stride = new (float, float, float, float)[] { (0f, 0.2f, 0f, 0f), (1.05f, 0.2f, 0f, 0f), (2.1f, 0.2f, 0f, 0f), (3.14f, 0.2f, 0f, 0f), (4.19f, 0.2f, 0f, 0f) };
+                yield return Poses(cam, white, walker, stride, 90f, $"walk_{walker}_side");
+                yield return Poses(cam, white, walker, stride, 150f, $"walk_{walker}_front");
+                yield return Poses(cam, white, walker, posed, 90f, $"poses_{walker}");
             }
-            yield return Shoot(cam, new Vector3(0f, 1.1f, -9f), new Vector3(0f, 0.9f, 0f), "poses");
-            Destroy(poses.gameObject);
 
             var enemies = new GameObject("Enemies").transform;
             int n = System.Enum.GetValues(typeof(EnemyModel)).Length;
@@ -120,6 +116,24 @@ namespace OldGods.Runtime
 
             yield return new WaitForSecondsRealtime(0.5f);
             Application.Quit(0);
+        }
+
+        /// <summary>A row of one god in shader poses (phase, swing, air, slide), turned to yaw, then a screenshot.</summary>
+        IEnumerator Poses(Camera cam, Material white, GodLook look, (float phase, float swing, float air, float slide)[] posed, float yaw, string name)
+        {
+            var poses = new GameObject("Poses").transform;
+            for (int i = 0; i < posed.Length; i++)
+            {
+                var go = WorldBuilder.CreateProp($"Pose {i}", GodModels.Get(look), white, new Vector3((i - 2) * 1.3f, posed[i].slide > 0f ? -0.32f : 0f, 0f), Quaternion.Euler(posed[i].slide > 0f ? -16f : 0f, yaw, 0f), Vector3.one, poses, false);
+                var block = new MaterialPropertyBlock();
+                block.SetFloat("_AnimPhase", posed[i].phase);
+                block.SetFloat("_WalkSwing", posed[i].swing);
+                block.SetFloat("_AirPose", posed[i].air);
+                block.SetFloat("_SlidePose", posed[i].slide);
+                go.GetComponent<MeshRenderer>().SetPropertyBlock(block);
+            }
+            yield return Shoot(cam, new Vector3(0f, 1.1f, -9f), new Vector3(0f, 0.9f, 0f), name);
+            Destroy(poses.gameObject);
         }
 
         IEnumerator Shoot(Camera cam, Vector3 from, Vector3 at, string name)

@@ -25,6 +25,8 @@ namespace OldGods.Runtime
         {
             var p = f.P;
             Color fur = p.Metal * 0.96f, bone = p.Metal, stripe = p.Metal * 0.9f;
+            // The beast arm is too heavy to bend at the elbow; it swings whole from the shoulder.
+            f.RigidLeftArm = true;
             f.Body(p.Cloth2, p.Skin, p.Skin).Face();
             BeastMuscles(f, stripe);
             BeastLegs(f, fur, bone);
@@ -107,9 +109,10 @@ namespace OldGods.Runtime
                 k.Smooth = false;
                 // Fur cuff at the ankle.
                 k.Ball(ankle + new Vector3(0f, 0.035f, 0f), new Vector3(0.105f, 0.05f, 0.105f), fur, 9, 4, null, 0.22f, side + 3);
-                // Knee guard: a fur pad, a bone plate, and a gold spike on the right knee.
-                k.Ball(knee + new Vector3(0f, 0.03f, 0.075f), new Vector3(0.1f, 0.085f, 0.07f), fur, 8, 4, null, 0.2f, side + 7);
-                var plate = knee + new Vector3(0f, 0.025f, 0.13f);
+                // Knee guard: a fur pad, a bone plate, and a gold spike on the right knee. It sits just
+                // below the knee bend so it turns with the shin in one piece instead of folding.
+                k.Ball(knee + new Vector3(0f, -0.075f, 0.07f), new Vector3(0.1f, 0.075f, 0.07f), fur, 8, 4, null, 0.2f, side + 7);
+                var plate = knee + new Vector3(0f, -0.085f, 0.12f);
                 k.Block(plate, new Vector3(0.11f, 0.12f, 0.045f), bone, 0.5f, Quaternion.Euler(-10f, 0f, 0f));
                 if (left) k.Gem(plate + new Vector3(0f, 0f, 0.03f), new Vector3(0.02f, 0.03f, 0.015f), bone * 0.9f);
                 else k.Limb(plate + new Vector3(0f, 0.01f, 0.02f), plate + new Vector3(0f, 0.04f, 0.11f), 0.026f, 0f, p.Trim, 5);
@@ -382,7 +385,7 @@ namespace OldGods.Runtime
             var k = f.Kit;
             bool smooth = k.Smooth;
             k.Smooth = false;
-            f.ArmPart(true);
+            k.Body(); // rests on the mantle, steady while the arm swings
             var rot = Quaternion.LookRotation(new Vector3(-0.8f, -0.1f, 0.6f).normalized, Vector3.up);
             var s = f.ShoulderL + new Vector3(-0.07f, 0.12f, 0.01f);
             Vector3 At(float x, float y, float z) => s + rot * new Vector3(x, y, z);
